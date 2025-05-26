@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: detector
+  namespace: monitoring              # must match your Prometheus installation namespace
+  labels:
+    release: kube-prom               # match the “release” label of your Prometheus chart
+spec:
+  selector:
+    matchLabels:
+      app: detector                  # the same label you put on the Service
+  namespaceSelector:
+    matchNames:
+      - demo                         # where your detector Service lives
+  endpoints:
+    - port: http-metrics             # name of the port in the Service
+      path: /metrics
+      interval: 15s
