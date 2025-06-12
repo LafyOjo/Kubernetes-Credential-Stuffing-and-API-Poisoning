@@ -1,36 +1,24 @@
-# app/main.py (or your primary FastAPI application file)
-
+# app/main.py
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
-# Assuming your alerts router is in app.api.alerts
-from app.api import alerts # Import your alerts router correctly
+from app.api.score import router as score_router
+from app.api.alerts import router as alerts_router
 
-app = FastAPI()
+app = FastAPI(title="Credential-Stuffing Detector")
 
-# --- CORS Configuration ---
-origins = [
-    "http://localhost:3000",  # Your frontend application's origin
-    # Add other allowed origins for production here, e.g.,
-    # "https://your-production-frontend.com",
-]
-
+# DEVELOPMENT: allow your React dev server to talk to FastAPI
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:3000"],  # or ["*"] to cover everything
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# --- End CORS Configuration ---
 
-# Include your API routers here in the main application file
-app.include_router(alerts.router)
+app.include_router(score_router)    # your /score endpoint
+app.include_router(alerts_router)   # your /api/alerts endpoint
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the FastAPI application!"}
-
-# To run this application, navigate to your backend directory in the terminal
-# and execute:
-# uvicorn app.main:app --reload --port 8001
+@app.get("/ping")
+def ping():
+    return {"message": "pong"}
