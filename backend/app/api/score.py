@@ -1,6 +1,7 @@
 # backend/app/api/score.py
 
 from typing import Any, Dict
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
