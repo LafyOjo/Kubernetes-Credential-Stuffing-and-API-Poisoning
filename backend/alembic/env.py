@@ -13,6 +13,7 @@ if config.config_file_name is not None:
 # Import SQLAlchemy models so Alembic can detect them
 from app.core.db import Base
 from app.models.alerts import Alert
+from app.models.users import User
 
 # Metadata for 'autogenerate' support
 target_metadata = Base.metadata

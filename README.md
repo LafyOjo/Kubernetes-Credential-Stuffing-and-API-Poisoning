@@ -62,3 +62,11 @@ Otherwise it records the failure and returns `{"status": "ok"}`. A successful re
 ## JWT authentication
 
 Posting valid credentials to `/login` returns a JWT access token. Protected routes such as `/api/alerts` require including this token in the `Authorization: Bearer <token>` header. Token creation and verification happen in `app.core.security`.
+
+## User registration
+
+Send a POST request to `/register` with a JSON body containing `username` and `password` to create an account. Passwords are stored as SHA-256 hashes. After registering, obtain a token from `/login` and include it in `Authorization` headers when calling secured APIs.
+
+## CORS configuration
+
+The backend allows cross-origin requests from `http://localhost:3000` so the React frontend can make authenticated calls without being blocked by the browser's same-origin policy.
