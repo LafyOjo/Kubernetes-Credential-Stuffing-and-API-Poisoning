@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const ALERT_THRESHOLD = 5;
+
 export default function ScoreForm({ onNewAlert }) {
   const [ip, setIp] = useState("");
   const [result, setResult] = useState("success");
