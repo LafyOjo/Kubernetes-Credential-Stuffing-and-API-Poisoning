@@ -4,7 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 
 # Assuming your alerts router is in app.api.alerts
-from app.api import alerts # Import your alerts router correctly
+from app.api import alerts
+from app.api import auth
 
 app = FastAPI()
 
@@ -25,6 +26,7 @@ app.add_middleware(
 # --- End CORS Configuration ---
 
 # Include your API routers here in the main application file
+app.include_router(auth.router)
 app.include_router(alerts.router)
 
 @app.get("/")

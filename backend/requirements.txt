@@ -3,3 +3,4 @@ uvicorn
 prometheus_client
 sqlalchemy
 alembic
+pyjwt
