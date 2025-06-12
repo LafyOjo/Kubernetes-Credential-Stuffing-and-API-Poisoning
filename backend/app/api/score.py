@@ -1,38 +1,86 @@
-from fastapi import APIRouter, HTTPException, Request
-from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
-from fastapi.responses import Response
-import time
+# backend/app/api/score.py
 
-router = APIRouter()
+from typing import Any, Dict
+from fastapi import APIRouter, Depends, HTTPException
+from prometheus_client import Counter
+from sqlalchemy.orm import Session
 
-# Prometheus counters
-ATTEMPTS = Counter("login_attempts_total", "Total login attempts", ["ip"])
-BLOCKED  = Counter("login_blocked_total",  "Total blocked attempts", ["ip"])
+from app.core.db import SessionLocal
+from app.models.alerts import Alert
 
-# in-memory store: ip -> [(timestamp1), (timestamp2), ...]
-failures = {}
+router = APIRouter(
+    prefix="",            # no /api prefix for /score
+    tags=["score"],
+    responses={404: {"description": "Not Found"}},
+)
 
-@router.post("/score")
-async def score(request: Request):
-    data = await request.json()
-    ip  = data.get("client_ip")
-    auth = data.get("auth_result", "").lower()
+# Prometheus counter for total login attempts, labeled by IP
+LOGIN_ATTEMPTS = Counter(
+    "login_attempts_total",
+    "Total login attempts",
+    ["ip"],
+)
 
-    # record attempt
-    ATTEMPTS.labels(ip=ip).inc()
-    now = time.time()
-    # keep only the last 60s of failures
-    failures.setdefault(ip, []).append(now)
-    failures[ip] = [ts for ts in failures[ip] if now - ts < 60]
 
-    # decide block: >5 fails in last minute
-    if auth != "success" and len(failures[ip]) > 5:
-        BLOCKED.labels(ip=ip).inc()
-        raise HTTPException(status_code=403, detail="Blocked: too many failures")
+def get_db():
+    """
+    Provide a SQLAlchemy Session for each request, then close it.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-    return {"status": "ok", "fails_last_minute": len(failures[ip])}
 
-@router.get("/metrics")
-async def metrics():
-    data = generate_latest()
-    return Response(data, media_type=CONTENT_TYPE_LATEST)
+@router.post("/score", response_model=Dict[str, Any])
+def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
+    """
+    Expect JSON body: { "client_ip": "10.0.0.1", "auth_result": "failure" or "success" }.
+    Always increment the Prometheus counter. If “failure”, record a row in the alerts
+    table and possibly block if there are ≥5 failures in the last minute.
+    """
+    client_ip = payload.get("client_ip")
+    auth_result = payload.get("auth_result")
+
+    if client_ip is None or auth_result not in ("success", "failure"):
+        raise HTTPException(status_code=422, detail="Invalid payload")
+
+    # 1) Increment Prometheus counter for every attempt.
+    LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+
+    # 2) If it’s a failure, check how many failures in the last minute.
+    if auth_result == "failure":
+        one_minute_ago = Alert.one_minute_ago()
+        fail_count = (
+            db.query(Alert)
+              .filter(Alert.ip_address == client_ip)
+              .filter(Alert.timestamp >= one_minute_ago)
+              .count()
+        )
+
+        if fail_count >= 5:
+            # Already 5 fails in last minute → block and insert an “alert” row
+            alert = Alert(
+                ip_address=client_ip,
+                total_fails=fail_count + 1,
+                detail="Blocked: too many failures",
+            )
+            db.add(alert)
+            db.commit()
+            db.refresh(alert)
+            return {"status": "blocked", "fails_last_minute": fail_count + 1}
+
+        # Otherwise, just record this failure normally
+        alert = Alert(
+            ip_address=client_ip,
+            total_fails=fail_count + 1,
+            detail="Failed login",
+        )
+        db.add(alert)
+        db.commit()
+        db.refresh(alert)
+        return {"status": "ok", "fails_last_minute": fail_count + 1}
+
+    # 3) On success, we do not create an alert row (but we already counted in Prometheus).
+    return {"status": "ok", "fails_last_minute": 0}
