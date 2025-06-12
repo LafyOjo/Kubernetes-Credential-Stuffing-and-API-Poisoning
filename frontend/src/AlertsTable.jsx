@@ -21,11 +21,11 @@ export default function AlertsTable({ refresh, token }) {
     loadAlerts();
   }, [refresh]);
 
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (error) return <p className="error-text">{error}</p>;
   if (alerts.length === 0) return <p>No alerts yet.</p>;
 
   return (
-    <table>
+    <table className="alerts-table">
       <thead>
         <tr>
           <th>ID</th>
