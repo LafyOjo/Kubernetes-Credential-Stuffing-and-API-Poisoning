@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
-export default function AlertsTable({ refresh }) {
+export default function AlertsTable({ refresh, token }) {
   const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState(null);
 
   const loadAlerts = async () => {
     try {
-      const resp = await fetch("http://localhost:8001/api/alerts");
+      const resp = await fetch("http://localhost:8001/api/alerts", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {
