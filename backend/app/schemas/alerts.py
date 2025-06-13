@@ -12,3 +12,9 @@ class AlertRead(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class AlertStat(BaseModel):
+    time: datetime
+    invalid: int
+    blocked: int

@@ -59,6 +59,13 @@ Every call increments the `login_attempts_total` Prometheus counter labelled by 
 
 Otherwise it records the failure and returns `{"status": "ok"}`. A successful result simply records the metric.
 
+## `/api/alerts/stats` endpoint
+
+Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`.
+The response is a list of objects containing the minute, how many invalid
+credential attempts occurred, and how many times blocking was triggered.
+These stats power the dashboard chart.
+
 ## JWT authentication
 
 Posting valid credentials to `/login` returns a JWT access token. Protected routes such as `/api/alerts` require including this token in the `Authorization: Bearer <token>` header. Token creation and verification happen in `app.core.security`.
