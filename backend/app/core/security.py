@@ -1,7 +1,9 @@
 import os
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-me")
 ALGORITHM = "HS256"
@@ -25,6 +27,27 @@ def get_current_user(
             detail="Invalid token",
         )
     return payload.get("sub")
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to enforce JWT authentication on every request."""
+
+    async def dispatch(self, request: Request, call_next):
+        allowed_paths = {"/login", "/register", "/score", "/"}
+        if request.url.path in allowed_paths:
+            return await call_next(request)
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return JSONResponse(status_code=401, content={"detail": "Not authenticated"})
+        scheme, _, token = auth_header.partition(" ")
+        if scheme.lower() != "bearer" or not token:
+            return JSONResponse(status_code=401, content={"detail": "Invalid token"})
+        try:
+            jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        except jwt.PyJWTError:
+            return JSONResponse(status_code=401, content={"detail": "Invalid token"})
+        return await call_next(request)
 
 import hashlib
 
