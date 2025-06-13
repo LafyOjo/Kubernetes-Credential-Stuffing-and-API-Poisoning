@@ -55,6 +55,31 @@ npm start
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
+## Credential Stuffing Simulation
+
+1. Start the React application:
+
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+   The dashboard will be served at <http://localhost:3000>.
+
+2. Log in and locate the **Credential Stuffing Simulation** section. Click
+   **Send Attempt** multiple times to generate failed login requests against the
+   backend. The UI displays how many attempts were blocked once the detection
+   threshold is reached.
+
+For command-line testing there is also a standalone script:
+
+```bash
+python scripts/stuffing.py --help
+```
+
+Use this CLI tool to perform the same attack without the React UI.
+
 ## Running with Kubernetes
 
 ### Prerequisites
