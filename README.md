@@ -114,6 +114,7 @@ and illustrates how using token-based authentication blocks the attack.
 
    ```bash
    kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
+   kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```

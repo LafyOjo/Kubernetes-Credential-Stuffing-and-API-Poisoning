@@ -8,3 +8,4 @@ passlib[bcrypt]
 httpx
 pydantic-settings
 python-multipart
+requests
