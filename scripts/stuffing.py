@@ -30,6 +30,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
         ip = "10.0.0.1"
         user = "alice"
 
+        token = None
         if use_jwt:
             login_resp = requests.post(
                 "http://localhost:8001/api/token",
@@ -56,7 +57,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
         score_payload = {
             "client_ip": ip,
             "auth_result": "success" if login_ok else "failure",
-            "with_jwt": use_jwt,
+            "with_jwt": bool(token),
         }
 
         try:
