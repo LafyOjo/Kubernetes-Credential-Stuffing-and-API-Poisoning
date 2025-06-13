@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 # Assuming your alerts router is in app.api.alerts
 from app.api import alerts
 from app.api import auth
+from app.api import score
 from app.core.security import AuthMiddleware
 
 app = FastAPI()
@@ -32,6 +33,7 @@ app.add_middleware(AuthMiddleware)
 # Include your API routers here in the main application file
 app.include_router(auth.router)
 app.include_router(alerts.router)
+app.include_router(score.router)
 
 @app.get("/")
 def read_root():
