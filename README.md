@@ -73,6 +73,7 @@ The React application will be available at [http://localhost:3000](http://localh
    ```
 
    This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
+   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml`.
 
 2. Build the detector image and deploy it to the cluster:
 
