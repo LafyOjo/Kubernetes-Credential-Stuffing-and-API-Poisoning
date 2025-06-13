@@ -3,6 +3,7 @@ import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import AlertsChart from "./AlertsChart";
 import LoginForm from "./LoginForm";
+import AttackSim from "./AttackSim";
 import "./App.css";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />
+      <AttackSim />
     </div>
   );
 }
