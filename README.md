@@ -121,11 +121,17 @@ These stats power the dashboard chart.
 
 ## JWT authentication
 
-Posting valid credentials to `/login` returns a JWT access token. Protected routes such as `/api/alerts` require including this token in the `Authorization: Bearer <token>` header. Token creation and verification happen in `app.core.security`.
+Send a `POST` request to `/login` with a JSON body containing a `username` and `password`. If the credentials are valid the response will include a JWT access token:
+
+```json
+{"access_token": "<token>", "token_type": "bearer"}
+```
+
+Include this token in the `Authorization: Bearer <token>` header when calling protected routes such as `/api/alerts`. Token creation and verification happen in `app.core.security`.
 
 ## User registration
 
-Send a POST request to `/register` with a JSON body containing `username` and `password` to create an account. Passwords are stored as SHA-256 hashes. After registering, obtain a token from `/login` and include it in `Authorization` headers when calling secured APIs.
+Create an account by sending a `POST` request to `/register` with JSON fields `username` and `password`. The password is securely hashed before storing in the database. After registering, obtain a token from `/login` and include it in `Authorization` headers when calling secured APIs.
 
 ## CORS configuration
 
