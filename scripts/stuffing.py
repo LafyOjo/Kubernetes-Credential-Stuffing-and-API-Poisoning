@@ -1,7 +1,6 @@
 # scripts/stuffing.py
 
 import requests
-import random
 import itertools
 import time
 import argparse
@@ -35,28 +34,34 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
         user = "alice"
 
         token = None
-        if use_jwt:
-            login_resp = requests.post(
-                "http://localhost:8001/api/token",
-                data={"username": user, "password": pwd},
-                timeout=3,
-            )
-            token = login_resp.json().get("access_token") if login_resp.status_code == 200 else None
-            login_ok = login_resp.status_code == 200
-            if token:
-                requests.get(
-                    "http://localhost:8001/api/alerts",
-                    headers={"Authorization": f"Bearer {token}"},
+        login_ok = False
+        try:
+            if use_jwt:
+                login_resp = requests.post(
+                    "http://localhost:8001/api/token",
+                    data={"username": user, "password": pwd},
                     timeout=3,
                 )
-        else:
-            login_resp = requests.post(
-                "http://localhost:8080/login",
-                json={"username": user, "password": pwd},
-                headers={"X-Forwarded-For": ip},
-                timeout=3,
-            )
-            login_ok = login_resp.status_code == 200
+                login_ok = login_resp.status_code == 200
+                token = login_resp.json().get("access_token") if login_ok else None
+                if token:
+                    requests.get(
+                        "http://localhost:8001/api/alerts",
+                        headers={"Authorization": f"Bearer {token}"},
+                        timeout=3,
+                    )
+            else:
+                login_resp = requests.post(
+                    "http://localhost:8080/login",
+                    json={"username": user, "password": pwd},
+                    headers={"X-Forwarded-For": ip},
+                    timeout=3,
+                )
+                login_ok = login_resp.status_code == 200
+        except requests.RequestException as exc:
+            print("LOGIN ERROR:", exc)
+            login_ok = False
+            token = None
 
         score_payload = {
             "client_ip": ip,
@@ -70,9 +75,10 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
                 json=score_payload,
                 timeout=3,
             )
+            score_resp.raise_for_status()
             if score_resp.json().get("status") == "blocked":
                 blocked += 1
-        except Exception as e:
+        except requests.RequestException as e:
             print("SCORE ERROR:", e)
 
         if login_ok:
@@ -84,11 +90,12 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
+                    resp.raise_for_status()
                     data = resp.json()
                     if first_user_info is None:
                         first_user_info = data
                         print(f"Retrieved user data: {data}")
-                except Exception as e:
+                except requests.RequestException as e:
                     print("USER INFO ERROR:", e)
 
         time.sleep(1 / rate_per_sec)
