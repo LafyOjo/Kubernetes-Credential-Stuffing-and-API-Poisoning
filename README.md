@@ -138,3 +138,13 @@ Create an account by sending a `POST` request to `/register` with JSON fields `u
 ## CORS configuration
 
 The backend allows cross-origin requests from `http://localhost:3000` so the React frontend can make authenticated calls without being blocked by the browser's same-origin policy.
+
+## Running the tests
+
+The unit tests live in `backend/tests`. Install the backend requirements before
+executing them:
+
+```bash
+pip install -r backend/requirements.txt
+pytest
+```
