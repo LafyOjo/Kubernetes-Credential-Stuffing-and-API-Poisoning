@@ -3,7 +3,7 @@ uvicorn
 prometheus_client
 sqlalchemy
 alembic
-python-jose[cryptography] 
+python-jose[cryptography]
 passlib[bcrypt]
-JWT encode/decode
-hashing passwords
+httpx
+pydantic-settings
