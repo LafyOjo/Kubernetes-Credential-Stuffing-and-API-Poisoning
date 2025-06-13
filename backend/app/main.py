@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware # Import CORSMiddleware
 # Assuming your alerts router is in app.api.alerts
 from app.api import alerts
 from app.api import auth
+from app.core.security import AuthMiddleware
 
 app = FastAPI()
 
@@ -23,6 +24,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Enforce authentication on all endpoints except login, register, and score
+app.add_middleware(AuthMiddleware)
 # --- End CORS Configuration ---
 
 # Include your API routers here in the main application file
