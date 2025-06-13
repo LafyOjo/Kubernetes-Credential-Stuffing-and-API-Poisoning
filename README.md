@@ -2,6 +2,19 @@
 
 This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
 
+## Configuration
+
+The backend reads environment variables from a `.env` file on startup. If
+`SECRET_KEY` is not set, `backend/app/core/security.py` falls back to the
+placeholder value `"change-me"`.
+
+Example `.env`:
+
+```env
+DATABASE_URL=sqlite:///./app.db
+SECRET_KEY=super-secret-key
+```
+
 ## Running the backend
 
 1. Create and activate a virtual environment and install the requirements:
@@ -13,11 +26,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Configure the database by creating a `.env` file in `backend/`:
-
-```env
-DATABASE_URL=sqlite:///./app.db
-```
+2. Create a `.env` file in `backend/` as shown in the **Configuration** section.
 
 3. Run Alembic migrations to create the `alerts` table:
 
@@ -25,9 +34,12 @@ DATABASE_URL=sqlite:///./app.db
 alembic upgrade head
 ```
 
-4. Start the API server:
+4. Load the variables from `.env` and start the API server:
 
 ```bash
+set -a
+source .env
+set +a
 uvicorn app.main:app --reload --port 8001
 ```
 
