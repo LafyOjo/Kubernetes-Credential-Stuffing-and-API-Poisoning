@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
 
-from app.core.db import SessionLocal
+from app.core.db import get_db
 from app.models.alerts import Alert
 
 router = APIRouter(
@@ -41,17 +41,6 @@ STUFFING_DETECTIONS = Counter(
     "Detected credential stuffing attempts",
     ["ip"],
 )
-
-
-def get_db():
-    """
-    Provide a SQLAlchemy Session for each request, then close it.
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/score", response_model=Dict[str, Any])
