@@ -22,21 +22,37 @@ pool = itertools.cycle(passwords)
 
 
 def attack(rate_per_sec=10, attempts=50, use_jwt=False):
-    """Send repeated login attempts and report detection results."""
+    """Send repeated login attempts and report detection results.
+
+    The function now also tracks how many attempts it took for the first
+    successful login and how much time elapsed until that success.  This
+    helps demonstrate how quickly a credential stuffing attack can succeed
+    (or fail) when JWT protection is in place.
+    """
     success = 0
     blocked = 0
-    for _ in range(attempts):
+    first_success_attempt = None
+    first_success_time = None
+    first_user_info = None
+    start = time.time()
+
+    for i in range(1, attempts + 1):
         pwd = next(pool)
         ip = "10.0.0.1"
         user = "alice"
 
+        token = None
         if use_jwt:
             login_resp = requests.post(
                 "http://localhost:8001/api/token",
                 data={"username": user, "password": pwd},
                 timeout=3,
             )
-            token = login_resp.json().get("access_token") if login_resp.status_code == 200 else None
+            token = (
+                login_resp.json().get("access_token")
+                if login_resp.status_code == 200
+                else None
+            )
             login_ok = login_resp.status_code == 200
             if token:
                 requests.get(
@@ -52,6 +68,8 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
                 timeout=3,
             )
             login_ok = login_resp.status_code == 200
+            if login_ok:
+                token = login_resp.json().get("access_token")
 
         score_payload = {
             "client_ip": ip,
@@ -72,10 +90,35 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
 
         if login_ok:
             success += 1
+            if token:
+                try:
+                    info_resp = requests.get(
+                        "http://localhost:8001/api/me",
+                        headers={"Authorization": f"Bearer {token}"},
+                        timeout=3,
+                    )
+                    if info_resp.status_code == 200:
+                        data = info_resp.json()
+                        first_user_info = first_user_info or data
+                        print(f"Retrieved user data: {data}")
+                except Exception as e:
+                    print("INFO ERROR:", e)
+            if first_success_attempt is None:
+                first_success_attempt = i
+                first_success_time = time.time() - start
 
         time.sleep(1 / rate_per_sec)
 
+    total_time = time.time() - start
     print(f"Attempts: {attempts}, successes: {success}, blocked: {blocked}")
+    if first_success_attempt:
+        print(
+            f"First success after {first_success_attempt} attempts "
+            f"({first_success_time:.2f}s)"
+        )
+    print(f"Total elapsed time: {total_time:.2f}s")
+    if first_user_info:
+        print(f"First user data: {first_user_info}")
 
 
 if __name__ == "__main__":
