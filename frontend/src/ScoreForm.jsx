@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const ALERT_THRESHOLD = 5;
+
 export default function ScoreForm({ onNewAlert }) {
   const [ip, setIp] = useState("");
   const [result, setResult] = useState("success");
@@ -27,7 +29,7 @@ export default function ScoreForm({ onNewAlert }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="score-form">
       <label>
         Client IP:
         <input
@@ -49,7 +51,7 @@ export default function ScoreForm({ onNewAlert }) {
         </select>
       </label>
       <button type="submit">Submit to /score</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="error-text">{error}</p>}
     </form>
   );
 }

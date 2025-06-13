@@ -1,5 +1,5 @@
 # backend/app/models/alerts.py
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from pydantic import BaseModel
@@ -15,6 +15,11 @@ class Alert(Base):
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     total_fails = Column(Integer, nullable=False)
     detail = Column(String, nullable=True)
+
+    @classmethod
+    def one_minute_ago(cls) -> datetime:
+        """Return timestamp representing one minute ago from now."""
+        return datetime.utcnow() - timedelta(minutes=1)
 
 
 # Pydantic schemas
