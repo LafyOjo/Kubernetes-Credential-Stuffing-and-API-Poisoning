@@ -80,3 +80,22 @@ body {
     transform: rotate(360deg);
   }
 }
+
+.attack-sim {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.attack-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.attack-results p {
+  margin: 0.25rem 0;
+}
