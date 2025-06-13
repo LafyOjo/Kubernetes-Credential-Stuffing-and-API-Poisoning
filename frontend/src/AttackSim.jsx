@@ -1,3 +1,4 @@
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
 <<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
 import React, { useState } from "react";
 
@@ -94,6 +95,8 @@ export default function AttackSim() {
     setResults((r) => ({ ...r, total_time: totalTime }));
     setRunning(false);
 =======
+=======
+>>>>>>> main
 import { useState } from "react";
 
 export default function AttackSim() {
@@ -116,11 +119,15 @@ export default function AttackSim() {
     } catch (err) {
       setResults(r => [...r, "error"]);
     }
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
+>>>>>>> main
+=======
 >>>>>>> main
   };
 
   return (
     <div className="attack-sim">
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
 <<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
       <h2>Credential Stuffing Simulation</h2>
       <div className="attack-controls">
@@ -172,6 +179,8 @@ export default function AttackSim() {
 }
 
 =======
+=======
+>>>>>>> main
       <button onClick={sendAttempt}>Send Attempt</button>
       <div className="results">
         <p>Blocked attempts: {blocked}</p>
@@ -184,4 +193,7 @@ export default function AttackSim() {
     </div>
   );
 }
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
+>>>>>>> main
+=======
 >>>>>>> main
