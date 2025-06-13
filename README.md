@@ -4,9 +4,9 @@ This repository contains a small FastAPI service used to detect credential stuff
 
 ## Configuration
 
-The backend reads environment variables from a `.env` file on startup. If
-`SECRET_KEY` is not set, `backend/app/core/security.py` falls back to the
-placeholder value `"change-me"`.
+The backend reads environment variables from a `.env` file on startup. The
+`SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
+error during import.
 
 Example `.env`:
 

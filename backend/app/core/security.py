@@ -6,6 +6,12 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 
+# Ensure a secret key is configured before continuing
+if not getattr(settings, "SECRET_KEY", None):
+    raise RuntimeError(
+        "SECRET_KEY environment variable must be set for token operations"
+    )
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
