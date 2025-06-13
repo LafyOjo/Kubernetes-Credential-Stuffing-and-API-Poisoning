@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
+os.environ['SECRET_KEY'] = 'test-secret'
 
 from fastapi.testclient import TestClient
 from app.main import app
