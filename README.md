@@ -43,6 +43,46 @@ npm start
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
+## Running with Kubernetes
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/)
+- [kind](https://kind.sigs.k8s.io/)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/)
+
+### Steps
+
+1. Spin up a local cluster and deploy Sock Shop:
+
+   ```bash
+   bash infra/kind/up.sh
+   ```
+
+   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
+
+2. Build the detector image and deploy it to the cluster:
+
+   ```bash
+   docker build -t detector:latest -f backend/Dockerfile backend
+   kubectl apply -f infra/k8s/
+   ```
+
+3. Access the services using port-forwarding (in separate terminals):
+
+   ```bash
+   kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
+   kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090
+   kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
+   ```
+
+4. Generate traffic to observe detections:
+
+   ```bash
+   python scripts/stuffing.py
+   ```
+
 ## `/score` endpoint
 
 The backend exposes `POST /score` which accepts a JSON payload:
