@@ -101,8 +101,10 @@ The React application will be available at [http://localhost:3000](http://localh
 The backend exposes `POST /score` which accepts a JSON payload:
 
 ```json
-{ "client_ip": "10.0.0.1", "auth_result": "success" | "failure" }
+{ "client_ip": "10.0.0.1", "auth_result": "success" | "failure", "with_jwt": true | false }
 ```
+
+Include `with_jwt` as `true` when the request uses a JWT access token.
 
 Every call increments the `login_attempts_total` Prometheus counter labelled by IP. When `auth_result` is `failure`, the service counts failures for that IP during the last minute. Once five failures occur within that window, a row is inserted in the `alerts` table with `detail` set to "Blocked: too many failures" and the response is:
 

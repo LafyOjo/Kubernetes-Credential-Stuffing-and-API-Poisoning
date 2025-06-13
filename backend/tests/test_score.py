@@ -23,13 +23,13 @@ def teardown_function(_):
 
 def test_block_after_five_failures():
     for i in range(5):
-        resp = client.post('/score', json={'client_ip': '1.1.1.1', 'auth_result': 'failure'})
+        resp = client.post('/score', json={'client_ip': '1.1.1.1', 'auth_result': 'failure', 'with_jwt': False})
         assert resp.status_code == 200
         body = resp.json()
         assert body['status'] == 'ok'
         assert body['fails_last_minute'] == i + 1
 
-    resp = client.post('/score', json={'client_ip': '1.1.1.1', 'auth_result': 'failure'})
+    resp = client.post('/score', json={'client_ip': '1.1.1.1', 'auth_result': 'failure', 'with_jwt': False})
     assert resp.status_code == 200
     body = resp.json()
     assert body['status'] == 'blocked'
@@ -48,7 +48,7 @@ def test_old_failures_not_counted():
             db.add(Alert(ip_address='2.2.2.2', total_fails=i+1, detail='old', timestamp=old_time))
         db.commit()
 
-    resp = client.post('/score', json={'client_ip': '2.2.2.2', 'auth_result': 'failure'})
+    resp = client.post('/score', json={'client_ip': '2.2.2.2', 'auth_result': 'failure', 'with_jwt': False})
     assert resp.status_code == 200
     body = resp.json()
     assert body['status'] == 'ok'

@@ -12,10 +12,11 @@ export default function ScoreForm({ onNewAlert }) {
     setError(null);
 
     try {
+      const token = localStorage.getItem("token");
       const resp = await fetch("http://localhost:8001/score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_ip: ip, auth_result: result })
+        body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) })
       });
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
