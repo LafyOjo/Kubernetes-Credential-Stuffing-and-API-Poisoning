@@ -20,8 +20,12 @@ def load_creds(path, limit=None):
 passwords = load_creds("scripts/data/rockyou.txt", limit=5000)
 pool = itertools.cycle(passwords)
 
+# store the first successful /api/me response
+first_user_info = None
+
 
 def attack(rate_per_sec=10, attempts=50, use_jwt=False):
+<<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
     """Send repeated login attempts and report detection results.
 
     The function now also tracks how many attempts it took for the first
@@ -29,6 +33,10 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
     helps demonstrate how quickly a credential stuffing attack can succeed
     (or fail) when JWT protection is in place.
     """
+=======
+    """Send repeated login attempts and report detection results."""
+    global first_user_info
+>>>>>>> main
     success = 0
     blocked = 0
     first_success_attempt = None
@@ -74,7 +82,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
         score_payload = {
             "client_ip": ip,
             "auth_result": "success" if login_ok else "failure",
-            "with_jwt": use_jwt,
+            "with_jwt": bool(token),
         }
 
         try:
@@ -92,11 +100,16 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
             success += 1
             if token:
                 try:
+<<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
                     info_resp = requests.get(
+=======
+                    resp = requests.get(
+>>>>>>> main
                         "http://localhost:8001/api/me",
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
+<<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
                     if info_resp.status_code == 200:
                         data = info_resp.json()
                         first_user_info = first_user_info or data
@@ -106,6 +119,14 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
             if first_success_attempt is None:
                 first_success_attempt = i
                 first_success_time = time.time() - start
+=======
+                    data = resp.json()
+                    if first_user_info is None:
+                        first_user_info = data
+                        print(f"Retrieved user data: {data}")
+                except Exception as e:
+                    print("USER INFO ERROR:", e)
+>>>>>>> main
 
         time.sleep(1 / rate_per_sec)
 
