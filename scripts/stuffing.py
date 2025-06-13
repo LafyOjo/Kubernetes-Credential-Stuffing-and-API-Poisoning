@@ -36,6 +36,9 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
 =======
     """Send repeated login attempts and report detection results."""
     global first_user_info
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
+>>>>>>> main
+=======
 >>>>>>> main
     success = 0
     blocked = 0
@@ -100,8 +103,12 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
             success += 1
             if token:
                 try:
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
 <<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
                     info_resp = requests.get(
+=======
+                    resp = requests.get(
+>>>>>>> main
 =======
                     resp = requests.get(
 >>>>>>> main
@@ -109,6 +116,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
 <<<<<<< codex/improve-stuffing.py-to-track-attempts-and-duration
                     if info_resp.status_code == 200:
                         data = info_resp.json()
@@ -120,12 +128,17 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
                 first_success_attempt = i
                 first_success_time = time.time() - start
 =======
+=======
+>>>>>>> main
                     data = resp.json()
                     if first_user_info is None:
                         first_user_info = data
                         print(f"Retrieved user data: {data}")
                 except Exception as e:
                     print("USER INFO ERROR:", e)
+<<<<<<< t4vnm3-codex/improve-stuffing.py-to-track-attempts-and-duration
+>>>>>>> main
+=======
 >>>>>>> main
 
         time.sleep(1 / rate_per_sec)
