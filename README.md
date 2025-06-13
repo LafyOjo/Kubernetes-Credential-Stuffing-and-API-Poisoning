@@ -72,13 +72,16 @@ The React application will be available at [http://localhost:3000](http://localh
    backend. The UI displays how many attempts were blocked once the detection
    threshold is reached.
 
-For command-line testing there is also a standalone script:
+For command-line testing there are two standalone scripts:
 
 ```bash
 python scripts/stuffing.py --help
+python scripts/stuffingwithjwt.py --help
 ```
 
-Use this CLI tool to perform the same attack without the React UI.
+`stuffing.py` performs a basic credential stuffing attack against the insecure
+login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API
+and illustrates how using token-based authentication blocks the attack.
 
 ## Running with Kubernetes
 
