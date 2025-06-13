@@ -22,6 +22,26 @@ LOGIN_ATTEMPTS = Counter(
     ["ip"],
 )
 
+# Separate counters for requests that present a JWT vs those that do not.
+JWT_LOGIN_ATTEMPTS = Counter(
+    "login_attempts_jwt_total",
+    "Login attempts that included a JWT",
+    ["ip"],
+)
+
+NO_JWT_LOGIN_ATTEMPTS = Counter(
+    "login_attempts_no_jwt_total",
+    "Login attempts without a JWT",
+    ["ip"],
+)
+
+# How many times blocking was triggered (credential stuffing detections)
+STUFFING_DETECTIONS = Counter(
+    "credential_stuffing_total",
+    "Detected credential stuffing attempts",
+    ["ip"],
+)
+
 
 def get_db():
     """
@@ -37,18 +57,30 @@ def get_db():
 @router.post("/score", response_model=Dict[str, Any])
 def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
     """
-    Expect JSON body: { "client_ip": "10.0.0.1", "auth_result": "failure" or "success" }.
+    Expect JSON body:
+        {
+            "client_ip": "10.0.0.1",
+            "auth_result": "failure" | "success",
+            "with_jwt": true | false   # optional flag to indicate a JWT was used
+        }
+    Always increment the Prometheus counter. If "failure", record a row in the alerts
+    table and possibly block if there are ≥5 failures in the last minute.
     Always increment the Prometheus counter. If “failure”, record a row in the alerts
     table and possibly block if there are ≥5 failures in the last minute.
     """
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")
+    with_jwt = bool(payload.get("with_jwt"))
 
     if client_ip is None or auth_result not in ("success", "failure"):
         raise HTTPException(status_code=422, detail="Invalid payload")
 
     # 1) Increment Prometheus counter for every attempt.
     LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+    if with_jwt:
+        JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+    else:
+        NO_JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
 
     # 2) If it’s a failure, check how many failures in the last minute.
     if auth_result == "failure":
@@ -62,6 +94,7 @@ def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
 
         if fail_count >= 5:
             # Already 5 fails in last minute → block and insert an “alert” row
+            STUFFING_DETECTIONS.labels(ip=client_ip).inc()
             alert = Alert(
                 ip_address=client_ip,
                 total_fails=fail_count + 1,

