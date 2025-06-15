@@ -22,7 +22,7 @@ SECRET_KEY=super-secret-key
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/Scripts/activate
 pip install -r requirements.txt
 ```
 
