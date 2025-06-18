@@ -84,6 +84,10 @@ python scripts/stuffingwithjwt.py --help
 login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API
 and illustrates how using token-based authentication blocks the attack.
 
+The password list at `scripts/data/rockyou.txt` is derived from the widely
+circulated RockYou breach dataset. It is provided in this repository solely for
+demonstration purposes and no license or ownership is claimed.
+
 ## Running with Kubernetes
 
 ### Prerequisites
