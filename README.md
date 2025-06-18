@@ -33,6 +33,7 @@ pip install -r requirements.txt
 ```bash
 alembic upgrade head
 ```
+**Note:** If `app.db` already exists from a previous run, `alembic upgrade head` may fail. Remove the file or run `alembic stamp head` before rerunning the upgrade.
 
 4. Load the variables from `.env` and start the API server:
 
