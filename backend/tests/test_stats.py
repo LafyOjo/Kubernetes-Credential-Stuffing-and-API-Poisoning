@@ -8,7 +8,8 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.core.db import Base, engine, SessionLocal
 from app.models.alerts import Alert
-from app.core.security import create_access_token
+from app.core.security import create_access_token, get_password_hash
+from app.crud.users import create_user
 
 client = TestClient(app)
 
@@ -24,6 +25,7 @@ def teardown_function(_):
 def test_stats_endpoint():
     token = create_access_token({"sub": "user"})
     with SessionLocal() as db:
+        create_user(db, username='user', password_hash=get_password_hash('pw'))
         db.add(Alert(ip_address='1.1.1.1', total_fails=1, detail='Failed login', timestamp=datetime(2023,1,1,0,0,0)))
         db.add(Alert(ip_address='1.1.1.1', total_fails=2, detail='Blocked: too many failures', timestamp=datetime(2023,1,1,0,1,0)))
         db.commit()
