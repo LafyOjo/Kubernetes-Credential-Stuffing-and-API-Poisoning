@@ -182,7 +182,3 @@ executing them:
 pip install -r backend/requirements.txt
 pytest
 ```
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
