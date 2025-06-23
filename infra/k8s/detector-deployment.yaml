@@ -17,6 +17,25 @@ spec:
       - name: detector
         image: detector:latest
         imagePullPolicy: IfNotPresent
+        args:
+          - uvicorn
+          - app.main:app
+          - --host
+          - 0.0.0.0
+          - --port
+          - "8001"
+          - --ssl-keyfile
+          - /certs/tls.key
+          - --ssl-certfile
+          - /certs/tls.crt
         ports:
         - name: http-metrics
           containerPort: 8001
+        volumeMounts:
+        - name: tls
+          mountPath: /certs
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: detector-tls
