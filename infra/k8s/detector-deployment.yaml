@@ -28,6 +28,10 @@ spec:
           - /certs/tls.key
           - --ssl-certfile
           - /certs/tls.crt
+          - --ssl-ca-certs
+          - /certs/ca.crt
+          - --ssl-cert-reqs
+          - "2"
         ports:
         - name: http-metrics
           containerPort: 8001

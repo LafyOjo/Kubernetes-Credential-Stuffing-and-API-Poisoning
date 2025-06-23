@@ -108,12 +108,14 @@ demonstration purposes and no license or ownership is claimed.
    This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
    The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml`.
 
-2. Generate a certificate and create the TLS secret:
+2. Generate certificates and create the TLS secret:
 
    ```bash
    bash scripts/generate-cert.sh
-   kubectl create secret tls detector-tls \
-       --cert=server.crt --key=server.key -n demo
+   kubectl create secret generic detector-tls \
+       --from-file=tls.crt=server.crt \
+       --from-file=tls.key=server.key \
+       --from-file=ca.crt=ca.crt -n demo
    ```
 
 3. Build the detector image and deploy it to the cluster:
@@ -132,10 +134,10 @@ demonstration purposes and no license or ownership is claimed.
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
 
-   Verify the API is reachable via HTTPS:
+   Verify the API is reachable via mTLS:
 
    ```bash
-   curl -k https://localhost:8001/ping
+   curl --cacert ca.crt --cert client.crt --key client.key https://localhost:8001/ping
    ```
 
 5. Generate traffic to observe detections:
