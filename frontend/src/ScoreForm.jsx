@@ -1,11 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ALERT_THRESHOLD = 5;
+const DEFAULT_THRESHOLD = 5;
 
 export default function ScoreForm({ onNewAlert }) {
   const [ip, setIp] = useState("");
   const [result, setResult] = useState("success");
   const [error, setError] = useState(null);
+  const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const resp = await fetch("http://localhost:8001/config");
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.fail_limit) {
+            setThreshold(data.fail_limit);
+          }
+        }
+      } catch (err) {
+        // ignore config errors and keep default
+        console.error("Failed to fetch config", err);
+      }
+    }
+    fetchConfig();
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -21,7 +40,7 @@ export default function ScoreForm({ onNewAlert }) {
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
       // if an alert was created, re-load the table
-      if (data.fails_last_minute > ALERT_THRESHOLD) {
+      if (data.fails_last_minute > threshold) {
         onNewAlert();
       }
     } catch (err) {

@@ -173,6 +173,14 @@ Every call increments the `login_attempts_total` Prometheus counter labelled by 
 
 Otherwise it records the failure and returns `{"status": "ok"}`. A successful result simply records the metric.
 
+## `/config` endpoint
+
+`GET /config` returns the failure threshold the service is currently using when evaluating login attempts. The value reflects the `FAIL_LIMIT` environment variable or the default of `5`:
+
+```json
+{ "fail_limit": 5 }
+```
+
 ## `/api/alerts/stats` endpoint
 
 Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`.
