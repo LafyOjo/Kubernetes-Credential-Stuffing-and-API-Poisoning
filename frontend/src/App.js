@@ -2,6 +2,7 @@ import { useState } from "react";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import AlertsChart from "./AlertsChart";
+import SecurityToggle from "./SecurityToggle";
 import LoginForm from "./LoginForm";
 import AttackSim from "./AttackSim";
 import "./App.css";
@@ -22,6 +23,7 @@ function App() {
   return (
     <div className="app-container">
       <h1 className="dashboard-header">Credential-Stuffing &amp; Alerts Dashboard</h1>
+      <SecurityToggle />
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />

@@ -89,6 +89,10 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
+.security-toggle {
+  margin-bottom: 1rem;
+}
+
 .attack-controls {
   display: flex;
   gap: 1rem;

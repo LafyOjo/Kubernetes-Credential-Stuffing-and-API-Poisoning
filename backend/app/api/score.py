@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.models.alerts import Alert
+import app.api.security as security
 
 router = APIRouter(
     prefix="",            # no /api prefix for /score
@@ -89,7 +90,7 @@ def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
               .count()
         )
 
-        if fail_count >= fail_limit:
+        if security.SECURITY_ENABLED and fail_count >= fail_limit:
             # Already too many fails in the window → block and insert an alert row
             STUFFING_DETECTIONS.labels(ip=client_ip).inc()
             alert = Alert(
