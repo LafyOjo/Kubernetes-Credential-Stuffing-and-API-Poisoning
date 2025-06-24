@@ -19,7 +19,13 @@ passwords = load_creds("scripts/data/rockyou.txt", limit=5000)
 pool = itertools.cycle(passwords)
 
 
-def attack(rate_per_sec=10, attempts=50, use_jwt=False):
+def attack(
+    rate_per_sec=10,
+    attempts=50,
+    use_jwt=False,
+    score_base="http://localhost:8001",
+    shop_url="http://localhost:8080",
+):
     """Send repeated login attempts and report detection results.
 
     Tracks how many attempts until the first successful login and how
@@ -42,7 +48,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
         token = None
         if use_jwt:
             login_resp = requests.post(
-                "http://localhost:8001/api/token",
+                f"{score_base}/api/token",
                 data={"username": user, "password": pwd},
                 timeout=3,
             )
@@ -50,13 +56,13 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
             token = login_resp.json().get("access_token") if login_ok else None
             if token:
                 requests.get(
-                    "http://localhost:8001/api/alerts",
+                    f"{score_base}/api/alerts",
                     headers={"Authorization": f"Bearer {token}"},
                     timeout=3,
                 )
         else:
             login_resp = requests.post(
-                "http://localhost:8080/login",
+                f"{shop_url}/login",
                 json={"username": user, "password": pwd},
                 headers={"X-Forwarded-For": ip},
                 timeout=3,
@@ -73,7 +79,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
 
         try:
             score_resp = requests.post(
-                "http://localhost:8001/score",
+                f"{score_base}/score",
                 json=score_payload,
                 timeout=3,
             )
@@ -87,7 +93,7 @@ def attack(rate_per_sec=10, attempts=50, use_jwt=False):
             if token:
                 try:
                     info_resp = requests.get(
-                        "http://localhost:8001/api/me",
+                        f"{score_base}/api/me",
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
@@ -120,5 +126,13 @@ if __name__ == "__main__":
     parser.add_argument("--jwt", action="store_true", help="Use JWT login endpoint")
     parser.add_argument("--rate", type=float, default=5, help="Attempts per second")
     parser.add_argument("--attempts", type=int, default=50, help="Number of attempts to send")
+    parser.add_argument("--score-base", default="http://localhost:8001", help="Detector API base URL")
+    parser.add_argument("--shop-url", default="http://localhost:8080", help="Sock Shop base URL")
     args = parser.parse_args()
-    attack(rate_per_sec=args.rate, attempts=args.attempts, use_jwt=args.jwt)
+    attack(
+        rate_per_sec=args.rate,
+        attempts=args.attempts,
+        use_jwt=args.jwt,
+        score_base=args.score_base,
+        shop_url=args.shop_url,
+    )

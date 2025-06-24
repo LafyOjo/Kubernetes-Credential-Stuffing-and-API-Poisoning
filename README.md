@@ -101,6 +101,8 @@ For command-line testing there are two standalone scripts:
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
+Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:8080` for the Sock Shop UI).
+
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
 login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API
@@ -163,7 +165,7 @@ demonstration purposes and no license or ownership is claimed.
 5. Generate traffic to observe detections:
 
    ```bash
-   python scripts/stuffing.py
+   python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:8080
    ```
 
 ## `/score` endpoint
