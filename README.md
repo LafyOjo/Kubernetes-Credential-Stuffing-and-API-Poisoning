@@ -49,6 +49,9 @@ cd backend
 python3 -m venv .venv
 source .venv/Scripts/activate
 pip install -r requirements.txt
+# Packages are pinned to versions that ship wheels for Python 3.12. If
+# installation fails with compiler errors, make sure build tools such as
+# a C compiler and Rust are available.
 ```
 
 2. Create a `.env` file in `backend/` as shown in the **Configuration** section.
@@ -238,12 +241,13 @@ The backend allows cross-origin requests from `http://localhost:3000` so the Rea
 
 ## Running the tests
 
-The unit tests live in `backend/tests`. Install the backend requirements before
-executing them:
+The unit tests live in `backend/tests`. Install the backend requirements and run
+pytest from the `backend` directory so the `app` package is discoverable:
 
 ```bash
 pip install -r backend/requirements.txt
-pytest
+cd backend
+PYTHONPATH=. pytest
 ```
 
 ## License
