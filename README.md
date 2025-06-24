@@ -7,12 +7,13 @@ This repository contains a small FastAPI service used to detect credential stuff
 The backend reads environment variables from a `.env` file on startup. The
 `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
 error during import. Two optional variables control the credential stuffing
-detection logic:
+detection logic, and another toggles SQLAlchemy debug logging:
 
 - `FAIL_LIMIT` – how many failures are allowed within the window before
   blocking a client (default `5`).
 - `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting
   failures (default `60`).
+- `DB_ECHO` – set to `true` to log SQL statements (default `false`).
 
 Example `.env`:
 
@@ -24,6 +25,8 @@ SECRET_KEY=super-secret-key
 FAIL_LIMIT=5
 # Number of seconds to look back when counting failures
 FAIL_WINDOW_SECONDS=60
+# Log SQL queries
+DB_ECHO=true
 ```
 
 ## Running the backend
