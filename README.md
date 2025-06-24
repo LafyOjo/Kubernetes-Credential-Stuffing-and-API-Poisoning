@@ -14,6 +14,8 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting
   failures (default `60`).
 - `DB_ECHO` – set to `true` to log SQL statements (default `false`).
+- `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
+  (default `30`).
 
 Example `.env`:
 
@@ -27,6 +29,8 @@ FAIL_LIMIT=5
 FAIL_WINDOW_SECONDS=60
 # Log SQL queries
 DB_ECHO=true
+# JWT token expiry in minutes
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## Running the backend
