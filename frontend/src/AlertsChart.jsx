@@ -11,6 +11,8 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 
+const API_BASE = process.env.REACT_APP_API_BASE || "";
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -27,7 +29,7 @@ export default function AlertsChart({ token }) {
 
   const loadStats = async () => {
     try {
-      const resp = await fetch("http://localhost:8001/api/alerts/stats", {
+      const resp = await fetch(`${API_BASE}/api/alerts/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) throw new Error(await resp.text());

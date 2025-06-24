@@ -3,11 +3,13 @@ import React, { useEffect, useState } from "react";
 import ScoreForm from "../ScoreForm";
 import AlertsTable from "../AlertsTable";
 
+const API_BASE = process.env.REACT_APP_API_BASE || "";
+
 function Dashboard() {
   const [ping, setPing] = useState(null);
 
   useEffect(() => {
-    fetch("/ping")
+    fetch(`${API_BASE}/ping`)
       .then((res) => res.json())
       .then((data) => setPing(data.message))
       .catch((err) => console.error("Ping failed:", err));
