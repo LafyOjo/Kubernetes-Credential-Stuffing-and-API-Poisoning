@@ -103,3 +103,15 @@ body {
 .attack-results p {
   margin: 0.25rem 0;
 }
+
+.attack-section {
+  margin-top: 2rem;
+}
+
+.security-box {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
