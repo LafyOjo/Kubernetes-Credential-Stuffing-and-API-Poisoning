@@ -181,6 +181,16 @@ Otherwise it records the failure and returns `{"status": "ok"}`. A successful re
 { "fail_limit": 5 }
 ```
 
+## `/api/security` endpoints
+
+The backend keeps a global `SECURITY_ENABLED` flag (default `true`) controlling
+whether failed login attempts trigger blocking. Use `GET /api/security` to
+retrieve the current state and `POST /api/security` with a JSON body of
+`{"enabled": true|false}` to update it.
+
+When disabled, calls to `/score` will continue to record metrics but will never
+return `{"status": "blocked"}`.
+
 ## `/api/alerts/stats` endpoint
 
 Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`.
