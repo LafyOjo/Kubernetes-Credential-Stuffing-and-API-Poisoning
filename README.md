@@ -6,13 +6,24 @@ This repository contains a small FastAPI service used to detect credential stuff
 
 The backend reads environment variables from a `.env` file on startup. The
 `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
-error during import.
+error during import. Two optional variables control the credential stuffing
+detection logic:
+
+- `FAIL_LIMIT` – how many failures are allowed within the window before
+  blocking a client (default `5`).
+- `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting
+  failures (default `60`).
 
 Example `.env`:
 
 ```env
 DATABASE_URL=sqlite:///./app.db
 SECRET_KEY=super-secret-key
+# Optional tuning parameters
+# Block after this many failures within FAIL_WINDOW_SECONDS
+FAIL_LIMIT=5
+# Number of seconds to look back when counting failures
+FAIL_WINDOW_SECONDS=60
 ```
 
 ## Running the backend
@@ -154,7 +165,7 @@ The backend exposes `POST /score` which accepts a JSON payload:
 
 Include `with_jwt` as `true` when the request uses a JWT access token.
 
-Every call increments the `login_attempts_total` Prometheus counter labelled by IP. When `auth_result` is `failure`, the service counts failures for that IP during the last minute. Once five failures occur within that window, a row is inserted in the `alerts` table with `detail` set to "Blocked: too many failures" and the response is:
+Every call increments the `login_attempts_total` Prometheus counter labelled by IP. When `auth_result` is `failure`, the service counts how many failures have occurred for that IP in the last `FAIL_WINDOW_SECONDS` seconds (60 by default). If the count meets or exceeds `FAIL_LIMIT` (default 5) the request is blocked, an alert row is inserted with `detail` set to "Blocked: too many failures" and the response is:
 
 ```json
 { "status": "blocked", "fails_last_minute": <count> }
