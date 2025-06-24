@@ -23,11 +23,15 @@ function App() {
   return (
     <div className="app-container">
       <h1 className="dashboard-header">Credential-Stuffing &amp; Alerts Dashboard</h1>
-      <SecurityToggle />
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />
-      <AttackSim />
+      <div className="attack-section">
+        <AttackSim />
+        <div className="security-box">
+          <SecurityToggle />
+        </div>
+      </div>
     </div>
   );
 }
