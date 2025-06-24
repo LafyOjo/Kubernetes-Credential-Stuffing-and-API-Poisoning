@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+const API_BASE = process.env.REACT_APP_API_BASE || "";
+
 const DUMMY_PASSWORDS = [
   "wrongpass",
   "123456",
@@ -30,7 +32,7 @@ export default function AttackSim() {
       let loginOk = false;
       let token = null;
       try {
-        const resp = await fetch("/login", {
+        const resp = await fetch(`${API_BASE}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: targetUser, password: pwd }),
@@ -45,7 +47,7 @@ export default function AttackSim() {
       }
 
       try {
-        await fetch("/score", {
+        await fetch(`${API_BASE}/score`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -64,7 +66,7 @@ export default function AttackSim() {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await fetch("/api/me", {
+              const infoResp = await fetch(`${API_BASE}/api/me`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (infoResp.ok) {

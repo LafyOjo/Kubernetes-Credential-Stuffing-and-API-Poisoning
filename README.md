@@ -72,6 +72,10 @@ npm install
 npm start
 ```
 
+The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
+this variable when building or running the frontend if the API lives at a
+different URL.
+
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Credential Stuffing Simulation

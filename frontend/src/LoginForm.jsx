@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+const API_BASE = process.env.REACT_APP_API_BASE || "";
+
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -9,7 +11,7 @@ export default function LoginForm({ onLogin }) {
     e.preventDefault();
     setError(null);
     try {
-      const resp = await fetch("http://localhost:8001/login", {
+      const resp = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
