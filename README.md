@@ -2,6 +2,13 @@
 
 This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
 
+## Educational Use Only
+
+This project is intended for testing security concepts in controlled environments
+for educational purposes. Attacking systems without explicit authorization is
+strictly prohibited. The RockYou‑derived password list included under
+`scripts/data/rockyou.txt` is provided solely as a demonstration resource.
+
 ## Configuration
 
 The backend reads environment variables from a `.env` file on startup. The
