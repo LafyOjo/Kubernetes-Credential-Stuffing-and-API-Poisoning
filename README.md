@@ -214,6 +214,12 @@ retrieve the current state and `POST /api/security` with a JSON body of
 When disabled, calls to `/score` will continue to record metrics but will never
 return `{"status": "blocked"}`.
 
+When security is enabled the service also expects each request to `/score`
+include an `X-Chain-Password` header. This value is derived from the previous
+call's password combined with a random nonce. Fetch the current value from
+`GET /api/security/chain` and supply it with each request. After validation the
+password is rotated so replayed requests are rejected.
+
 ## `/api/alerts/stats` endpoint
 
 Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`.
