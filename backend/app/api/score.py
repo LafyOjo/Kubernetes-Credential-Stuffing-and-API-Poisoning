@@ -3,7 +3,7 @@
 from typing import Any, Dict
 from datetime import datetime, timedelta
 import os
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
 
@@ -51,7 +51,7 @@ STUFFING_DETECTIONS = Counter(
 
 
 @router.post("/score", response_model=Dict[str, Any])
-def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
+def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_db)):
     """
     Expect JSON body:
         {
@@ -64,6 +64,9 @@ def score(payload: Dict[str, Any], db: Session = Depends(get_db)):
     time window. The defaults are 5 failures within 60 seconds but can be adjusted
     via the FAIL_LIMIT and FAIL_WINDOW_SECONDS environment variables.
     """
+    if security.SECURITY_ENABLED:
+        security.verify_chain(request.headers.get("X-Chain-Password"))
+
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")
     with_jwt = bool(payload.get("with_jwt"))
