@@ -182,14 +182,24 @@ demonstration purposes and no license or ownership is claimed.
        --cert=server.crt --key=server.key -n demo
    ```
 
-3. Build the detector image and deploy it to the cluster:
+3. Create a Secret containing the required environment variables:
+
+   ```bash
+   kubectl create secret generic detector-env \
+       --from-literal=SECRET_KEY=<random-secret> \
+       --from-literal=DATABASE_URL=sqlite:///app.db \
+       -n demo
+   ```
+
+   Replace `<random-secret>` with any string you want to use as the secret key.
+4. Build the detector image and deploy it to the cluster:
 
    ```bash
    docker build -t detector:latest -f backend/Dockerfile backend
    kubectl apply -f infra/k8s/
    ```
 
-4. Access the services using port-forwarding (in separate terminals):
+5. Access the services using port-forwarding (in separate terminals):
 
    ```bash
    kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
@@ -204,7 +214,7 @@ demonstration purposes and no license or ownership is claimed.
    curl -k https://localhost:8001/ping
    ```
 
-5. Generate traffic to observe detections:
+6. Generate traffic to observe detections:
 
    ```bash
    python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:8080
