@@ -2,17 +2,42 @@
 
 This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
 
+## Educational Use Only
+
+This project is intended for testing security concepts in controlled environments
+for educational purposes. Attacking systems without explicit authorization is
+strictly prohibited. The RockYou‑derived password list included under
+`scripts/data/rockyou.txt` is provided solely as a demonstration resource.
+
 ## Configuration
 
 The backend reads environment variables from a `.env` file on startup. The
 `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
-error during import.
+error during import. Two optional variables control the credential stuffing
+detection logic, and another toggles SQLAlchemy debug logging:
+
+- `FAIL_LIMIT` – how many failures are allowed within the window before
+  blocking a client (default `5`).
+- `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting
+  failures (default `60`).
+- `DB_ECHO` – set to `true` to log SQL statements (default `false`).
+- `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
+  (default `30`).
 
 Example `.env`:
 
 ```env
 DATABASE_URL=sqlite:///./app.db
 SECRET_KEY=super-secret-key
+# Optional tuning parameters
+# Block after this many failures within FAIL_WINDOW_SECONDS
+FAIL_LIMIT=5
+# Number of seconds to look back when counting failures
+FAIL_WINDOW_SECONDS=60
+# Log SQL queries
+DB_ECHO=true
+# JWT token expiry in minutes
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 ## Running the backend
@@ -24,6 +49,9 @@ cd backend
 python3 -m venv .venv
 source .venv/Scripts/activate
 pip install -r requirements.txt
+# Packages are pinned to versions that ship wheels for Python 3.12. If
+# installation fails with compiler errors, make sure build tools such as
+# a C compiler and Rust are available.
 ```
 
 2. Create a `.env` file in `backend/` as shown in the **Configuration** section.
@@ -54,6 +82,10 @@ npm install
 npm start
 ```
 
+The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
+this variable when building or running the frontend if the API lives at a
+different URL.
+
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
 ## Credential Stuffing Simulation
@@ -79,6 +111,8 @@ For command-line testing there are two standalone scripts:
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
+Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:8080` for the Sock Shop UI).
+
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
 login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API
@@ -108,26 +142,40 @@ demonstration purposes and no license or ownership is claimed.
    This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
    The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml`.
 
-2. Build the detector image and deploy it to the cluster:
+2. Generate a certificate and create the TLS secret:
+
+   ```bash
+   bash scripts/generate-cert.sh
+   kubectl create secret tls detector-tls \
+       --cert=server.crt --key=server.key -n demo
+   ```
+
+3. Build the detector image and deploy it to the cluster:
 
    ```bash
    docker build -t detector:latest -f backend/Dockerfile backend
    kubectl apply -f infra/k8s/
    ```
 
-3. Access the services using port-forwarding (in separate terminals):
+4. Access the services using port-forwarding (in separate terminals):
 
    ```bash
    kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
-   kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics
+   kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
 
-4. Generate traffic to observe detections:
+   Verify the API is reachable via HTTPS:
 
    ```bash
-   python scripts/stuffing.py
+   curl -k https://localhost:8001/ping
+   ```
+
+5. Generate traffic to observe detections:
+
+   ```bash
+   python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:8080
    ```
 
 ## `/score` endpoint
@@ -140,13 +188,37 @@ The backend exposes `POST /score` which accepts a JSON payload:
 
 Include `with_jwt` as `true` when the request uses a JWT access token.
 
-Every call increments the `login_attempts_total` Prometheus counter labelled by IP. When `auth_result` is `failure`, the service counts failures for that IP during the last minute. Once five failures occur within that window, a row is inserted in the `alerts` table with `detail` set to "Blocked: too many failures" and the response is:
+Every call increments the `login_attempts_total` Prometheus counter labelled by IP. When `auth_result` is `failure`, the service counts how many failures have occurred for that IP in the last `FAIL_WINDOW_SECONDS` seconds (60 by default). If the count meets or exceeds `FAIL_LIMIT` (default 5) the request is blocked, an alert row is inserted with `detail` set to "Blocked: too many failures" and the response is:
 
 ```json
 { "status": "blocked", "fails_last_minute": <count> }
 ```
 
 Otherwise it records the failure and returns `{"status": "ok"}`. A successful result simply records the metric.
+
+## `/config` endpoint
+
+`GET /config` returns the failure threshold the service is currently using when evaluating login attempts. The value reflects the `FAIL_LIMIT` environment variable or the default of `5`:
+
+```json
+{ "fail_limit": 5 }
+```
+
+## `/api/security` endpoints
+
+The backend keeps a global `SECURITY_ENABLED` flag (default `true`) controlling
+whether failed login attempts trigger blocking. Use `GET /api/security` to
+retrieve the current state and `POST /api/security` with a JSON body of
+`{"enabled": true|false}` to update it.
+
+When disabled, calls to `/score` will continue to record metrics but will never
+return `{"status": "blocked"}`.
+
+When security is enabled the service also expects each request to `/score`
+include an `X-Chain-Password` header. This value is derived from the previous
+call's password combined with a random nonce. Fetch the current value from
+`GET /api/security/chain` and supply it with each request. After validation the
+password is rotated so replayed requests are rejected.
 
 ## `/api/alerts/stats` endpoint
 
@@ -175,10 +247,15 @@ The backend allows cross-origin requests from `http://localhost:3000` so the Rea
 
 ## Running the tests
 
-The unit tests live in `backend/tests`. Install the backend requirements before
-executing them:
+The unit tests live in `backend/tests`. Install the backend requirements and run
+pytest from the `backend` directory so the `app` package is discoverable:
 
 ```bash
 pip install -r backend/requirements.txt
-pytest
+cd backend
+PYTHONPATH=. pytest
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

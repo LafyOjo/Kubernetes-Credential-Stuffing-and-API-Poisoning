@@ -1,11 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ALERT_THRESHOLD = 5;
+const API_BASE = process.env.REACT_APP_API_BASE || "";
+
+const DEFAULT_THRESHOLD = 5;
 
 export default function ScoreForm({ onNewAlert }) {
   const [ip, setIp] = useState("");
   const [result, setResult] = useState("success");
   const [error, setError] = useState(null);
+  const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const resp = await fetch(`${API_BASE}/config`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.fail_limit) {
+            setThreshold(data.fail_limit);
+          }
+        }
+      } catch (err) {
+        // ignore config errors and keep default
+        console.error("Failed to fetch config", err);
+      }
+    }
+    fetchConfig();
+  }, []);
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -13,7 +34,7 @@ export default function ScoreForm({ onNewAlert }) {
 
     try {
       const token = localStorage.getItem("token");
-      const resp = await fetch("http://localhost:8001/score", {
+      const resp = await fetch(`${API_BASE}/score`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) })
@@ -21,7 +42,7 @@ export default function ScoreForm({ onNewAlert }) {
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
       // if an alert was created, re-load the table
-      if (data.fails_last_minute > ALERT_THRESHOLD) {
+      if (data.fails_last_minute > threshold) {
         onNewAlert();
       }
     } catch (err) {

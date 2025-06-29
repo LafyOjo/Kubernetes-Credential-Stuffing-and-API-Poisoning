@@ -1,4 +1,6 @@
 from datetime import timedelta
+
+from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -16,13 +18,6 @@ from app.schemas.users import UserCreate, UserRead
 
 router = APIRouter(tags=["auth"])
 
-# This would normally check against your users table:
-fake_users_db = {
-    "alice": {
-        "username": "alice",
-        "hashed_password": get_password_hash("secret"),
-    }
-}
 
 
 @router.post("/register", response_model=UserRead)
@@ -45,22 +40,29 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
         )
     token = create_access_token(
         data={"sub": user.username},
-        expires_delta=timedelta(minutes=60),
+        expires_delta=timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        ),
     )
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/api/token")
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user_dict = fake_users_db.get(form_data.username)
-    if not user_dict or not verify_password(form_data.password, user_dict["hashed_password"]):
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = get_user_by_username(db, form_data.username)
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(
-        data={"sub": user_dict["username"]},
-        expires_delta=timedelta(minutes=60)
+        data={"sub": user.username},
+        expires_delta=timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
