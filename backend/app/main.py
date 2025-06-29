@@ -2,6 +2,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.zero_trust import ZeroTrustMiddleware
+
 from app.api.score import router as score_router
 from app.api.alerts import router as alerts_router
 from app.api.auth import router as auth_router
@@ -18,6 +20,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Enforce Zero Trust API key if configured
+app.add_middleware(ZeroTrustMiddleware)
 
 app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
