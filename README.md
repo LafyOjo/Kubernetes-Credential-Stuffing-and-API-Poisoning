@@ -2,7 +2,7 @@
 
 This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
 
-## Educational Use Only
+## For final project dissertation Use Only
 
 This project is intended for testing security concepts in controlled environments
 for educational purposes. Attacking systems without explicit authorization is
@@ -47,7 +47,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/Scripts/activate
+source .venv/Scripts/activate always check because sometimes some operating systems may save this in the libs/bin folder
 pip install -r requirements.txt
 # Packages are pinned to versions that ship wheels for Python 3.12. If
 # installation fails with compiler errors, make sure build tools such as
@@ -78,7 +78,23 @@ Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 
 ```bash
 cd frontend
-npm install
+npm install 
+
+# if there is an error, go to the .env file and enter this code 
+REACT_APP_API_BASE=http://localhost:8001
+
+# once the .env file has been edited with the above code re-run the command with the below command this is because linux runs commands differently to windows which is why the 
+npm install --save-dev cross-env
+
+# If there is still an error go to the package-lock.json and input this code to hard-code the URL into the react-development server 
+"scripts": 
+{
+  "start": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts start",
+  "build": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts build",
+  "test": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts test",
+  "eject": "react-scripts eject"
+}
+# once this is done then 
 npm start
 ```
 
@@ -105,6 +121,22 @@ The React application will be available at [http://localhost:3000](http://localh
    backend. The UI displays how many attempts were blocked once the detection
    threshold is reached.
 
+3. To use the command line to login and create a user that would be used across the services and for the 
+   purpose of testing we need to use the terminal, below is an example of how to register a user and login
+   
+   ```
+   $ curl -X POST http://localhost:8001/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"alice","password":"secret"}'
+   ```
+   and to login we would either login from the react-native application or we would enter in the command below
+
+   ```
+   $ curl -X POST http://localhost:8001/login   
+   -H "Content-Type: application/json"   
+   -d '{"username": "alice", "password": "secret"}'
+   ```
+   
 For command-line testing there are two standalone scripts:
 
 ```bash
