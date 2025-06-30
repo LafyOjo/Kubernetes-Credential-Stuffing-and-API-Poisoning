@@ -80,10 +80,7 @@ Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 cd frontend
 npm install 
 
-# if there is an error, go to the .env file and enter this code 
-REACT_APP_API_BASE=http://localhost:8001
-
-# once the .env file has been edited with the above code re-run the command with the below command this is because linux runs commands differently to windows which is why the 
+# if there is an error re-run the command with the below command this is because linux runs commands differently to windows which is why there may be an error
 npm install --save-dev cross-env
 
 # If there is still an error go to the package-lock.json and input this code to hard-code the URL into the react-development server 
@@ -121,7 +118,7 @@ The React application will be available at [http://localhost:3000](http://localh
    backend. The UI displays how many attempts were blocked once the detection
    threshold is reached.
 
-3. To use the command line to login and create a user that would be used across the services and for the 
+3. To use the command-line to login and create a user that would be used across the services and for the 
    purpose of testing we need to use the terminal, below is an example of how to register a user and login
    
    ```
@@ -202,9 +199,9 @@ demonstration purposes and no license or ownership is claimed.
 5. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
+   kubectl port-forward svc/front-end -n sock-shop 8080:80   -> remember to enter in on local-browser 'http://localhost:8080' to load up the sock-shop     # Sock Shop UI
    kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
-   kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090
+   kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
 
