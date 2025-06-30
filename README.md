@@ -122,11 +122,19 @@ The React application will be available at [http://localhost:3000](http://localh
    purpose of testing we need to use the terminal, below is an example of how to register a user and login
    
    ```
-   $ curl -X POST http://localhost:8001/register \
+  $ curl -X POST http://localhost:8001/register \
+    -H "Content-Type: application/json" \
+    -d '{"username":"alice","password":"secret"}'
+  ```
+   After registering with the detector service, send the same credentials to
+   Sock Shop so both backends share the account:
+
+   ```bash
+   curl -X POST http://localhost:8080/register \
      -H "Content-Type: application/json" \
      -d '{"username":"alice","password":"secret"}'
    ```
-   and to login we would either login from the react-native application or we would enter in the command below
+  and to login we would either login from the react-native application or we would enter in the command below
 
    ```
    $ curl -X POST http://localhost:8001/login   
