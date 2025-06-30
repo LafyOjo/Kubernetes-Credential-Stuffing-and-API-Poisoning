@@ -23,6 +23,8 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `DB_ECHO` – set to `true` to log SQL statements (default `false`).
 - `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
   (default `30`).
+- `REGISTER_WITH_SHOP` – set to `true` to also register the account with Sock Shop (default `false`).
+- `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
 
 Example `.env`:
 
@@ -38,6 +40,10 @@ FAIL_WINDOW_SECONDS=60
 DB_ECHO=true
 # JWT token expiry in minutes
 ACCESS_TOKEN_EXPIRE_MINUTES=30
+# Forward successful registrations to Sock Shop
+REGISTER_WITH_SHOP=true
+# Where the Sock Shop API is hosted
+SOCK_SHOP_URL=http://localhost:8080
 ```
 
 ## Running the backend

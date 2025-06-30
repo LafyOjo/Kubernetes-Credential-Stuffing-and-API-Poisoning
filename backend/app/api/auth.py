@@ -1,4 +1,6 @@
 from datetime import timedelta
+import os
+import requests
 
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,6 +28,18 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed = get_password_hash(user_in.password)
     user = create_user(db, username=user_in.username, password_hash=hashed)
+
+    if os.getenv("REGISTER_WITH_SHOP", "false").lower() in {"1", "true", "yes"}:
+        shop_url = os.getenv("SOCK_SHOP_URL", "http://localhost:8080").rstrip("/")
+        try:
+            requests.post(
+                f"{shop_url}/register",
+                json={"username": user_in.username, "password": user_in.password},
+                timeout=3,
+            )
+        except Exception:
+            pass
+
     return user
 
 
