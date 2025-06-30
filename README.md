@@ -192,14 +192,32 @@ demonstration purposes and no license or ownership is claimed.
    ```
 
    Replace `<random-secret>` with any string you want to use as the secret key.
-4. Build the detector image and deploy it to the cluster:
+4. Build the detector image:
 
    ```bash
    docker build -t detector:latest -f backend/Dockerfile backend
+   ```
+
+5. Load the image into the kind cluster so the Deployment can pull it:
+
+   ```bash
+   kind load docker-image detector:latest --name cred-demo
+   ```
+
+   If the image isn't loaded before applying the manifests, the detector pod will
+   remain in the `Pending` state. Check its status with:
+
+   ```bash
+   kubectl get pods -n demo
+   ```
+
+6. Deploy the Kubernetes manifests:
+
+   ```bash
    kubectl apply -f infra/k8s/
    ```
 
-5. Access the services using port-forwarding (in separate terminals):
+7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
    kubectl port-forward svc/front-end -n sock-shop 8080:80        # Sock Shop UI
@@ -214,7 +232,7 @@ demonstration purposes and no license or ownership is claimed.
    curl -k https://localhost:8001/ping
    ```
 
-6. Generate traffic to observe detections:
+8. Generate traffic to observe detections:
 
    ```bash
    python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:8080
