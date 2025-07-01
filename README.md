@@ -327,6 +327,22 @@ cd backend
 PYTHONPATH=. pytest
 ```
 
+## Local traffic generation with Mininet
+
+To emulate traffic directly on a Raspberry Pi or other host install
+[Mininet](http://mininet.org/) and run the helper script in the `mininet`
+directory:
+
+```bash
+sudo python3 mininet/gen_traffic.py
+```
+
+The script creates two virtual hosts connected by a switch. One host runs a
+simple Python HTTP server while the other issues a few baseline requests followed
+by a larger burst to mimic attack traffic. After sending the requests you will
+be dropped into the Mininet CLI where additional commands such as `pingall` or
+`iperf` can be used. Type `exit` to shut down the network.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
