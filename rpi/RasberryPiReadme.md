@@ -59,6 +59,21 @@ The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). R
 
 ## 4. Launch both services together (optional)
 
+
+Once both the backend and frontend dependencies are installed you can start them
+together from the repository root using the helper script:
+
+```bash
+python rpi/start_edge_service.py
+```
+
+The script loads environment variables from `backend/.env`, launches the API on
+`0.0.0.0:8001`, then spawns the React development server bound to `0.0.0.0`. The
+dashboard will be reachable at `http://<pi-ip>:3000`. Press `Ctrl+C` to stop
+both processes.
+
+## 5. Optional: attach a 3.5" SPI display
+
 Once both the backend and frontend dependencies are installed you can start them
 together from the repository root using the helper script:
 

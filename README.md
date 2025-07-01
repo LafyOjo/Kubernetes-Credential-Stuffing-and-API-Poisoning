@@ -386,6 +386,7 @@ python rpi/spi_display.py --api-base http://<pi-ip>:8001
 The script polls `/api/alerts/stats` and draws the latest values on the display
 using `pygame`.
 
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
