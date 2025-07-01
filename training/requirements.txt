@@ -1,0 +1,2 @@
+scapy==2.5.0
+tensorflow-cpu==2.16.1
