@@ -327,6 +327,65 @@ cd backend
 PYTHONPATH=. pytest
 ```
 
+## Edge-hosted monitoring on Raspberry Pi
+
+To run the dashboard directly on a Raspberry Pi, follow the steps in
+`rpi/RasberryPiReadme.md`. In short, install the backend and frontend
+dependencies, then launch both services to expose the API on port `8001` and the
+React UI on port `3000` for any device on your LAN. A convenience script
+`python rpi/start_edge_service.py` starts both processes at once.
+
+## Local traffic generation with Mininet
+
+To emulate traffic directly on a Raspberry Pi or other host install
+[Mininet](http://mininet.org/) and run the helper script in the `mininet`
+directory:
+
+```bash
+sudo python3 mininet/gen_traffic.py
+```
+
+The script creates two virtual hosts connected by a switch. One host runs a
+simple Python HTTP server while the other issues a few baseline requests followed
+by a larger burst to mimic attack traffic. After sending the requests you will
+be dropped into the Mininet CLI where additional commands such as `pingall` or
+`iperf` can be used. Type `exit` to shut down the network.
+
+## On-device ML inference
+
+Capture live packets on the Pi and evaluate them using a TensorFlow model. Place your model file at `training/trained_model.h5` and run:
+
+```bash
+python training/run_inference.py --iface eth0
+```
+
+## Lightweight SDN controller
+
+Run a small [Ryu](https://osrg.github.io/ryu/) controller to gather OpenFlow
+statistics from an Open vSwitch instance. After installing the requirements at
+`sdn-controller/requirements.txt`, launch the controller with:
+
+```bash
+ryu-manager sdn-controller/simple_monitor.py
+```
+
+Point your switch at the Pi's IP on port `6633`. The script logs packet and byte
+counts for each active flow. Edit the code to forward these stats to the
+detector service if desired.
+
+## SPI display dashboard
+
+Attach a small SPI screen to the Raspberry Pi and render live alert statistics
+without opening a browser:
+
+```bash
+pip install -r rpi/requirements.txt
+python rpi/spi_display.py --api-base http://<pi-ip>:8001
+```
+
+The script polls `/api/alerts/stats` and draws the latest values on the display
+using `pygame`.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
