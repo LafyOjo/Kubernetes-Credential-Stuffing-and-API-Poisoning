@@ -59,6 +59,7 @@ The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). R
 
 ## 4. Launch both services together (optional)
 
+
 Once both the backend and frontend dependencies are installed you can start them
 together from the repository root using the helper script:
 
@@ -73,9 +74,30 @@ both processes.
 
 ## 5. Optional: attach a 3.5" SPI display
 
-If you connect a 3.5" SPI display to the Pi's GPIO header, configure the appropriate framebuffer driver for your model. Once the display shows the Pi's desktop, open a browser pointed at `http://localhost:3000` to view the dashboard.
+Once both the backend and frontend dependencies are installed you can start them
+together from the repository root using the helper script:
 
-## 5. Next steps
+```bash
+python rpi/start_edge_service.py
+```
+
+The script loads environment variables from `backend/.env`, launches the API on
+`0.0.0.0:8001`, then spawns the React development server bound to `0.0.0.0`. The
+dashboard will be reachable at `http://<pi-ip>:3000`. Press `Ctrl+C` to stop
+both processes.
+
+## 5. Optional: attach a 3.5" SPI display
+
+If you connect a 3.5" SPI display to the Pi's GPIO header, configure the appropriate framebuffer driver for your model. Once the display shows the Pi's desktop you can open a browser at `http://localhost:3000` **or** run the lightweight Python dashboard:
+
+```bash
+pip install -r rpi/requirements.txt
+python rpi/spi_display.py --api-base http://localhost:8001
+```
+
+The script polls `/api/alerts/stats` and renders the latest counts using `pygame`.
+
+## 6. Next steps
 
 With the web service running locally, you can explore the more advanced Raspberry Pi integrations outlined in the main README, such as local traffic generation with Mininet or on-device machine learning inference.
 
@@ -106,4 +128,3 @@ sudo ovs-vsctl set-controller br0 tcp:127.0.0.1:6633
 
 Flow statistics will be printed every few seconds. Customize the script to
 forward these stats to your running detector API.
-

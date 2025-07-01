@@ -373,6 +373,19 @@ Point your switch at the Pi's IP on port `6633`. The script logs packet and byte
 counts for each active flow. Edit the code to forward these stats to the
 detector service if desired.
 
+## SPI display dashboard
+
+Attach a small SPI screen to the Raspberry Pi and render live alert statistics
+without opening a browser:
+
+```bash
+pip install -r rpi/requirements.txt
+python rpi/spi_display.py --api-base http://<pi-ip>:8001
+```
+
+The script polls `/api/alerts/stats` and draws the latest values on the display
+using `pygame`.
+
 
 ## License
 
