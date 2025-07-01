@@ -352,6 +352,15 @@ by a larger burst to mimic attack traffic. After sending the requests you will
 be dropped into the Mininet CLI where additional commands such as `pingall` or
 `iperf` can be used. Type `exit` to shut down the network.
 
+## On-device ML inference
+
+Capture live packets on the Pi and evaluate them using a TensorFlow model. Place your model file at `training/trained_model.h5` and run:
+
+```bash
+python training/run_inference.py --iface eth0
+```
+
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).

@@ -79,3 +79,11 @@ If you connect a 3.5" SPI display to the Pi's GPIO header, configure the appropr
 
 With the web service running locally, you can explore the more advanced Raspberry Pi integrations outlined in the main README, such as local traffic generation with Mininet or on-device machine learning inference.
 
+
+### Run live ML inference
+
+Once you have a trained model copied to `training/trained_model.h5` you can capture traffic and evaluate it with:
+
+```bash
+python training/run_inference.py --iface eth0
+```
