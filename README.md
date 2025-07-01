@@ -335,6 +335,7 @@ dependencies, then launch both services to expose the API on port `8001` and the
 React UI on port `3000` for any device on your LAN. A convenience script
 `python rpi/start_edge_service.py` starts both processes at once.
 
+
 ## Local traffic generation with Mininet
 
 To emulate traffic directly on a Raspberry Pi or other host install
