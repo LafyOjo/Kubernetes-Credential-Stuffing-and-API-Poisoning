@@ -386,6 +386,18 @@ python rpi/spi_display.py --api-base http://<pi-ip>:8001
 The script polls `/api/alerts/stats` and draws the latest values on the display
 using `pygame`.
 
+## Touchscreen feature menu
+
+When the Pi has a 3.5" display attached you can launch an interactive menu to
+start any of the optional features. The menu works with both a touchscreen and
+a keyboard:
+
+```bash
+python rpi/menu.py
+```
+
+Select a feature to run it and press `Esc` to return to the menu.
+
 
 ## License
 

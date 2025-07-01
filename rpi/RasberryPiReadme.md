@@ -128,3 +128,15 @@ sudo ovs-vsctl set-controller br0 tcp:127.0.0.1:6633
 
 Flow statistics will be printed every few seconds. Customize the script to
 forward these stats to your running detector API.
+
+### Touchscreen feature menu
+
+If you have the Pi connected to a small touchscreen you can launch all of the
+features from a single menu:
+
+```bash
+python rpi/menu.py
+```
+
+Tap a button or press the corresponding number key to start a feature. Press
+`Esc` to stop the running process and return to the menu.
