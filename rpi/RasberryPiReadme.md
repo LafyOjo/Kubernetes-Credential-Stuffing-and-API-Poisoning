@@ -40,7 +40,7 @@ alembic upgrade head
 set -a
 source .env
 set +a
-uvicorn app.main:app --port 8001
+python server.py  # binds 0.0.0.0:8001 so other devices can connect
 ```
 
 The backend will expose metrics and API routes on port `8001`.
@@ -52,10 +52,10 @@ Open a new terminal on the Pi, then install the frontend dependencies and start 
 ```bash
 cd frontend
 npm install
-npm start
+HOST=0.0.0.0 REACT_APP_API_BASE=http://<pi-ip>:8001 npm start
 ```
 
-The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). Replace `<pi-ip>` with the Pi's address on your LAN. The start script assumes the API is reachable at `http://localhost:8001`; modify `REACT_APP_API_BASE` if you run the backend elsewhere.
+The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). Replace `<pi-ip>` with the Pi's address on your LAN. If the backend runs on another host, adjust the `REACT_APP_API_BASE` variable accordingly.
 
 ## 4. Optional: attach a 3.5" SPI display
 
