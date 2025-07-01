@@ -87,3 +87,23 @@ Once you have a trained model copied to `training/trained_model.h5` you can capt
 ```bash
 python training/run_inference.py --iface eth0
 ```
+
+### Run the SDN controller
+
+Install Open vSwitch and the Python dependencies:
+
+```bash
+sudo apt install openvswitch-switch
+pip install -r sdn-controller/requirements.txt
+```
+
+Start the controller and point the OVS bridge at it:
+
+```bash
+ryu-manager sdn-controller/simple_monitor.py &
+sudo ovs-vsctl set-controller br0 tcp:127.0.0.1:6633
+```
+
+Flow statistics will be printed every few seconds. Customize the script to
+forward these stats to your running detector API.
+

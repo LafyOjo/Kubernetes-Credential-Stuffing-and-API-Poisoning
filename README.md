@@ -335,7 +335,6 @@ dependencies, then launch both services to expose the API on port `8001` and the
 React UI on port `3000` for any device on your LAN. A convenience script
 `python rpi/start_edge_service.py` starts both processes at once.
 
-
 ## Local traffic generation with Mininet
 
 To emulate traffic directly on a Raspberry Pi or other host install
@@ -359,6 +358,20 @@ Capture live packets on the Pi and evaluate them using a TensorFlow model. Place
 ```bash
 python training/run_inference.py --iface eth0
 ```
+
+## Lightweight SDN controller
+
+Run a small [Ryu](https://osrg.github.io/ryu/) controller to gather OpenFlow
+statistics from an Open vSwitch instance. After installing the requirements at
+`sdn-controller/requirements.txt`, launch the controller with:
+
+```bash
+ryu-manager sdn-controller/simple_monitor.py
+```
+
+Point your switch at the Pi's IP on port `6633`. The script logs packet and byte
+counts for each active flow. Edit the code to forward these stats to the
+detector service if desired.
 
 
 ## License
