@@ -57,7 +57,21 @@ HOST=0.0.0.0 REACT_APP_API_BASE=http://<pi-ip>:8001 npm start
 
 The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). Replace `<pi-ip>` with the Pi's address on your LAN. If the backend runs on another host, adjust the `REACT_APP_API_BASE` variable accordingly.
 
-## 4. Optional: attach a 3.5" SPI display
+## 4. Launch both services together (optional)
+
+Once both the backend and frontend dependencies are installed you can start them
+together from the repository root using the helper script:
+
+```bash
+python rpi/start_edge_service.py
+```
+
+The script loads environment variables from `backend/.env`, launches the API on
+`0.0.0.0:8001`, then spawns the React development server bound to `0.0.0.0`. The
+dashboard will be reachable at `http://<pi-ip>:3000`. Press `Ctrl+C` to stop
+both processes.
+
+## 5. Optional: attach a 3.5" SPI display
 
 If you connect a 3.5" SPI display to the Pi's GPIO header, configure the appropriate framebuffer driver for your model. Once the display shows the Pi's desktop, open a browser pointed at `http://localhost:3000` to view the dashboard.
 
@@ -65,3 +79,30 @@ If you connect a 3.5" SPI display to the Pi's GPIO header, configure the appropr
 
 With the web service running locally, you can explore the more advanced Raspberry Pi integrations outlined in the main README, such as local traffic generation with Mininet or on-device machine learning inference.
 
+
+### Run live ML inference
+
+Once you have a trained model copied to `training/trained_model.h5` you can capture traffic and evaluate it with:
+
+```bash
+python training/run_inference.py --iface eth0
+```
+
+### Run the SDN controller
+
+Install Open vSwitch and the Python dependencies:
+
+```bash
+sudo apt install openvswitch-switch
+pip install -r sdn-controller/requirements.txt
+```
+
+Start the controller and point the OVS bridge at it:
+
+```bash
+ryu-manager sdn-controller/simple_monitor.py &
+sudo ovs-vsctl set-controller br0 tcp:127.0.0.1:6633
+```
+
+Flow statistics will be printed every few seconds. Customize the script to
+forward these stats to your running detector API.
