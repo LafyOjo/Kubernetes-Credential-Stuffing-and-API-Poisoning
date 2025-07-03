@@ -15,10 +15,22 @@ export default function AttackSim() {
   const [attemptsInput, setAttemptsInput] = useState(20);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
+  const [error, setError] = useState(null);
 
   const simulateAttack = async () => {
     setRunning(true);
     setResults(null);
+    setError(null);
+    let securityEnabled = false;
+    try {
+      const secResp = await fetch(`${API_BASE}/api/security`);
+      if (secResp.ok) {
+        const data = await secResp.json();
+        securityEnabled = data.enabled;
+      }
+    } catch (err) {
+      console.error("Security state error", err);
+    }
     let successes = 0;
     let blocked = 0;
     let firstAttempt = null;
@@ -47,7 +59,7 @@ export default function AttackSim() {
       }
 
       try {
-        await fetch(`${API_BASE}/score`, {
+        const scoreResp = await fetch(`${API_BASE}/score`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -55,6 +67,17 @@ export default function AttackSim() {
             auth_result: loginOk ? "success" : "failure",
           }),
         });
+        if (securityEnabled && scoreResp.status === 401) {
+          setError("Attack blocked by security");
+          setRunning(false);
+          return;
+        }
+        if (scoreResp.ok) {
+          const data = await scoreResp.json();
+          if (data.status === "blocked") {
+            blocked++;
+          }
+        }
       } catch (err) {
         console.error("Score error", err);
       }
@@ -120,6 +143,7 @@ export default function AttackSim() {
           {running ? "Running..." : "Start Attack"}
         </button>
       </div>
+      {error && <p className="error-text">{error}</p>}
       {results && (
         <div className="attack-results">
           <p>Total Attempts: {results.attempts}</p>
