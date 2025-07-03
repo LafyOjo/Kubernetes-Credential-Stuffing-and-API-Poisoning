@@ -17,7 +17,7 @@ function Dashboard() {
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h1>Credential‐Stuffing &amp; Alerts Dashboard</h1>
+      <h1>APIShield+ Dashboard</h1>
       <p>Backend ping says: {ping ?? "Loading…"} </p>
 
       <ScoreForm />
