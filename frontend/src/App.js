@@ -22,7 +22,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="dashboard-header">Credential-Stuffing &amp; Alerts Dashboard</h1>
+      <h1 className="dashboard-header">APIShield+ Dashboard</h1>
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />

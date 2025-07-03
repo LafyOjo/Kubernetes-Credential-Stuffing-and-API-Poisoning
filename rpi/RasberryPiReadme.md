@@ -1,6 +1,6 @@
 # Raspberry Pi Setup Guide
 
-This document describes how to run the API security demo on a Raspberry Pi 4. These instructions cover the edge-hosted monitoring web service only (backend and frontend). The other optional Pi integrations mentioned in the main README are beyond the scope of this file.
+This document describes how to run the APIShield+ demo on a Raspberry Pi 4. These instructions cover the edge-hosted monitoring web service only (backend and frontend). The other optional Pi integrations mentioned in the main README are beyond the scope of this file.
 
 ## Educational use only
 

@@ -10,7 +10,7 @@ from app.api.auth import router as auth_router
 from app.api.config import router as config_router
 from app.api.security import router as security_router
 
-app = FastAPI(title="Credential-Stuffing Detector")
+app = FastAPI(title="APIShield+")
 
 # DEVELOPMENT: allow your React dev server to talk to FastAPI
 app.add_middleware(

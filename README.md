@@ -1,4 +1,4 @@
-# API Security Demo
+# APIShield+ Demo
 
 This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
 
