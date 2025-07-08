@@ -71,3 +71,37 @@ def test_register_forward(monkeypatch):
     assert resp.status_code == 200
     assert captured['url'] == 'http://shop/register'
     assert captured['payload'] == {'username': 'carol', 'password': 'pw'}
+
+
+def test_login_forward(monkeypatch):
+    captured = {}
+
+    def fake_post(url, json, timeout=3):
+        captured['url'] = url
+        captured['payload'] = json
+        class R:
+            status_code = 200
+        return R()
+
+    monkeypatch.setattr(auth_module.requests, 'post', fake_post)
+    monkeypatch.setenv('LOGIN_WITH_SHOP', 'true')
+    monkeypatch.setenv('SOCK_SHOP_URL', 'http://shop')
+
+    client.post('/register', json={'username': 'dan', 'password': 'pw'})
+    resp = client.post('/login', json={'username': 'dan', 'password': 'pw'})
+    assert resp.status_code == 200
+    assert captured['url'] == 'http://shop/login'
+    assert captured['payload'] == {'username': 'dan', 'password': 'pw'}
+
+
+def test_logout_revokes_token():
+    client.post('/register', json={'username': 'erin', 'password': 'pw'})
+    resp = client.post('/login', json={'username': 'erin', 'password': 'pw'})
+    token = resp.json()['access_token']
+    headers = {'Authorization': f'Bearer {token}'}
+
+    resp = client.post('/logout', headers=headers)
+    assert resp.status_code == 200
+
+    resp = client.get('/api/me', headers=headers)
+    assert resp.status_code == 401

@@ -13,6 +13,8 @@ from app.core.security import (
     get_password_hash,
 )
 from app.api.dependencies import get_current_user
+from app.api.dependencies import oauth2_scheme
+from app.core.security import revoke_token
 from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
 from app.schemas.users import UserCreate, UserRead
@@ -58,6 +60,18 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         ),
     )
+
+    if os.getenv("LOGIN_WITH_SHOP", "false").lower() in {"1", "true", "yes"}:
+        shop_url = os.getenv("SOCK_SHOP_URL", "http://localhost:8080").rstrip("/")
+        try:
+            requests.post(
+                f"{shop_url}/login",
+                json={"username": user_in.username, "password": user_in.password},
+                timeout=3,
+            )
+        except Exception:
+            pass
+
     return {"access_token": token, "token_type": "bearer"}
 
 @router.post("/api/token")
@@ -83,3 +97,9 @@ async def login_for_access_token(
 @router.get("/api/me")
 async def read_me(current_user: dict = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/logout")
+async def logout(token: str = Depends(oauth2_scheme)):
+    revoke_token(token)
+    return {"detail": "Logged out"}

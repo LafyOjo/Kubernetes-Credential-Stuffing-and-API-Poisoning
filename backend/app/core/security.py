@@ -35,3 +35,16 @@ def decode_access_token(token: str) -> dict[str, Any]:
         return payload
     except JWTError as e:
         raise
+
+# Track revoked tokens so /logout can invalidate them
+revoked_tokens: set[str] = set()
+
+
+def revoke_token(token: str) -> None:
+    """Mark a JWT as revoked."""
+    revoked_tokens.add(token)
+
+
+def is_token_revoked(token: str) -> bool:
+    """Return True if the token has been revoked."""
+    return token in revoked_tokens
