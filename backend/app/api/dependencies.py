@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
+    request: Request = None,
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -24,6 +25,11 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
     except JWTError:
+        if request is not None:
+            from app.models.alerts import Alert
+            alert = Alert(ip_address=request.client.host, total_fails=0, detail="Invalid token")
+            db.add(alert)
+            db.commit()
         raise credentials_exception
 
     if is_token_revoked(token):

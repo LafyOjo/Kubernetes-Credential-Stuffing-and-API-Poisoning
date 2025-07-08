@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.zero_trust import ZeroTrustMiddleware
+from app.core.logging import APILoggingMiddleware
 
 from app.api.score import router as score_router
 from app.api.alerts import router as alerts_router
@@ -20,6 +21,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Log incoming requests and any presented Authorization headers
+app.add_middleware(APILoggingMiddleware)
 
 # Enforce Zero Trust API key if configured
 app.add_middleware(ZeroTrustMiddleware)
