@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy.orm import Session
 
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, is_token_revoked
 from app.core.db import get_db
 from app.crud.users import get_user_by_username
 
@@ -24,6 +24,9 @@ async def get_current_user(
         if username is None:
             raise credentials_exception
     except JWTError:
+        raise credentials_exception
+
+    if is_token_revoked(token):
         raise credentials_exception
 
     # Query the users table for the decoded username

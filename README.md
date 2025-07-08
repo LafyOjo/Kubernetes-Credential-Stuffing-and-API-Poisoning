@@ -24,6 +24,7 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
   (default `30`).
 - `REGISTER_WITH_SHOP` – set to `true` to also register the account with Sock Shop (default `false`).
+- `LOGIN_WITH_SHOP` – set to `true` to also log into Sock Shop when authenticating (default `false`).
 - `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
 
 Example `.env`:
@@ -42,6 +43,8 @@ DB_ECHO=true
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 # Forward successful registrations to Sock Shop
 REGISTER_WITH_SHOP=true
+# Forward logins to Sock Shop
+LOGIN_WITH_SHOP=true
 # Where the Sock Shop API is hosted
 SOCK_SHOP_URL=http://localhost:8080
 ```
@@ -143,9 +146,16 @@ The React application will be available at [http://localhost:3000](http://localh
   and to login we would either login from the react-native application or we would enter in the command below
 
    ```
-   $ curl -X POST http://localhost:8001/login   
-   -H "Content-Type: application/json"   
+   $ curl -X POST http://localhost:8001/login
+   -H "Content-Type: application/json"
    -d '{"username": "alice", "password": "secret"}'
+   ```
+   The response contains a JWT access token. Include it in the `Authorization`
+   header when calling protected endpoints or when logging out:
+
+   ```bash
+   curl -X POST http://localhost:8001/logout \
+     -H "Authorization: Bearer <token>"
    ```
    
 For command-line testing there are two standalone scripts:
