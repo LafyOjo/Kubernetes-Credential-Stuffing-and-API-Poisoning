@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any, Union
+import logging
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -27,13 +28,17 @@ def create_access_token(
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    logging.info("Issued token for %s: %s", data.get("sub"), token)
+    return token
 
 def decode_access_token(token: str) -> dict[str, Any]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        logging.info("Decoded token: %s", token)
         return payload
     except JWTError as e:
+        logging.warning("Invalid token attempted: %s", token)
         raise
 
 # Track revoked tokens so /logout can invalidate them
