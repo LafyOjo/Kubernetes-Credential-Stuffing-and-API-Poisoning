@@ -149,7 +149,7 @@ account displays how secure it is as a progress bar and lists the enabled
 
   $ curl -X POST http://localhost:8001/register \
     -H "Content-Type: application/json" \
-    -d '{"username":"ben","password":"SuperSecure1!"}'
+    -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
   ```
    After registering with the detector service, send the same credentials to
    Sock Shop so both backends share the account:
@@ -159,9 +159,9 @@ account displays how secure it is as a progress bar and lists the enabled
      -H "Content-Type: application/json" \
      -d '{"username":"alice","password":"secret"}'
 
-   curl -X POST http://localhost:8080/register \
-     -H "Content-Type: application/json" \
-     -d '{"username":"ben","password":"SuperSecure1!"}'
+  curl -X POST http://localhost:8080/register \
+    -H "Content-Type: application/json" \
+    -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
    ```
   and to login we would either login from the react-native application or we would enter in the command below
 

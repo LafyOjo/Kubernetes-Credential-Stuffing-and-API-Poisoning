@@ -14,7 +14,7 @@ export const USER_DATA = {
   },
   ben: {
     name: "Ben",
-    password: "SuperSecure1!",
+    password: "ILikeN1G3R!A##?",
 
     security: 90,
     features: [
