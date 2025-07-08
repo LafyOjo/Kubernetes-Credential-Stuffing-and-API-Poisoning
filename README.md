@@ -122,10 +122,15 @@ The React application will be available at [http://localhost:3000](http://localh
 
    The dashboard will be served at <http://localhost:3000>.
 
-2. Log in and locate the **Credential Stuffing Simulation** section. Click
-   **Send Attempt** multiple times to generate failed login requests against the
-   backend. The UI displays how many attempts were blocked once the detection
-   threshold is reached.
+   The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
+   account displays how secure it is and lists the enabled protections. Alice
+   intentionally has reduced security while Ben has all security features
+   enabled.
+
+2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
+   target account and click **Start Attack**. When targeting Alice the attack
+   will usually succeed quickly. Ben's account requires the correct chain token
+   so repeated guesses are blocked.
 
 3. To use the command-line to login and create a user that would be used across the services and for the 
    purpose of testing we need to use the terminal, below is an example of how to register a user and login

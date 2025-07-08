@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "";
 
@@ -10,8 +10,14 @@ const DUMMY_PASSWORDS = [
   "letmein",
 ];
 
-export default function AttackSim() {
-  const [targetUser, setTargetUser] = useState("alice");
+export default function AttackSim({ user }) {
+  const [targetUser, setTargetUser] = useState(user || "alice");
+
+  useEffect(() => {
+    if (user) {
+      setTargetUser(user);
+    }
+  }, [user]);
   const [attemptsInput, setAttemptsInput] = useState(20);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
@@ -125,10 +131,10 @@ export default function AttackSim() {
       <div className="attack-controls">
         <label>
           Target User:
-          <input
-            value={targetUser}
-            onChange={(e) => setTargetUser(e.target.value)}
-          />
+          <select value={targetUser} onChange={(e) => setTargetUser(e.target.value)}>
+            <option value="alice">Alice</option>
+            <option value="ben">Ben</option>
+          </select>
         </label>
         <label>
           Attempts:
