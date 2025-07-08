@@ -123,6 +123,13 @@ The React application will be available at [http://localhost:3000](http://localh
    The dashboard will be served at <http://localhost:3000>.
 
    The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
+
+account displays how secure it is as a progress bar and lists the enabled
+   protections. Alice intentionally has reduced security while Ben has all
+   security features enabled. When a login succeeds the simulator fetches the
+   user's cart and orders from Sock Shop, demonstrating how Alice's data is
+   exposed while Ben remains safe.
+
    account displays how secure it is and lists the enabled protections. Alice
    intentionally has reduced security while Ben has all security features
    enabled.
@@ -139,6 +146,10 @@ The React application will be available at [http://localhost:3000](http://localh
   $ curl -X POST http://localhost:8001/register \
     -H "Content-Type: application/json" \
     -d '{"username":"alice","password":"secret"}'
+
+  $ curl -X POST http://localhost:8001/register \
+    -H "Content-Type: application/json" \
+    -d '{"username":"ben","password":"SuperSecure1!"}'
   ```
    After registering with the detector service, send the same credentials to
    Sock Shop so both backends share the account:
@@ -147,6 +158,10 @@ The React application will be available at [http://localhost:3000](http://localh
    curl -X POST http://localhost:8080/register \
      -H "Content-Type: application/json" \
      -d '{"username":"alice","password":"secret"}'
+
+   curl -X POST http://localhost:8080/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"ben","password":"SuperSecure1!"}'
    ```
   and to login we would either login from the react-native application or we would enter in the command below
 

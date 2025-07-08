@@ -141,3 +141,17 @@ body {
   background: #6200ea;
   color: #fff;
 }
+
+.progress {
+  width: 100%;
+  background: #eee;
+  height: 10px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress > div {
+  height: 100%;
+  background: #6200ea;
+}

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { USER_DATA } from "./UserAccounts";
+
 
 const API_BASE = process.env.REACT_APP_API_BASE || "";
+const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:8080";
 
 const DUMMY_PASSWORDS = [
   "wrongpass",
@@ -18,6 +21,29 @@ export default function AttackSim({ user }) {
       setTargetUser(user);
     }
   }, [user]);
+
+  useEffect(() => {
+    async function ensureUsers() {
+      for (const [name, info] of Object.entries(USER_DATA)) {
+        try {
+          await fetch(`${API_BASE}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name, password: info.password }),
+          });
+          await fetch(`${SHOP_URL}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name, password: info.password }),
+          });
+        } catch (err) {
+          // ignore errors (likely already registered)
+        }
+      }
+    }
+    ensureUsers();
+  }, []);
+
   const [attemptsInput, setAttemptsInput] = useState(20);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
@@ -42,6 +68,8 @@ export default function AttackSim({ user }) {
     let firstAttempt = null;
     let firstTime = null;
     let firstInfo = null;
+    let firstCart = null;
+    let firstOrders = null;
 
     const start = performance.now();
 
@@ -62,6 +90,19 @@ export default function AttackSim({ user }) {
         }
       } catch (err) {
         console.error("Login error", err);
+      }
+
+      let shopOk = false;
+      try {
+        const shopResp = await fetch(`${SHOP_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: targetUser, password: pwd }),
+          credentials: "include",
+        });
+        shopOk = shopResp.status === 200;
+      } catch (err) {
+        console.error("Shop login error", err);
       }
 
       try {
@@ -108,6 +149,23 @@ export default function AttackSim({ user }) {
         }
       }
 
+      if (shopOk && firstCart === null) {
+        try {
+          const cartResp = await fetch(`${SHOP_URL}/carts/${targetUser}/items`);
+          if (cartResp.ok) {
+            firstCart = await cartResp.json();
+          }
+          const orderResp = await fetch(
+            `${SHOP_URL}/orders/search/customerId?custId=${targetUser}`
+          );
+          if (orderResp.ok) {
+            firstOrders = await orderResp.json();
+          }
+        } catch (err) {
+          console.error("Fetch shop info", err);
+        }
+      }
+
       setResults({
         attempts: i + 1,
         successes,
@@ -115,6 +173,8 @@ export default function AttackSim({ user }) {
         first_success_attempt: firstAttempt,
         first_success_time: firstTime,
         first_user_info: firstInfo,
+        first_cart: firstCart,
+        first_orders: firstOrders,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -162,8 +222,18 @@ export default function AttackSim({ user }) {
               </p>
               {results.first_user_info && (
                 <p>
-                  User Info:{' '}
+                  User Info{' '}
                   <code>{JSON.stringify(results.first_user_info)}</code>
+                </p>
+              )}
+              {results.first_cart && (
+                <p>
+                  Cart <code>{JSON.stringify(results.first_cart)}</code>
+                </p>
+              )}
+              {results.first_orders && (
+                <p>
+                  Orders <code>{JSON.stringify(results.first_orders)}</code>
                 </p>
               )}
             </>
