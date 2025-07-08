@@ -122,10 +122,17 @@ The React application will be available at [http://localhost:3000](http://localh
 
    The dashboard will be served at <http://localhost:3000>.
 
-2. Log in and locate the **Credential Stuffing Simulation** section. Click
-   **Send Attempt** multiple times to generate failed login requests against the
-   backend. The UI displays how many attempts were blocked once the detection
-   threshold is reached.
+   The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
+   account displays how secure it is as a progress bar and lists the enabled
+   protections. Alice intentionally has reduced security while Ben has all
+   security features enabled. When a login succeeds the simulator fetches the
+   user's cart and orders from Sock Shop, demonstrating how Alice's data is
+   exposed while Ben remains safe.
+
+2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
+   target account and click **Start Attack**. When targeting Alice the attack
+   will usually succeed quickly. Ben's account requires the correct chain token
+   so repeated guesses are blocked.
 
 3. To use the command-line to login and create a user that would be used across the services and for the 
    purpose of testing we need to use the terminal, below is an example of how to register a user and login
@@ -134,6 +141,10 @@ The React application will be available at [http://localhost:3000](http://localh
   $ curl -X POST http://localhost:8001/register \
     -H "Content-Type: application/json" \
     -d '{"username":"alice","password":"secret"}'
+
+  $ curl -X POST http://localhost:8001/register \
+    -H "Content-Type: application/json" \
+    -d '{"username":"ben","password":"SuperSecure1!"}'
   ```
    After registering with the detector service, send the same credentials to
    Sock Shop so both backends share the account:
@@ -142,6 +153,10 @@ The React application will be available at [http://localhost:3000](http://localh
    curl -X POST http://localhost:8080/register \
      -H "Content-Type: application/json" \
      -d '{"username":"alice","password":"secret"}'
+
+   curl -X POST http://localhost:8080/register \
+     -H "Content-Type: application/json" \
+     -d '{"username":"ben","password":"SuperSecure1!"}'
    ```
   and to login we would either login from the react-native application or we would enter in the command below
 
