@@ -5,11 +5,13 @@ import AlertsChart from "./AlertsChart";
 import SecurityToggle from "./SecurityToggle";
 import LoginForm from "./LoginForm";
 import AttackSim from "./AttackSim";
+import UserAccounts from "./UserAccounts";
 import "./App.css";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [selectedUser, setSelectedUser] = useState("alice");
 
   if (!token) {
     return (
@@ -23,11 +25,12 @@ function App() {
   return (
     <div className="app-container">
       <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+      <UserAccounts onSelect={setSelectedUser} />
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />
       <div className="attack-section">
-        <AttackSim />
+        <AttackSim user={selectedUser} />
         <div className="security-box">
           <SecurityToggle />
         </div>
