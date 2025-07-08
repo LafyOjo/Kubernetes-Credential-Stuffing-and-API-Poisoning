@@ -4,6 +4,7 @@ export const USER_DATA = {
   alice: {
     name: "Alice",
     password: "secret",
+
     security: 30,
     features: [
       "Weak password",
@@ -14,6 +15,7 @@ export const USER_DATA = {
   ben: {
     name: "Ben",
     password: "SuperSecure1!",
+
     security: 90,
     features: [
       "Strong password requirements",
@@ -51,6 +53,7 @@ export default function UserAccounts({ onSelect }) {
         <div className="progress">
           <div style={{ width: `${info.security}%` }} />
         </div>
+
         <p>{info.security}% safe</p>
         <ul>
           {info.features.map((f) => (

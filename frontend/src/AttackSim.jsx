@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
 
+
 const API_BASE = process.env.REACT_APP_API_BASE || "";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:8080";
 
@@ -42,6 +43,7 @@ export default function AttackSim({ user }) {
     }
     ensureUsers();
   }, []);
+
   const [attemptsInput, setAttemptsInput] = useState(20);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
