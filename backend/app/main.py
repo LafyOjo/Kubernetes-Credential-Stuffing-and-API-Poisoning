@@ -1,9 +1,11 @@
 # app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
+from app.core.anomaly import AnomalyDetectionMiddleware
 
 from app.api.score import router as score_router
 from app.api.alerts import router as alerts_router
@@ -27,6 +29,10 @@ app.add_middleware(APILoggingMiddleware)
 
 # Enforce Zero Trust API key if configured
 app.add_middleware(ZeroTrustMiddleware)
+
+# Optional ML-driven anomaly detection
+if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
+    app.add_middleware(AnomalyDetectionMiddleware)
 
 app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
