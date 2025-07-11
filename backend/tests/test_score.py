@@ -9,17 +9,26 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.core.db import Base, engine, SessionLocal
 from app.models.alerts import Alert
+from app.crud.users import create_user
+from app.core.security import get_password_hash
 
 client = TestClient(app)
 
+def _auth_headers():
+    resp = client.post('/login', json={'username': 'admin', 'password': 'pw'})
+    token = resp.json()['access_token']
+    return {'Authorization': f'Bearer {token}'}
+
 
 def current_chain():
-    return client.get('/api/security/chain').json()['chain']
+    return client.get('/api/security/chain', headers=_auth_headers()).json()['chain']
 
 
 def setup_function(_):
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
+        create_user(db, username='admin', password_hash=get_password_hash('pw'), role='admin')
 
 
 def teardown_function(_):

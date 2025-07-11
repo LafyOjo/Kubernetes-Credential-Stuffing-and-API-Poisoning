@@ -40,3 +40,12 @@ async def get_current_user(
     if not user:
         raise credentials_exception
     return user
+
+
+def require_role(required: str):
+    def checker(user=Depends(get_current_user)):
+        if user.role != required:
+            raise HTTPException(status_code=403, detail="Insufficient role")
+        return user
+
+    return checker

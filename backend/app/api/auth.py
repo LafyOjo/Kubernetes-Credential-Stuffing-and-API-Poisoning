@@ -29,7 +29,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if get_user_by_username(db, user_in.username):
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed = get_password_hash(user_in.password)
-    user = create_user(db, username=user_in.username, password_hash=hashed)
+    role = user_in.role or "user"
+    user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
 
     if os.getenv("REGISTER_WITH_SHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("SOCK_SHOP_URL", "http://localhost:8080").rstrip("/")
