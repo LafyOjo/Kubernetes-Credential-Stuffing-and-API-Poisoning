@@ -7,6 +7,8 @@ import importlib
 import app.core.zero_trust as zero_trust
 import app.main as main_module
 from app.core.db import Base, engine, SessionLocal
+from app.crud.users import create_user
+from app.core.security import get_password_hash
 
 # Client will be initialised in setup_function after reloading the app
 client = None
@@ -20,6 +22,14 @@ def setup_function(_):
     client = TestClient(main_module.app)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    with SessionLocal() as db:
+        create_user(db, username='admin', password_hash=get_password_hash('pw'), role='admin')
+
+
+def _auth_headers():
+    resp = client.post('/login', json={'username': 'admin', 'password': 'pw'})
+    token = resp.json()['access_token']
+    return {'Authorization': f'Bearer {token}'}
 
 
 def teardown_function(_):
@@ -30,10 +40,12 @@ def teardown_function(_):
 
 
 def test_requires_api_key():
-    resp = client.get('/config')
+    resp = client.get('/config', headers=_auth_headers())
     assert resp.status_code == 401
 
 
 def test_valid_api_key():
-    resp = client.get('/config', headers={'X-API-Key': 'secret-key'})
+    headers = _auth_headers()
+    headers['X-API-Key'] = 'secret-key'
+    resp = client.get('/config', headers=headers)
     assert resp.status_code == 200

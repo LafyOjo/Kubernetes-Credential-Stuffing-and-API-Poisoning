@@ -6,6 +6,7 @@ import os
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
 from app.core.anomaly import AnomalyDetectionMiddleware
+from app.core.policy import PolicyEngineMiddleware
 
 from app.api.score import router as score_router
 from app.api.alerts import router as alerts_router
@@ -29,6 +30,8 @@ app.add_middleware(APILoggingMiddleware)
 
 # Enforce Zero Trust API key if configured
 app.add_middleware(ZeroTrustMiddleware)
+# Apply risk-based policy engine
+app.add_middleware(PolicyEngineMiddleware)
 
 # Optional ML-driven anomaly detection
 if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":

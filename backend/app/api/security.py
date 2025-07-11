@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 import hashlib
 import secrets
 
 from app.core.config import settings
+from app.api.dependencies import require_role
 
 # Global flag controlling credential stuffing enforcement
 SECURITY_ENABLED = True
@@ -48,18 +49,18 @@ init_chain()
 router = APIRouter(prefix="/api/security", tags=["security"])
 
 @router.get("/")
-def get_security():
+def get_security(_user=Depends(require_role("admin"))):
     """Return current security enforcement state."""
     return {"enabled": SECURITY_ENABLED}
 
 
 @router.get("/chain")
-def get_chain():
+def get_chain(_user=Depends(require_role("admin"))):
     """Retrieve the current chain value."""
     return {"chain": CURRENT_CHAIN}
 
 @router.post("/")
-def set_security(payload: dict):
+def set_security(payload: dict, _user=Depends(require_role("admin"))):
     """Update security enforcement state."""
     enabled = payload.get("enabled")
     if not isinstance(enabled, bool):
