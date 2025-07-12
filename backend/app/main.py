@@ -1,12 +1,14 @@
 # app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
 from app.core.anomaly import AnomalyDetectionMiddleware
 from app.core.policy import PolicyEngineMiddleware
+from app.core.metrics import MetricsMiddleware
 
 from app.api.score import router as score_router
 from app.api.alerts import router as alerts_router
@@ -27,6 +29,7 @@ app.add_middleware(
 
 # Log incoming requests and any presented Authorization headers
 app.add_middleware(APILoggingMiddleware)
+app.add_middleware(MetricsMiddleware)
 
 # Enforce Zero Trust API key if configured
 app.add_middleware(ZeroTrustMiddleware)
@@ -46,3 +49,11 @@ app.include_router(security_router) # /api/security
 @app.get("/ping")
 def ping():
     return {"message": "pong"}
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    data = generate_latest()
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+
