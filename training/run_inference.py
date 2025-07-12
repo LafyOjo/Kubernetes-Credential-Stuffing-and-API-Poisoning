@@ -8,9 +8,15 @@ import argparse
 import time
 from typing import List
 
+import psutil
+from prometheus_client import Gauge, start_http_server
+
 import numpy as np
 from scapy.all import sniff, TCP
 from tensorflow import keras
+
+CPU_PERCENT = Gauge("ml_cpu_percent", "CPU usage percentage")
+MEM_BYTES = Gauge("ml_memory_bytes", "Memory usage in bytes")
 
 
 def extract_features(pkts: List) -> np.ndarray:
@@ -37,6 +43,7 @@ def extract_features(pkts: List) -> np.ndarray:
 
 
 def main(iface: str, model_path: str, duration: float):
+    start_http_server(8002)
     model = keras.models.load_model(model_path)
     print(f"Loaded model from {model_path}")
 
@@ -46,6 +53,9 @@ def main(iface: str, model_path: str, duration: float):
         feats = extract_features(pkts)
         prob = float(model.predict(feats, verbose=0)[0][0])
         print(f"Prediction for last window: {prob:.4f}")
+        # update resource gauges
+        CPU_PERCENT.set(psutil.cpu_percent())
+        MEM_BYTES.set(psutil.Process().memory_info().rss)
         time.sleep(0.5)
 
 

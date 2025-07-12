@@ -423,6 +423,20 @@ python rpi/spi_display.py --api-base http://<pi-ip>:8001
 The script polls `/api/alerts/stats` and draws the latest values on the display
 using `pygame`.
 
+## Performance evaluation
+
+Prometheus scrapes metrics from the detector service at `/metrics`. Use
+`scripts/perf_test.py` to send concurrent requests and measure average latency.
+Launch the API and then run:
+
+```bash
+python scripts/perf_test.py --concurrency 20 --total 200
+```
+
+View CPU and memory usage for the on-device model by running
+`training/run_inference.py`. Metrics are exported on port `8002` and can be
+scraped by Prometheus.
+
 ## Touchscreen feature menu
 
 When the Pi has a 3.5" display attached you can launch an interactive menu to
