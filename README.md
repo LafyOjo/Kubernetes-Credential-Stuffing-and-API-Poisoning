@@ -27,6 +27,7 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `LOGIN_WITH_SHOP` – set to `true` to also log into Sock Shop when authenticating (default `false`).
 - `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
+- `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 
 Example `.env`:
 
@@ -50,6 +51,8 @@ LOGIN_WITH_SHOP=true
 SOCK_SHOP_URL=http://localhost:8080
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
+# Require password on every API request
+REAUTH_PER_REQUEST=true
 ```
 
 ## Running the backend
