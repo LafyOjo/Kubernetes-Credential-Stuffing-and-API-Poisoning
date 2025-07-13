@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
-
-
-const API_BASE = process.env.REACT_APP_API_BASE || "";
+import { apiFetch } from "./api";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:8080";
 
 const DUMMY_PASSWORDS = [
@@ -26,7 +24,7 @@ export default function AttackSim({ user }) {
     async function ensureUsers() {
       for (const [name, info] of Object.entries(USER_DATA)) {
         try {
-          await fetch(`${API_BASE}/register`, {
+          await apiFetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: info.password }),
@@ -55,7 +53,7 @@ export default function AttackSim({ user }) {
     setError(null);
     let securityEnabled = false;
     try {
-      const secResp = await fetch(`${API_BASE}/api/security`);
+      const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
@@ -78,7 +76,7 @@ export default function AttackSim({ user }) {
       let loginOk = false;
       let token = null;
       try {
-        const resp = await fetch(`${API_BASE}/login`, {
+        const resp = await apiFetch("/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: targetUser, password: pwd }),
@@ -106,7 +104,7 @@ export default function AttackSim({ user }) {
       }
 
       try {
-        const scoreResp = await fetch(`${API_BASE}/score`, {
+        const scoreResp = await apiFetch("/score", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -136,7 +134,7 @@ export default function AttackSim({ user }) {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await fetch(`${API_BASE}/api/me`, {
+              const infoResp = await apiFetch("/api/me", {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (infoResp.ok) {
