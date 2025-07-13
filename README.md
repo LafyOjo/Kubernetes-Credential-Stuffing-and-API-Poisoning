@@ -28,6 +28,10 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
+  When enabled, clients must supply the password again via the
+  `X-Reauth-Password` header. The helper script
+  `scripts/reauth_client.py` demonstrates prompting for the password
+  before each request.
 
 Example `.env`:
 
@@ -184,9 +188,10 @@ account displays how secure it is as a progress bar and lists the enabled
      -H "Authorization: Bearer <token>"
    ```
    
-For command-line testing there are two standalone scripts:
+For command-line testing there are three standalone scripts:
 
 ```bash
+python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
