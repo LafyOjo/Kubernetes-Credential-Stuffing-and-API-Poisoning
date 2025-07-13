@@ -34,6 +34,11 @@ When enabled, clients must supply the password again via the
   `scripts/reauth_client.py` demonstrates prompting for the password
   before each request.
 
+When enabled, clients must supply the password again via the
+  `X-Reauth-Password` header. The helper script
+  `scripts/reauth_client.py` demonstrates prompting for the password
+  before each request.
+
 
 Example `.env`:
 

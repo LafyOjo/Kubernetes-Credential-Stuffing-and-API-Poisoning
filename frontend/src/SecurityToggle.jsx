@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "";
+import { apiFetch } from "./api";
 
 export default function SecurityToggle() {
   const [enabled, setEnabled] = useState(true);
@@ -8,7 +7,7 @@ export default function SecurityToggle() {
 
   const loadState = async () => {
     try {
-      const resp = await fetch(`${API_BASE}/api/security`);
+      const resp = await apiFetch("/api/security");
       if (resp.ok) {
         const data = await resp.json();
         setEnabled(data.enabled);
@@ -26,7 +25,7 @@ export default function SecurityToggle() {
 
   const toggle = async () => {
     try {
-      const resp = await fetch(`${API_BASE}/api/security`, {
+      const resp = await apiFetch("/api/security", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !enabled })

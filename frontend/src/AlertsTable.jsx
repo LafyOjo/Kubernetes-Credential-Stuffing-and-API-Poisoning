@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "";
+import { apiFetch } from "./api";
 
 export default function AlertsTable({ refresh, token }) {
   const [alerts, setAlerts] = useState([]);
@@ -8,7 +7,7 @@ export default function AlertsTable({ refresh, token }) {
 
   const loadAlerts = async () => {
     try {
-      const resp = await fetch(`${API_BASE}/api/alerts`, {
+      const resp = await apiFetch("/api/alerts", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!resp.ok) throw new Error(await resp.text());

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-const API_BASE = process.env.REACT_APP_API_BASE || "";
+import { apiFetch } from "./api";
 
 const DEFAULT_THRESHOLD = 5;
 
@@ -13,7 +12,7 @@ export default function ScoreForm({ onNewAlert }) {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const resp = await fetch(`${API_BASE}/config`);
+        const resp = await apiFetch("/config");
         if (resp.ok) {
           const data = await resp.json();
           if (data.fail_limit) {
@@ -34,7 +33,7 @@ export default function ScoreForm({ onNewAlert }) {
 
     try {
       const token = localStorage.getItem("token");
-      const resp = await fetch(`${API_BASE}/score`, {
+      const resp = await apiFetch("/score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) })
