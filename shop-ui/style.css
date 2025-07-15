@@ -31,3 +31,12 @@ nav button {
     list-style: none;
     padding: 0;
 }
+
+.stats-list {
+    list-style: none;
+    padding: 0;
+}
+
+.stats-list li {
+    margin-bottom: 5px;
+}

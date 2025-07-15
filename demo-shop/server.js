@@ -62,6 +62,12 @@ app.post('/login', async (req, res) => {
   req.session.username = username;
   req.session.password = password;
   try {
+    const apiResp = await axios.post(`${API_BASE}/login`, { username, password });
+    req.session.apiToken = apiResp.data.access_token;
+  } catch (e) {
+    console.error('Backend login failed');
+  }
+  try {
     await axios.post(`${API_BASE}/score`, {
       client_ip: req.ip,
       auth_result: 'success',
@@ -74,6 +80,7 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
+  req.session.apiToken = null;
   req.session.destroy(() => res.json({ status: 'ok' }));
 });
 
@@ -96,6 +103,21 @@ app.get('/cart', requireAuth, (req, res) => {
 app.post('/purchase', requireAuth, (req, res) => {
   users[req.session.username].cart = [];
   res.json({ status: 'purchased' });
+});
+
+app.get('/api-calls', requireAuth, async (req, res) => {
+  if (!req.session.apiToken) {
+    return res.status(401).json({ error: 'no api token' });
+  }
+  try {
+    const resp = await axios.get(`${API_BASE}/api/user-calls`, {
+      headers: { Authorization: `Bearer ${req.session.apiToken}` },
+    });
+    res.json(resp.data);
+  } catch (e) {
+    console.error('User call fetch failed');
+    res.status(500).json({ error: 'failed' });
+  }
 });
 
 app.listen(PORT, () => {
