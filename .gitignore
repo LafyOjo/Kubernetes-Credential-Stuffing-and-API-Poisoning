@@ -52,3 +52,4 @@ docs/screenshots/**/thumbs/
 #––– OS-specific ––––––––––––––––––––––––––––––––––––
 Thumbs.db
 ehthumbs.db
+*.md

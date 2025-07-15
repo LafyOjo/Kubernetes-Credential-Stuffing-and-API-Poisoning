@@ -2,6 +2,8 @@
 
 This directory contains a minimal [Ryu](https://osrg.github.io/ryu/) controller example. It can be run on a Raspberry Pi alongside Open vSwitch to collect basic flow statistics and optionally send them to the detector API.
 
+The Sock Shop used for demonstrations resides in `../sockshop-master`.
+
 ## Installation
 
 ```
