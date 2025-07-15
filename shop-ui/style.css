@@ -20,3 +20,8 @@ body {
 .stats-list li {
     margin-bottom: 5px;
 }
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 500;
+}

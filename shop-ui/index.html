@@ -8,21 +8,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="bg-dark text-white p-3 mb-4">
-        <div class="container d-flex justify-content-between align-items-center">
-            <h1 class="h3 mb-0">Demo Shop</h1>
-            <nav>
-                <button class="btn btn-light me-2" id="homeBtn">Home</button>
-                <button class="btn btn-light me-2" id="servicesBtn">Services</button>
-                <button class="btn btn-light me-2" id="contactBtn">Contact</button>
-                <button class="btn btn-light me-2" id="cartBtn">Cart (<span id="cartCount">0</span>)</button>
-                <button class="btn btn-light me-2" id="statsBtn">API Calls</button>
-                <span id="authSection">
-                    <button class="btn btn-success me-2" id="loginBtn">Login</button>
-                    <button class="btn btn-danger me-2" id="logoutBtn" style="display:none">Logout</button>
-                </span>
-            </nav>
-        </div>
+    <header class="mb-4">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand">Demo Shop</span>
+                <div class="d-flex">
+                    <button class="btn btn-light me-2" id="homeBtn">Home</button>
+                    <button class="btn btn-light me-2" id="aboutBtn">About</button>
+                    <button class="btn btn-light me-2" id="servicesBtn">Services</button>
+                    <button class="btn btn-light me-2" id="contactBtn">Contact</button>
+                    <button class="btn btn-light me-2" id="cartBtn">Cart (<span id="cartCount">0</span>)</button>
+                    <button class="btn btn-light me-2" id="statsBtn">API Calls</button>
+                    <span id="authSection">
+                        <button class="btn btn-success me-2" id="loginBtn">Login</button>
+                        <button class="btn btn-danger me-2" id="logoutBtn" style="display:none">Logout</button>
+                    </span>
+                </div>
+            </div>
+        </nav>
     </header>
 
     <main class="container" id="content"></main>
