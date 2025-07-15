@@ -2,6 +2,8 @@
 
 This directory contains a small example for running the trained TensorFlow model directly on a Raspberry Pi (or any host). The `run_inference.py` script captures live packets with **Scapy**, extracts a handful of features, then feeds them into `trained_model.h5`.
 
+For end-to-end testing with the Sock Shop application located at `../sockshop-master`, see the main README.
+
 ```
 pip install -r training/requirements.txt
 python training/run_inference.py --iface eth0 --model training/trained_model.h5

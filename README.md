@@ -26,6 +26,7 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `REGISTER_WITH_SHOP` – set to `true` to also register the account with Sock Shop (default `false`).
 - `LOGIN_WITH_SHOP` – set to `true` to also log into Sock Shop when authenticating (default `false`).
 - `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
+- `SOCK_SHOP_PATH` – path to the included `sockshop-master` sources used when starting the demo.
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
@@ -82,6 +83,8 @@ REGISTER_WITH_SHOP=true
 LOGIN_WITH_SHOP=true
 # Where the Sock Shop API is hosted
 SOCK_SHOP_URL=http://localhost:8080
+# Location of the Helidon Sock Shop source
+SOCK_SHOP_PATH=./sockshop-master
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
 # Require password on every API request
@@ -151,6 +154,20 @@ different URL. Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key`
 header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
+
+## Starting the Sock Shop
+
+The Helidon-based Sock Shop sources are located in the `sockshop-master/` directory.
+To run the shop locally without Kubernetes execute:
+
+```bash
+cd sockshop-master
+mvn -q package
+kubectl apply -k k8s/core -n sock-shop
+```
+
+The UI will be exposed on <http://localhost:8080> when port-forwarding the
+`front-end` service as shown in the Kubernetes section.
 
 ## Credential Stuffing Simulation
 
@@ -248,14 +265,14 @@ demonstration purposes and no license or ownership is claimed.
 
 ### Steps
 
-1. Spin up a local cluster and deploy Sock Shop:
+1. Spin up a local cluster and deploy Sock Shop using the manifests from `sockshop-master`:
 
    ```bash
-   bash infra/kind/up.sh
+    bash infra/kind/up.sh
    ```
 
    This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
-   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml`.
+   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml` and the full source lives under `sockshop-master/`.
 
 2. Generate a certificate and create the TLS secret:
 
