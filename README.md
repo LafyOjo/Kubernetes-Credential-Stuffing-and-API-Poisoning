@@ -41,6 +41,9 @@ python scripts/reauth_client.py alice --base http://localhost:8001 --times 2
 ```
 
 The script logs in and prompts for your password before every request.
+Canceling the prompt or entering the wrong password logs you out and
+returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
+you prefer to disable this extra check.
 Set `REAUTH_PER_REQUEST=false` in `.env` if you prefer to disable this
 extra check.
 
