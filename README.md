@@ -44,11 +44,13 @@ from the command line.
 
 To try it manually, register an account and then run:
 
+
 `X-Reauth-Password` header. The helper script
 `scripts/reauth_client.py` demonstrates prompting for the password
 before each request.
 
 To try it manually, register an account and then run:
+
 
 ```bash
 python scripts/reauth_client.py alice --base http://localhost:8001 --times 2

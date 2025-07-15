@@ -6,6 +6,11 @@ export function logout() {
   window.location.reload();
 }
 
+export function logout() {
+  localStorage.removeItem("token");
+  window.location.reload();
+}
+
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   const headers = { ...(options.headers || {}) };
@@ -15,6 +20,7 @@ export async function apiFetch(path, options = {}) {
   if (token && !skipAuth && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
+
   if (API_KEY && !headers["X-API-Key"]) {
     headers["X-API-Key"] = API_KEY;
   }
