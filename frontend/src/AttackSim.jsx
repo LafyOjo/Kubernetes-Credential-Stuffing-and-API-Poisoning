@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
 import { apiFetch } from "./api";
-const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:8080";
+const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
 const DUMMY_PASSWORDS = [
   "wrongpass",
