@@ -26,8 +26,12 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `REGISTER_WITH_SHOP` – set to `true` to also register the account with Sock Shop (default `false`).
 - `LOGIN_WITH_SHOP` – set to `true` to also log into Sock Shop when authenticating (default `false`).
 - `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
+- `SOCK_SHOP_PATH` – path to the included `sockshop-master` sources used when starting the demo.
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
+- `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
+  `X-API-Key` header. Invalid keys are logged via `/score` and show up in
+  Prometheus metrics.
 
 When enabled, clients must supply the password again via the
 `X-Reauth-Password` header. The dashboard automatically prompts for
@@ -40,6 +44,14 @@ from the command line.
 
 To try it manually, register an account and then run:
 
+
+`X-Reauth-Password` header. The helper script
+`scripts/reauth_client.py` demonstrates prompting for the password
+before each request.
+
+To try it manually, register an account and then run:
+
+
 ```bash
 python scripts/reauth_client.py alice --base http://localhost:8001 --times 2
 ```
@@ -48,6 +60,9 @@ The script logs in and prompts for your password before every request.
 Canceling the prompt or entering the wrong password logs you out and
 returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
 you prefer to disable this extra check.
+
+Set `REAUTH_PER_REQUEST=false` in `.env` if you prefer to disable this
+extra check.
 
 
 Example `.env`:
@@ -70,10 +85,14 @@ REGISTER_WITH_SHOP=true
 LOGIN_WITH_SHOP=true
 # Where the Sock Shop API is hosted
 SOCK_SHOP_URL=http://localhost:8080
+# Location of the Helidon Sock Shop source
+SOCK_SHOP_PATH=./sockshop-master
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
 # Require password on every API request
 REAUTH_PER_REQUEST=true
+# Require X-API-Key header on every request
+ZERO_TRUST_API_KEY=demo-key
 ```
 
 ## Running the backend
@@ -122,9 +141,9 @@ npm install --save-dev cross-env
 # If there is still an error go to the package-lock.json and input this code to hard-code the URL into the react-development server 
 "scripts": 
 {
-  "start": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts start",
-  "build": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts build",
-  "test": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts test",
+"start": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts start",
+"build": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts build",
+"test": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts test",
   "eject": "react-scripts eject"
 }
 # once this is done then 
@@ -133,9 +152,24 @@ npm start
 
 The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
 this variable when building or running the frontend if the API lives at a
-different URL.
+different URL. Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key`
+header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
+
+## Starting the Sock Shop
+
+The Helidon-based Sock Shop sources are located in the `sockshop-master/` directory.
+To run the shop locally without Kubernetes execute:
+
+```bash
+cd sockshop-master
+mvn -q package
+kubectl apply -k k8s/core -n sock-shop
+```
+
+The UI will be exposed on <http://localhost:8080> when port-forwarding the
+`front-end` service as shown in the Kubernetes section.
 
 ## Credential Stuffing Simulation
 
@@ -150,8 +184,7 @@ The React application will be available at [http://localhost:3000](http://localh
    The dashboard will be served at <http://localhost:3000>.
 
    The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
-
-account displays how secure it is as a progress bar and lists the enabled
+   account displays how secure it is as a progress bar and lists the enabled
    protections. Alice intentionally has reduced security while Ben has all
    security features enabled. When a login succeeds the simulator fetches the
    user's cart and orders from Sock Shop, demonstrating how Alice's data is
@@ -234,14 +267,14 @@ demonstration purposes and no license or ownership is claimed.
 
 ### Steps
 
-1. Spin up a local cluster and deploy Sock Shop:
+1. Spin up a local cluster and deploy Sock Shop using the manifests from `sockshop-master`:
 
    ```bash
-   bash infra/kind/up.sh
+    bash infra/kind/up.sh
    ```
 
    This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
-   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml`.
+   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml` and the full source lives under `sockshop-master/`.
 
 2. Generate a certificate and create the TLS secret:
 
@@ -257,6 +290,7 @@ demonstration purposes and no license or ownership is claimed.
    kubectl create secret generic detector-env \
        --from-literal=SECRET_KEY=<random-secret> \
        --from-literal=DATABASE_URL=sqlite:///app.db \
+       --from-literal=ZERO_TRUST_API_KEY=demo-key \
        -n demo
    ```
 
@@ -324,6 +358,10 @@ Every call increments the `login_attempts_total` Prometheus counter labelled by 
 ```
 
 Otherwise it records the failure and returns `{"status": "ok"}`. A successful result simply records the metric.
+
+When `ZERO_TRUST_API_KEY` is enabled, any request missing or providing the wrong
+`X-API-Key` header is also counted as a failure via this endpoint so the
+dashboard and Prometheus reflect the attempts.
 
 ## `/config` endpoint
 

@@ -1,4 +1,10 @@
 export const API_BASE = process.env.REACT_APP_API_BASE || "";
+export const API_KEY = process.env.REACT_APP_API_KEY || "";
+
+export function logout() {
+  localStorage.removeItem("token");
+  window.location.reload();
+}
 
 export function logout() {
   localStorage.removeItem("token");
@@ -13,6 +19,10 @@ export async function apiFetch(path, options = {}) {
     url.endsWith("/login") || url.endsWith("/register") || url.endsWith("/api/token");
   if (token && !skipAuth && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  if (API_KEY && !headers["X-API-Key"]) {
+    headers["X-API-Key"] = API_KEY;
   }
 
   let resp = await fetch(url, { ...options, headers });

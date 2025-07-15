@@ -28,6 +28,11 @@ spec:
             secretKeyRef:
               name: detector-env
               key: DATABASE_URL
+        - name: ZERO_TRUST_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: detector-env
+              key: ZERO_TRUST_API_KEY
         args:
           - uvicorn
           - app.main:app
