@@ -44,6 +44,8 @@ The script logs in and prompts for your password before every request.
 Canceling the prompt or entering the wrong password logs you out and
 returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
 you prefer to disable this extra check.
+Set `REAUTH_PER_REQUEST=false` in `.env` if you prefer to disable this
+extra check.
 
 
 Example `.env`:
@@ -146,8 +148,7 @@ The React application will be available at [http://localhost:3000](http://localh
    The dashboard will be served at <http://localhost:3000>.
 
    The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
-
-account displays how secure it is as a progress bar and lists the enabled
+   account displays how secure it is as a progress bar and lists the enabled
    protections. Alice intentionally has reduced security while Ben has all
    security features enabled. When a login succeeds the simulator fetches the
    user's cart and orders from Sock Shop, demonstrating how Alice's data is
