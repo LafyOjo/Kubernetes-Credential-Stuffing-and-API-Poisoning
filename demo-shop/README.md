@@ -24,3 +24,12 @@ The service listens on port `3005` by default and exposes simple JSON endpoints:
 - `POST /purchase` – clear the cart (requires `X-Reauth-Password`)
 
 Set `API_BASE` to point at the running APIShield+ backend if it isn't at `http://localhost:8001`.
+
+## Container Image
+
+To run Demo Shop inside Kubernetes build the Docker image and load it into your cluster:
+
+```bash
+docker build -t demo-shop:latest -f demo-shop/Dockerfile demo-shop
+kind load docker-image demo-shop:latest --name cred-demo
+```

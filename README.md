@@ -274,8 +274,8 @@ demonstration purposes and no license or ownership is claimed.
     bash infra/kind/up.sh
    ```
 
-   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Demo Shop demo application.
-   The Demo Shop manifest is included locally at `infra/kind/demo-shop.yaml` and the full source lives under `demo-shop/`.
+   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Demo Shop application.
+   The manifest at `infra/kind/demo-shop.yaml` launches the Node.js service found in `demo-shop/`.
 
 2. Generate a certificate and create the TLS secret:
 
@@ -324,7 +324,7 @@ demonstration purposes and no license or ownership is claimed.
 7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n demo-shop 3005:80   -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
+   kubectl port-forward svc/demo-shop -n demo-shop 3005:80   -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
    kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
