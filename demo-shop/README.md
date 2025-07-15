@@ -13,6 +13,10 @@ npm install
 node server.js
 ```
 
+With the server running you can simply open `http://localhost:3005/` in your
+browser to view the demo shop UI. The static files are served from the
+`shop-ui` directory automatically so no additional web server is required.
+
 The service listens on port `3005` by default and exposes simple JSON endpoints:
 
 - `POST /register` – create an account
