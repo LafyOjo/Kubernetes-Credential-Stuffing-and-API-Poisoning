@@ -30,14 +30,24 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 
 When enabled, clients must supply the password again via the
-  `X-Reauth-Password` header. The helper script
-  `scripts/reauth_client.py` demonstrates prompting for the password
-  before each request.
+`X-Reauth-Password` header. The dashboard automatically prompts for
+the password whenever the API replies with `401` and then retries the
+request. Enter the same password you used to log in. If you cancel or
+enter it incorrectly, you will be logged out and returned to the login
+screen. The helper script `scripts/reauth_client.py` demonstrates
+prompting for the password before each request when calling the API
+from the command line.
 
-When enabled, clients must supply the password again via the
-  `X-Reauth-Password` header. The helper script
-  `scripts/reauth_client.py` demonstrates prompting for the password
-  before each request.
+To try it manually, register an account and then run:
+
+```bash
+python scripts/reauth_client.py alice --base http://localhost:8001 --times 2
+```
+
+The script logs in and prompts for your password before every request.
+Canceling the prompt or entering the wrong password logs you out and
+returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
+you prefer to disable this extra check.
 
 
 Example `.env`:
