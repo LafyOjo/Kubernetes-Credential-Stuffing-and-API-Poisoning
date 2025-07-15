@@ -2,6 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -13,6 +14,9 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
+
+// Serve the static front-end so visiting '/' shows the shop UI
+app.use(express.static(path.join(__dirname, '../shop-ui')));
 
 const products = [
   { id: 1, name: 'Demo Socks', price: 10 },
