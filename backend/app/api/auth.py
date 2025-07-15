@@ -32,8 +32,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     role = user_in.role or "user"
     user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
 
-    if os.getenv("REGISTER_WITH_SHOP", "false").lower() in {"1", "true", "yes"}:
-        shop_url = os.getenv("SOCK_SHOP_URL", "http://localhost:8080").rstrip("/")
+    if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
+        shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:8080").rstrip("/")
         try:
             requests.post(
                 f"{shop_url}/register",
@@ -62,8 +62,8 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
         ),
     )
 
-    if os.getenv("LOGIN_WITH_SHOP", "false").lower() in {"1", "true", "yes"}:
-        shop_url = os.getenv("SOCK_SHOP_URL", "http://localhost:8080").rstrip("/")
+    if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
+        shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:8080").rstrip("/")
         try:
             requests.post(
                 f"{shop_url}/login",
