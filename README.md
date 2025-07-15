@@ -25,7 +25,7 @@ detection logic, and another toggles SQLAlchemy debug logging:
   (default `30`).
 - `REGISTER_WITH_DEMOSHOP` – set to `true` to also register the account with Demo Shop (default `false`).
 - `LOGIN_WITH_DEMOSHOP` – set to `true` to also log into Demo Shop when authenticating (default `false`).
-- `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:8080`).
+- `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:3005`).
 - `DEMO_SHOP_PATH` – path to the included `demo-shop` sources used when starting the demo.
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
@@ -84,8 +84,8 @@ REGISTER_WITH_DEMOSHOP=true
 # Forward logins to Demo Shop
 LOGIN_WITH_DEMOSHOP=true
 # Where the Demo Shop API is hosted
-DEMO_SHOP_URL=http://localhost:8080
-# Location of the Helidon Demo Shop source
+DEMO_SHOP_URL=http://localhost:3005
+# Location of the demo shop source
 DEMO_SHOP_PATH=./demo-shop
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
@@ -170,6 +170,8 @@ npm start
 
 The API will be available on <http://localhost:3005> by default.
 
+To try the browser-based UI, open `shop-ui/index.html` after starting the server.
+
 ## Credential Stuffing Simulation
 
 1. Start the React application:
@@ -214,11 +216,11 @@ The API will be available on <http://localhost:3005> by default.
    Demo Shop so both backends share the account:
 
    ```bash
-   curl -X POST http://localhost:8080/register \
+   curl -X POST http://localhost:3005/register \
      -H "Content-Type: application/json" \
      -d '{"username":"alice","password":"secret"}'
 
-  curl -X POST http://localhost:8080/register \
+  curl -X POST http://localhost:3005/register \
     -H "Content-Type: application/json" \
     -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
    ```
@@ -244,7 +246,7 @@ python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
-Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:8080` for the Demo Shop UI).
+Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
 
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
@@ -322,7 +324,7 @@ demonstration purposes and no license or ownership is claimed.
 7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n demo-shop 8080:80   -> open 'http://localhost:8080' in your browser to view the Demo Shop UI
+   kubectl port-forward svc/front-end -n demo-shop 3005:80   -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
    kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
@@ -337,7 +339,7 @@ demonstration purposes and no license or ownership is claimed.
 8. Generate traffic to observe detections:
 
    ```bash
-   python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:8080
+   python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:3005
    ```
 
 ## `/score` endpoint
