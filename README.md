@@ -268,14 +268,23 @@ demonstration purposes and no license or ownership is claimed.
 
 ### Steps
 
-1. Spin up a local cluster and deploy Demo Shop using the manifests from `demo-shop`:
+1. Spin up a local cluster to run the detector service:
 
    ```bash
-    bash infra/kind/up.sh
+   bash infra/kind/up.sh
    ```
 
-   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Demo Shop demo application.
-   The Demo Shop manifest is included locally at `infra/kind/demo-shop.yaml` and the full source lives under `demo-shop/`.
+   The script creates a kind cluster and installs Prometheus and Grafana. Start
+   the demo shop separately with:
+
+   ```bash
+   cd demo-shop
+   npm install
+   node server.js
+   ```
+
+   The Node service listens on port `3005` and requires the password on each API
+   call via the `X-Reauth-Password` header.
 
 2. Generate a certificate and create the TLS secret:
 
