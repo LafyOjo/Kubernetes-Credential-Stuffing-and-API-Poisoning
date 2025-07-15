@@ -155,3 +155,20 @@ body {
   height: 100%;
   background: #6200ea;
 }
+.toggle-buttons {
+  margin: 1rem 0;
+}
+.toggle-buttons button {
+  margin-right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ccc;
+  background: #eee;
+  cursor: pointer;
+}
+.toggle-buttons button.active {
+  background: #6200ea;
+  color: #fff;
+}
+.shop-frame {
+  margin-top: 2rem;
+}

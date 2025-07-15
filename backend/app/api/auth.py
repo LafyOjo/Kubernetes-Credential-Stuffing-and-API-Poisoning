@@ -17,6 +17,7 @@ from app.api.dependencies import oauth2_scheme
 from app.core.security import revoke_token
 from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
+from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
 
 
@@ -50,6 +51,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 def login(user_in: UserCreate, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
     if not user or not verify_password(user_in.password, user.password_hash):
+        log_event(db, user_in.username, "login", False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -61,6 +63,7 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         ),
     )
+    log_event(db, user.username, "login", True)
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
@@ -82,6 +85,7 @@ async def login_for_access_token(
 ):
     user = get_user_by_username(db, form_data.username)
     if not user or not verify_password(form_data.password, user.password_hash):
+        log_event(db, form_data.username, "token", False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -93,6 +97,7 @@ async def login_for_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     )
+    log_event(db, user.username, "token", True)
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/api/me")
