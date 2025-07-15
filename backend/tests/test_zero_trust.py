@@ -49,3 +49,12 @@ def test_valid_api_key():
     headers['X-API-Key'] = 'secret-key'
     resp = client.get('/config', headers=headers)
     assert resp.status_code == 200
+
+
+def test_invalid_key_records_score():
+    resp = client.get('/config', headers=_auth_headers())
+    assert resp.status_code == 401
+    with SessionLocal() as db:
+        from app.models.alerts import Alert
+        assert db.query(Alert).count() == 1
+

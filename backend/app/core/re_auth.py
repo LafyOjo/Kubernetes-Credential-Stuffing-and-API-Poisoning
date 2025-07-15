@@ -6,6 +6,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 from app.core.security import decode_access_token, verify_password
 from app.core.db import SessionLocal
+from app.api.score import record_attempt
 from app.crud.users import get_user_by_username
 
 REAUTH_REQUIRED = os.getenv("REAUTH_PER_REQUEST", "false").lower() in {"1", "true", "yes"}
@@ -18,18 +19,28 @@ class ReAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         auth = request.headers.get("Authorization")
         if not auth or not auth.startswith("Bearer "):
+            client_ip = request.client.host if request.client else "unknown"
+            with SessionLocal() as db:
+                record_attempt(db, client_ip, False, detail="Missing token")
             return JSONResponse({"detail": "Missing token"}, status_code=HTTP_401_UNAUTHORIZED)
         token = auth.split()[1]
         try:
             payload = decode_access_token(token)
             username = payload.get("sub")
         except Exception:
+            client_ip = request.client.host if request.client else "unknown"
+            with SessionLocal() as db:
+                record_attempt(db, client_ip, False, detail="Invalid token")
             return JSONResponse({"detail": "Invalid token"}, status_code=HTTP_401_UNAUTHORIZED)
         password = request.headers.get("X-Reauth-Password")
         if not password:
+            client_ip = request.client.host if request.client else "unknown"
+            with SessionLocal() as db:
+                record_attempt(db, client_ip, False, detail="Password required")
             return JSONResponse({"detail": "Password required"}, status_code=HTTP_401_UNAUTHORIZED)
         with SessionLocal() as db:
             user = get_user_by_username(db, username)
             if not user or not verify_password(password, user.password_hash):
+                record_attempt(db, request.client.host if request.client else "unknown", False, detail="Invalid credentials", with_jwt=True)
                 return JSONResponse({"detail": "Invalid credentials"}, status_code=HTTP_401_UNAUTHORIZED)
         return await call_next(request)
