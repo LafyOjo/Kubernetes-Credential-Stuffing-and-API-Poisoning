@@ -56,6 +56,20 @@ async function purchase() {
   loadProducts();
 }
 
+async function viewStats() {
+  try {
+    const data = await fetchJSON(`${API_BASE}/api-calls`, {
+      headers: { 'X-Reauth-Password': password }
+    });
+    const list = Object.entries(data)
+      .map(([user, count]) => `<li>${user}: ${count}</li>`)
+      .join('');
+    setContent(`<h2>API Calls</h2><ul class="stats-list">${list}</ul>`);
+  } catch (e) {
+    alert('Failed to load stats');
+  }
+}
+
 function showLogin() {
   setContent(`
     <h2>Login</h2>
@@ -135,6 +149,7 @@ document.getElementById('homeBtn').addEventListener('click', loadProducts);
 document.getElementById('cartBtn').addEventListener('click', viewCart);
 document.getElementById('loginBtn').addEventListener('click', showLogin);
 document.getElementById('logoutBtn').addEventListener('click', logout);
+document.getElementById('statsBtn').addEventListener('click', viewStats);
 
 loadProducts();
 updateCartCount();
