@@ -170,7 +170,8 @@ npm start
 
 The API will be available on <http://localhost:3005> by default.
 
-To try the browser-based UI, open `shop-ui/index.html` after starting the server.
+The shop UI is now served directly by the Node server, so simply browse to
+<http://localhost:3005/> after starting it.
 
 ## Credential Stuffing Simulation
 
