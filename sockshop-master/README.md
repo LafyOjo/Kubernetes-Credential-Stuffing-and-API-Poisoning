@@ -3,6 +3,10 @@
 This project is an implementation of the microservices based application
 using [Helidon Microservices Framework](https://helidon.io/).
 
+It is bundled with the APIShield+ demo to showcase security features. Refer to
+the repository root README for instructions on launching the detector service
+and integrating with this Sock Shop instance.
+
 The application is an online store that sells, well, socks, and is based
 on the canonical [SockShop Microservices Demo](https://microservices-demo.github.io)
 originally written and published under Apache 2.0 license by [Weaveworks](https://go.weave.works/socks).

@@ -16,6 +16,7 @@ from app.api.alerts import router as alerts_router
 from app.api.auth import router as auth_router
 from app.api.config import router as config_router
 from app.api.security import router as security_router
+from app.api.user_stats import router as user_stats_router
 
 app = FastAPI(title="APIShield+")
 
@@ -47,6 +48,7 @@ app.include_router(alerts_router)   # your /api/alerts endpoint
 app.include_router(auth_router)     # /register, /login, /api/token
 app.include_router(config_router)   # /config
 app.include_router(security_router) # /api/security
+app.include_router(user_stats_router) # /api/user-calls
 
 @app.get("/ping")
 def ping():
