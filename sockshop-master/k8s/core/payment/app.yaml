@@ -1,0 +1,74 @@
+#
+# Copyright (c) 2020 Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+kind: Service
+apiVersion: v1
+metadata:
+  name: payment-http
+  labels:
+    app: payment
+    component: sockshop
+spec:
+  selector:
+    app: payment
+  ports:
+    - port: 80
+      targetPort: 7001
+      name: http
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: payment
+  labels:
+    app: payment
+    component: sockshop
+spec:
+  selector:
+    app: payment
+  ports:
+    - port: 1408
+      targetPort: 1408
+      name: grpc
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: payment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+        version: v1
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      containers:
+        - name: payment
+          image: ghcr.io/helidon-sockshop/payment-core:2.2.0
+          imagePullPolicy: Always
+          env:
+            - name: TRACING_HOST
+              value: "jaeger-collector"
+            - name: JAEGER_SAMPLER_TYPE
+              value: "const"
+            - name: JAEGER_SAMPLER_PARAM
+              value: "1"
+          ports:
+            - containerPort: 7001
+            - containerPort: 1408
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 1000m
+              memory: 400Mi

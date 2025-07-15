@@ -1,0 +1,25 @@
+#
+# Copyright (c) 2020 Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+#
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../core
+
+resources:
+  - carts/db.yaml
+  - catalog/db.yaml
+  - orders/db.yaml
+  - payment/db.yaml
+  - shipping/db.yaml
+
+patchesStrategicMerge:
+  - carts/app.yaml
+  - catalog/app.yaml
+  - orders/app.yaml
+  - payment/app.yaml
+  - shipping/app.yaml
