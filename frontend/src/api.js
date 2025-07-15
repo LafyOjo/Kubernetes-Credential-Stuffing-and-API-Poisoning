@@ -6,11 +6,6 @@ export function logout() {
   window.location.reload();
 }
 
-export function logout() {
-  localStorage.removeItem("token");
-  window.location.reload();
-}
-
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   const headers = { ...(options.headers || {}) };
@@ -20,23 +15,12 @@ export async function apiFetch(path, options = {}) {
   if (token && !skipAuth && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-
   if (API_KEY && !headers["X-API-Key"]) {
     headers["X-API-Key"] = API_KEY;
   }
 
   let resp = await fetch(url, { ...options, headers });
   if (resp.status !== 401 || skipAuth) {
-
-  let resp = await fetch(url, { ...options, headers });
-  if (resp.status !== 401 || skipAuth) {
-  let resp = await fetch(url, options);
-  if (
-    resp.status !== 401 ||
-    url.endsWith("/login") ||
-    url.endsWith("/register") ||
-    url.endsWith("/api/token")
-  ) {
     return resp;
   }
 
@@ -48,8 +32,6 @@ export async function apiFetch(path, options = {}) {
 
   const retryHeaders = { ...headers, "X-Reauth-Password": pw };
   resp = await fetch(url, { ...options, headers: retryHeaders });
-  const headers = { ...(options.headers || {}), "X-Reauth-Password": pw };
-  resp = await fetch(url, { ...options, headers });
   if (resp.status === 401) {
     logout();
   }
