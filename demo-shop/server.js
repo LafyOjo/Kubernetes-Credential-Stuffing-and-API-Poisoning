@@ -8,7 +8,9 @@ const app = express();
 const PORT = process.env.PORT || 3005;
 const API_BASE = process.env.API_BASE || 'http://localhost:8001';
 // Disable backend integration entirely by setting FORWARD_API=false
-const FORWARD_API = process.env.FORWARD_API !== 'false';
+// Disable integration with the APIShield backend unless explicitly enabled.
+// Most demos run the shop standalone so suppress the noisy API errors by default.
+const FORWARD_API = process.env.FORWARD_API === 'true';
 
 app.use(bodyParser.json());
 app.use(session({
@@ -25,7 +27,12 @@ const products = [
   { id: 2, name: 'Demo Hat', price: 15 },
   { id: 3, name: 'Demo T-Shirt', price: 20 },
   { id: 4, name: 'Demo Mug', price: 8 },
-  { id: 5, name: 'VIP Support', price: 50 }
+  { id: 5, name: 'VIP Support', price: 50 },
+  { id: 6, name: 'Demo Hoodie', price: 35 },
+  { id: 7, name: 'Sticker Pack', price: 5 },
+  { id: 8, name: 'Demo Backpack', price: 45 },
+  { id: 9, name: 'Water Bottle', price: 12 },
+  { id: 10, name: 'Demo Sunglasses', price: 25 }
 ];
 
 // Pre‑register a demo user so the credentials alice/secret work out of the box

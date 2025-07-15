@@ -66,18 +66,26 @@ async function purchase() {
 function showServices() {
   setContent(`
     <h2>Our Services</h2>
-    <ul>
-      <li>Gift wrapping</li>
-      <li>Premium support</li>
-      <li>Express shipping</li>
+    <ul class="list-group mb-3">
+      <li class="list-group-item">Gift wrapping</li>
+      <li class="list-group-item">Premium support</li>
+      <li class="list-group-item">Express shipping</li>
     </ul>
+  `);
+}
+
+function showAbout() {
+  setContent(`
+    <h2>About Us</h2>
+    <p class="lead">Demo Shop is a tiny storefront used to showcase API security features.</p>
+    <p>All purchases are simulated and no real payments are processed.</p>
   `);
 }
 
 function showContact() {
   setContent(`
     <h2>Contact Us</h2>
-    <p>Email: support@example.com</p>
+    <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
     <p>Phone: 555-1234</p>
   `);
 }
@@ -102,6 +110,7 @@ function showLogin() {
       <input type="password" id="pw" placeholder="Password" required><br>
       <button type="submit">Login</button>
     </form>
+    <p class="small text-muted">Demo credentials: <code>alice</code> / <code>secret</code></p>
     <p>Or <a href="#" id="registerLink">register</a></p>
   `);
   document.getElementById('loginForm').addEventListener('submit', async e => {
@@ -172,6 +181,7 @@ async function updateCartCount() {
 }
 
 document.getElementById('homeBtn').addEventListener('click', loadProducts);
+document.getElementById('aboutBtn').addEventListener('click', showAbout);
 document.getElementById('cartBtn').addEventListener('click', viewCart);
 document.getElementById('loginBtn').addEventListener('click', showLogin);
 document.getElementById('logoutBtn').addEventListener('click', logout);

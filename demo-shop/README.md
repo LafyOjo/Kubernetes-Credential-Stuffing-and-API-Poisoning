@@ -1,9 +1,14 @@
 # Demo Shop
 
 This directory contains a very small Node.js-based e-commerce example used in place of the previous shop demo.
-It demonstrates integration with the APIShield+ backend. User registrations and login attempts are forwarded to the
-backend so detections still work. Each protected endpoint checks the `X-Reauth-Password` header to require the user's
-password on every request.
+It can integrate with the APIShield+ backend for additional telemetry. By default
+this forwarding is **disabled** so the shop can run standalone without errors.
+Set the environment variable `FORWARD_API=true` to enable calls to the backend.
+Each protected endpoint checks the `X-Reauth-Password` header to require the
+user's password on every request.
+
+The server pre-registers a demo account so you can log in immediately with
+`alice`/`secret`.
 
 ## Running
 
