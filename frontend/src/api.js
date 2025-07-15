@@ -7,6 +7,16 @@ export function logout() {
 
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
+  const headers = { ...(options.headers || {}) };
+  const token = localStorage.getItem("token");
+  const skipAuth =
+    url.endsWith("/login") || url.endsWith("/register") || url.endsWith("/api/token");
+  if (token && !skipAuth && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  let resp = await fetch(url, { ...options, headers });
+  if (resp.status !== 401 || skipAuth) {
   let resp = await fetch(url, options);
   if (
     resp.status !== 401 ||
@@ -23,6 +33,8 @@ export async function apiFetch(path, options = {}) {
     return resp;
   }
 
+  const retryHeaders = { ...headers, "X-Reauth-Password": pw };
+  resp = await fetch(url, { ...options, headers: retryHeaders });
   const headers = { ...(options.headers || {}), "X-Reauth-Password": pw };
   resp = await fetch(url, { ...options, headers });
   if (resp.status === 401) {
