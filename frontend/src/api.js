@@ -6,11 +6,6 @@ export function logout() {
   window.location.reload();
 }
 
-export function logout() {
-  localStorage.removeItem("token");
-  window.location.reload();
-}
-
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   const headers = { ...(options.headers || {}) };
