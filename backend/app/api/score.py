@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from app.core.db import get_db, SessionLocal
 from app.models.alerts import Alert
 import app.api.security as security
 
@@ -50,6 +50,58 @@ STUFFING_DETECTIONS = Counter(
 )
 
 
+def record_attempt(
+    db: Session,
+    client_ip: str,
+    success: bool,
+    *,
+    with_jwt: bool = False,
+    detail: str | None = None,
+) -> Dict[str, Any]:
+    """Record a login attempt and return the same structure as ``score``."""
+
+    LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+    if with_jwt:
+        JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+    else:
+        NO_JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
+
+    if success:
+        return {"status": "ok", "fails_last_minute": 0}
+
+    fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
+    window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
+    window_start = datetime.utcnow() - timedelta(seconds=window_seconds)
+    fail_count = (
+        db.query(Alert)
+        .filter(Alert.ip_address == client_ip)
+        .filter(Alert.timestamp >= window_start)
+        .count()
+    )
+
+    if security.SECURITY_ENABLED and fail_count >= fail_limit:
+        STUFFING_DETECTIONS.labels(ip=client_ip).inc()
+        alert = Alert(
+            ip_address=client_ip,
+            total_fails=fail_count + 1,
+            detail="Blocked: too many failures",
+        )
+        db.add(alert)
+        db.commit()
+        db.refresh(alert)
+        return {"status": "blocked", "fails_last_minute": fail_count + 1}
+
+    alert = Alert(
+        ip_address=client_ip,
+        total_fails=fail_count + 1,
+        detail=detail or "Failed login",
+    )
+    db.add(alert)
+    db.commit()
+    db.refresh(alert)
+    return {"status": "ok", "fails_last_minute": fail_count + 1}
+
+
 @router.post("/score", response_model=Dict[str, Any])
 def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_db)):
     """
@@ -74,48 +126,9 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     if client_ip is None or auth_result not in ("success", "failure"):
         raise HTTPException(status_code=422, detail="Invalid payload")
 
-    # 1) Increment Prometheus counter for every attempt.
-    LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
-    if with_jwt:
-        JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
-    else:
-        NO_JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
-
-    # 2) If it’s a failure, check how many failures in the configured window.
-    if auth_result == "failure":
-        fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
-        window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
-        window_start = datetime.utcnow() - timedelta(seconds=window_seconds)
-        fail_count = (
-            db.query(Alert)
-              .filter(Alert.ip_address == client_ip)
-              .filter(Alert.timestamp >= window_start)
-              .count()
-        )
-
-        if security.SECURITY_ENABLED and fail_count >= fail_limit:
-            # Already too many fails in the window → block and insert an alert row
-            STUFFING_DETECTIONS.labels(ip=client_ip).inc()
-            alert = Alert(
-                ip_address=client_ip,
-                total_fails=fail_count + 1,
-                detail="Blocked: too many failures",
-            )
-            db.add(alert)
-            db.commit()
-            db.refresh(alert)
-            return {"status": "blocked", "fails_last_minute": fail_count + 1}
-
-        # Otherwise, just record this failure normally
-        alert = Alert(
-            ip_address=client_ip,
-            total_fails=fail_count + 1,
-            detail="Failed login",
-        )
-        db.add(alert)
-        db.commit()
-        db.refresh(alert)
-        return {"status": "ok", "fails_last_minute": fail_count + 1}
-
-    # 3) On success, we do not create an alert row (but we already counted in Prometheus).
-    return {"status": "ok", "fails_last_minute": 0}
+    return record_attempt(
+        db,
+        client_ip,
+        auth_result == "success",
+        with_jwt=with_jwt,
+    )
