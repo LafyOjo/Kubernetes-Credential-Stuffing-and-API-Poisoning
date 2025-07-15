@@ -1,29 +1,36 @@
 const API_BASE = 'http://localhost:3005';
-let password = null;
+let username = null;
 
 function setContent(html) {
   document.getElementById('content').innerHTML = html;
 }
 
 async function fetchJSON(url, options = {}) {
-  const opts = { headers: { 'Content-Type': 'application/json' }, ...options };
-  if (password && opts.method && opts.method !== 'GET') {
-    opts.headers['X-Reauth-Password'] = password;
+  const { noAuth, ...opts } = options;
+  const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts };
+  if (!noAuth) {
+    const pw = prompt('Please re-enter your password');
+    if (pw === null) throw new Error('Password required');
+    fetchOpts.headers['X-Reauth-Password'] = pw;
   }
-  const res = await fetch(url, opts);
+  const res = await fetch(url, fetchOpts);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
 
 async function loadProducts() {
-  const products = await fetchJSON(`${API_BASE}/products`);
+  const products = await fetchJSON(`${API_BASE}/products`, { noAuth: true });
   const list = products.map(p => `
-    <div class="product">
-      <h3>${p.name}</h3>
-      <p>$${p.price}</p>
-      <button onclick="addToCart(${p.id})">Add to cart</button>
+    <div class="col-md-4 mb-3">
+      <div class="card h-100 text-center">
+        <div class="card-body">
+          <h5 class="card-title">${p.name}</h5>
+          <p class="card-text">$${p.price}</p>
+          <button class="btn btn-primary" onclick="addToCart(${p.id})">Add to cart</button>
+        </div>
+      </div>
     </div>`).join('');
-  setContent(`<h2>Products</h2>${list}`);
+  setContent(`<h2 class="mb-4">Products</h2><div class="row">${list}</div>`);
 }
 
 async function addToCart(id) {
@@ -42,8 +49,8 @@ async function addToCart(id) {
 async function viewCart() {
   try {
     const items = await fetchJSON(`${API_BASE}/cart`);
-    const list = items.map(i => `<li>${i.name} - $${i.price}</li>`).join('');
-    setContent(`<h2>Your Cart</h2><ul id="cartItems">${list}</ul><button onclick="purchase()">Purchase</button>`);
+    const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
+    setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
   } catch (e) {
     alert('You must be logged in');
   }
@@ -56,11 +63,28 @@ async function purchase() {
   loadProducts();
 }
 
+function showServices() {
+  setContent(`
+    <h2>Our Services</h2>
+    <ul>
+      <li>Gift wrapping</li>
+      <li>Premium support</li>
+      <li>Express shipping</li>
+    </ul>
+  `);
+}
+
+function showContact() {
+  setContent(`
+    <h2>Contact Us</h2>
+    <p>Email: support@example.com</p>
+    <p>Phone: 555-1234</p>
+  `);
+}
+
 async function viewStats() {
   try {
-    const data = await fetchJSON(`${API_BASE}/api-calls`, {
-      headers: { 'X-Reauth-Password': password }
-    });
+    const data = await fetchJSON(`${API_BASE}/api-calls`);
     const list = Object.entries(data)
       .map(([user, count]) => `<li>${user}: ${count}</li>`)
       .join('');
@@ -82,12 +106,13 @@ function showLogin() {
   `);
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const username = document.getElementById('username').value;
-    password = document.getElementById('pw').value;
+    username = document.getElementById('username').value;
+    const pw = document.getElementById('pw').value;
     try {
       await fetchJSON(`${API_BASE}/login`, {
         method: 'POST',
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password: pw }),
+        noAuth: true
       });
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
@@ -95,7 +120,7 @@ function showLogin() {
       loadProducts();
     } catch (e) {
       alert('Login failed');
-      password = null;
+      username = null;
     }
   });
   document.getElementById('registerLink').addEventListener('click', showRegister);
@@ -112,12 +137,13 @@ function showRegister() {
   `);
   document.getElementById('regForm').addEventListener('submit', async e => {
     e.preventDefault();
-    const username = document.getElementById('regUser').value;
+    const usernameVal = document.getElementById('regUser').value;
     const pw = document.getElementById('regPw').value;
     try {
       await fetchJSON(`${API_BASE}/register`, {
         method: 'POST',
-        body: JSON.stringify({ username, password: pw })
+        body: JSON.stringify({ username: usernameVal, password: pw }),
+        noAuth: true
       });
       alert('Registered! Please log in.');
       showLogin();
@@ -128,8 +154,8 @@ function showRegister() {
 }
 
 async function logout() {
-  await fetchJSON(`${API_BASE}/logout`, { method: 'POST' });
-  password = null;
+  await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
+  username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
   updateCartCount();
@@ -150,6 +176,8 @@ document.getElementById('cartBtn').addEventListener('click', viewCart);
 document.getElementById('loginBtn').addEventListener('click', showLogin);
 document.getElementById('logoutBtn').addEventListener('click', logout);
 document.getElementById('statsBtn').addEventListener('click', viewStats);
+document.getElementById('servicesBtn').addEventListener('click', showServices);
+document.getElementById('contactBtn').addEventListener('click', showContact);
 
 loadProducts();
 updateCartCount();

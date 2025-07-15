@@ -7,6 +7,8 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3005;
 const API_BASE = process.env.API_BASE || 'http://localhost:8001';
+// Disable backend integration entirely by setting FORWARD_API=false
+const FORWARD_API = process.env.FORWARD_API !== 'false';
 
 app.use(bodyParser.json());
 app.use(session({
@@ -20,10 +22,16 @@ app.use(express.static(path.join(__dirname, '../shop-ui')));
 
 const products = [
   { id: 1, name: 'Demo Socks', price: 10 },
-  { id: 2, name: 'Demo Hat', price: 15 }
+  { id: 2, name: 'Demo Hat', price: 15 },
+  { id: 3, name: 'Demo T-Shirt', price: 20 },
+  { id: 4, name: 'Demo Mug', price: 8 },
+  { id: 5, name: 'VIP Support', price: 50 }
 ];
 
-const users = {};
+// Pre‑register a demo user so the credentials alice/secret work out of the box
+const users = {
+  alice: { password: 'secret', cart: [] }
+};
 
 function requireAuth(req, res, next) {
   if (!req.session.username) {
@@ -41,10 +49,12 @@ app.post('/register', async (req, res) => {
   if (!username || !password) return res.status(400).json({ error: 'missing' });
   if (users[username]) return res.status(409).json({ error: 'exists' });
   users[username] = { password, cart: [] };
-  try {
-    await axios.post(`${API_BASE}/register`, { username, password });
-  } catch (e) {
-    console.error('Register API call failed');
+  if (FORWARD_API) {
+    try {
+      await axios.post(`${API_BASE}/register`, { username, password });
+    } catch (e) {
+      console.error('Register API call failed');
+    }
   }
   res.json({ status: 'ok' });
 });
@@ -52,33 +62,37 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!users[username] || users[username].password !== password) {
-    try {
-      await axios.post(`${API_BASE}/score`, {
-        client_ip: req.ip,
-        auth_result: 'failure',
-        with_jwt: false
-      });
-    } catch (e) {
-      console.error('Score API call failed');
+    if (FORWARD_API) {
+      try {
+        await axios.post(`${API_BASE}/score`, {
+          client_ip: req.ip,
+          auth_result: 'failure',
+          with_jwt: false
+        });
+      } catch (e) {
+        console.error('Score API call failed');
+      }
     }
     return res.status(401).json({ error: 'invalid credentials' });
   }
   req.session.username = username;
   req.session.password = password;
-  try {
-    const apiResp = await axios.post(`${API_BASE}/login`, { username, password });
-    req.session.apiToken = apiResp.data.access_token;
-  } catch (e) {
-    console.error('Backend login failed');
-  }
-  try {
-    await axios.post(`${API_BASE}/score`, {
-      client_ip: req.ip,
-      auth_result: 'success',
-      with_jwt: false
-    });
-  } catch (e) {
-    console.error('Score API call failed');
+  if (FORWARD_API) {
+    try {
+      const apiResp = await axios.post(`${API_BASE}/login`, { username, password });
+      req.session.apiToken = apiResp.data.access_token;
+    } catch (e) {
+      console.error('Backend login failed');
+    }
+    try {
+      await axios.post(`${API_BASE}/score`, {
+        client_ip: req.ip,
+        auth_result: 'success',
+        with_jwt: false
+      });
+    } catch (e) {
+      console.error('Score API call failed');
+    }
   }
   res.json({ status: 'ok' });
 });
@@ -112,6 +126,9 @@ app.post('/purchase', requireAuth, (req, res) => {
 app.get('/api-calls', requireAuth, async (req, res) => {
   if (!req.session.apiToken) {
     return res.status(401).json({ error: 'no api token' });
+  }
+  if (!FORWARD_API) {
+    return res.json({});
   }
   try {
     const resp = await axios.get(`${API_BASE}/api/user-calls`, {
