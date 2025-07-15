@@ -64,8 +64,8 @@ def test_register_forward(monkeypatch):
         return R()
 
     monkeypatch.setattr(auth_module.requests, 'post', fake_post)
-    monkeypatch.setenv('REGISTER_WITH_SHOP', 'true')
-    monkeypatch.setenv('SOCK_SHOP_URL', 'http://shop')
+    monkeypatch.setenv('REGISTER_WITH_DEMOSHOP', 'true')
+    monkeypatch.setenv('DEMO_SHOP_URL', 'http://shop')
 
     resp = client.post('/register', json={'username': 'carol', 'password': 'pw'})
     assert resp.status_code == 200
@@ -84,8 +84,8 @@ def test_login_forward(monkeypatch):
         return R()
 
     monkeypatch.setattr(auth_module.requests, 'post', fake_post)
-    monkeypatch.setenv('LOGIN_WITH_SHOP', 'true')
-    monkeypatch.setenv('SOCK_SHOP_URL', 'http://shop')
+    monkeypatch.setenv('LOGIN_WITH_DEMOSHOP', 'true')
+    monkeypatch.setenv('DEMO_SHOP_URL', 'http://shop')
 
     client.post('/register', json={'username': 'dan', 'password': 'pw'})
     resp = client.post('/login', json={'username': 'dan', 'password': 'pw'})

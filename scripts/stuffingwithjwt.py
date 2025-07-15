@@ -16,7 +16,7 @@ if __name__ == "__main__":
         "--score-base", default="http://localhost:8001", help="Detector API base URL"
     )
     parser.add_argument(
-        "--shop-url", default="http://localhost:8080", help="Sock Shop base URL"
+        "--shop-url", default="http://localhost:8080", help="Demo shop base URL"
     )
     args = parser.parse_args()
 

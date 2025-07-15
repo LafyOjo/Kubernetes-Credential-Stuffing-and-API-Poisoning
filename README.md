@@ -23,10 +23,10 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `DB_ECHO` – set to `true` to log SQL statements (default `false`).
 - `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
   (default `30`).
-- `REGISTER_WITH_SHOP` – set to `true` to also register the account with Sock Shop (default `false`).
-- `LOGIN_WITH_SHOP` – set to `true` to also log into Sock Shop when authenticating (default `false`).
-- `SOCK_SHOP_URL` – base URL for Sock Shop when forwarding registrations (default `http://localhost:8080`).
-- `SOCK_SHOP_PATH` – path to the included `sockshop-master` sources used when starting the demo.
+- `REGISTER_WITH_DEMOSHOP` – set to `true` to also register the account with Demo Shop (default `false`).
+- `LOGIN_WITH_DEMOSHOP` – set to `true` to also log into Demo Shop when authenticating (default `false`).
+- `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:8080`).
+- `DEMO_SHOP_PATH` – path to the included `demo-shop` sources used when starting the demo.
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
@@ -79,14 +79,14 @@ FAIL_WINDOW_SECONDS=60
 DB_ECHO=true
 # JWT token expiry in minutes
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-# Forward successful registrations to Sock Shop
-REGISTER_WITH_SHOP=true
-# Forward logins to Sock Shop
-LOGIN_WITH_SHOP=true
-# Where the Sock Shop API is hosted
-SOCK_SHOP_URL=http://localhost:8080
-# Location of the Helidon Sock Shop source
-SOCK_SHOP_PATH=./sockshop-master
+# Forward successful registrations to Demo Shop
+REGISTER_WITH_DEMOSHOP=true
+# Forward logins to Demo Shop
+LOGIN_WITH_DEMOSHOP=true
+# Where the Demo Shop API is hosted
+DEMO_SHOP_URL=http://localhost:8080
+# Location of the Helidon Demo Shop source
+DEMO_SHOP_PATH=./demo-shop
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
 # Require password on every API request
@@ -157,19 +157,18 @@ header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
-## Starting the Sock Shop
+## Starting the Demo Shop
 
-The Helidon-based Sock Shop sources are located in the `sockshop-master/` directory.
-To run the shop locally without Kubernetes execute:
+The demo shop sources are located in the `demo-shop/` directory.
+To run the shop locally execute:
 
 ```bash
-cd sockshop-master
-mvn -q package
-kubectl apply -k k8s/core -n sock-shop
+cd demo-shop
+npm install
+npm start
 ```
 
-The UI will be exposed on <http://localhost:8080> when port-forwarding the
-`front-end` service as shown in the Kubernetes section.
+The API will be available on <http://localhost:3005> by default.
 
 ## Credential Stuffing Simulation
 
@@ -187,7 +186,7 @@ The UI will be exposed on <http://localhost:8080> when port-forwarding the
    account displays how secure it is as a progress bar and lists the enabled
    protections. Alice intentionally has reduced security while Ben has all
    security features enabled. When a login succeeds the simulator fetches the
-   user's cart and orders from Sock Shop, demonstrating how Alice's data is
+   user's cart and orders from Demo Shop, demonstrating how Alice's data is
    exposed while Ben remains safe.
 
    account displays how secure it is and lists the enabled protections. Alice
@@ -212,7 +211,7 @@ The UI will be exposed on <http://localhost:8080> when port-forwarding the
     -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
   ```
    After registering with the detector service, send the same credentials to
-   Sock Shop so both backends share the account:
+   Demo Shop so both backends share the account:
 
    ```bash
    curl -X POST http://localhost:8080/register \
@@ -245,7 +244,7 @@ python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
-Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:8080` for the Sock Shop UI).
+Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:8080` for the Demo Shop UI).
 
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
@@ -267,14 +266,14 @@ demonstration purposes and no license or ownership is claimed.
 
 ### Steps
 
-1. Spin up a local cluster and deploy Sock Shop using the manifests from `sockshop-master`:
+1. Spin up a local cluster and deploy Demo Shop using the manifests from `demo-shop`:
 
    ```bash
     bash infra/kind/up.sh
    ```
 
-   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Sock Shop demo application.
-   The Sock Shop manifest is included locally at `infra/kind/sock-shop.yaml` and the full source lives under `sockshop-master/`.
+   This creates a kind cluster, installs Prometheus and Grafana via Helm, and deploys the Demo Shop demo application.
+   The Demo Shop manifest is included locally at `infra/kind/demo-shop.yaml` and the full source lives under `demo-shop/`.
 
 2. Generate a certificate and create the TLS secret:
 
@@ -323,7 +322,7 @@ demonstration purposes and no license or ownership is claimed.
 7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n sock-shop 8080:80   -> remember to enter in on local-browser 'http://localhost:8080' to load up the sock-shop     # Sock Shop UI
+   kubectl port-forward svc/front-end -n demo-shop 8080:80   -> open 'http://localhost:8080' in your browser to view the Demo Shop UI
    kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80

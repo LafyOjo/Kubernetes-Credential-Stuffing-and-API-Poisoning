@@ -2,7 +2,7 @@
 
 This example script creates a tiny Mininet topology on the local machine. It starts two hosts connected to a single switch, then generates a burst of HTTP traffic. A small Python HTTP server runs on `h2` while `h1` issues requests.
 
-The Sock Shop demo referenced in the root README lives at `../sockshop-master`.
+The demo shop referenced in the root README lives in the `../demo-shop` directory.
 
 Run the script with root privileges so Mininet can configure network namespaces:
 

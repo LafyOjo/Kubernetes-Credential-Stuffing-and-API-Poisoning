@@ -1,7 +1,7 @@
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-The Sock Shop backend used by the dashboard is located in `../sockshop-master`.
+The demo shop backend used by the dashboard is located in `../demo-shop`.
 Refer to the root README for instructions on starting the shop.
 
 ## Available Scripts
