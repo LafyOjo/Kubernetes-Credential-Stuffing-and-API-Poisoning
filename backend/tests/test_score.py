@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from fastapi.testclient import TestClient
-from app.main import app
-from app.core.db import Base, engine, SessionLocal
-from app.models.alerts import Alert
-from app.crud.users import create_user
-from app.core.security import get_password_hash
+from fastapi.testclient import TestClient  # noqa: E402
+from app.main import app  # noqa: E402
+from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.models.alerts import Alert  # noqa: E402
+from app.crud.users import create_user  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
 
 client = TestClient(app)
+
 
 def _auth_headers():
     resp = client.post('/login', json={'username': 'admin', 'password': 'pw'})

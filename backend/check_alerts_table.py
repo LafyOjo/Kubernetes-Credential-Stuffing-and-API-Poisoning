@@ -12,4 +12,3 @@ for row in rows:
     print(" | ".join(str(item) for item in row))
 
 conn.close()
-

@@ -54,4 +54,3 @@ class SimpleMonitor13(app_manager.RyuApp):
                 "flow match=%s packets=%d bytes=%d",
                 stat.match, stat.packet_count, stat.byte_count,
             )
-

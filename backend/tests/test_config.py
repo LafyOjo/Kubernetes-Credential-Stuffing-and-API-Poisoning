@@ -3,11 +3,11 @@ import os
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from fastapi.testclient import TestClient
-from app.main import app
-from app.core.db import SessionLocal, Base, engine
-from app.core.security import get_password_hash
-from app.crud.users import create_user
+from fastapi.testclient import TestClient  # noqa: E402
+from app.main import app  # noqa: E402
+from app.core.db import SessionLocal, Base, engine  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
+from app.crud.users import create_user  # noqa: E402
 
 client = TestClient(app)
 
@@ -23,8 +23,6 @@ def _auth_headers():
     resp = client.post("/login", json={"username": "admin", "password": "pw"})
     token = resp.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
-
-
 
 
 def test_config_default():
