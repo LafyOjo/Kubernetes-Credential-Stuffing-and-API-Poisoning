@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db, SessionLocal
+from app.core.db import get_db
 from app.models.alerts import Alert
 import app.api.security as security
 
