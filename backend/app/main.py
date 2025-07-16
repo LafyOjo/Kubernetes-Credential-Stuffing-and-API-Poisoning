@@ -18,6 +18,7 @@ from app.api.config import router as config_router
 from app.api.security import router as security_router
 from app.api.user_stats import router as user_stats_router
 from app.api.events import router as events_router
+from app.api.last_logins import router as last_logins_router
 
 app = FastAPI(title="APIShield+")
 
@@ -51,6 +52,7 @@ app.include_router(config_router)   # /config
 app.include_router(security_router) # /api/security
 app.include_router(user_stats_router) # /api/user-calls
 app.include_router(events_router)   # /api/events
+app.include_router(last_logins_router) # /api/last-logins
 
 @app.get("/ping")
 def ping():

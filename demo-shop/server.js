@@ -32,7 +32,12 @@ const products = [
   { id: 7, name: 'Sticker Pack', price: 5 },
   { id: 8, name: 'Demo Backpack', price: 45 },
   { id: 9, name: 'Water Bottle', price: 12 },
-  { id: 10, name: 'Demo Sunglasses', price: 25 }
+  { id: 10, name: 'Demo Sunglasses', price: 25 },
+  { id: 11, name: 'Running Shorts', price: 30 },
+  { id: 12, name: 'Training Jacket', price: 60 },
+  { id: 13, name: 'Athletic Pants', price: 40 },
+  { id: 14, name: 'Sports Duffel', price: 55 },
+  { id: 15, name: 'Performance Cap', price: 22 }
 ];
 
 // Pre‑register a demo user so the credentials alice/secret work out of the box
