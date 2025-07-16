@@ -2,7 +2,9 @@ const API_BASE = 'http://localhost:3005';
 let username = null;
 
 function setContent(html) {
-  document.getElementById('content').innerHTML = html;
+  $('#content').fadeOut(200, function () {
+    $('#content').html(html).fadeIn(200);
+  });
 }
 
 async function fetchJSON(url, options = {}) {
@@ -39,10 +41,10 @@ async function addToCart(id) {
       method: 'POST',
       body: JSON.stringify({ productId: id })
     });
-    alert('Added to cart');
+    showMessage('Added to cart');
     updateCartCount();
   } catch (e) {
-    alert('You must be logged in');
+    showMessage('You must be logged in', true);
   }
 }
 
@@ -52,13 +54,13 @@ async function viewCart() {
     const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
     setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
   } catch (e) {
-    alert('You must be logged in');
+    showMessage('You must be logged in', true);
   }
 }
 
 async function purchase() {
   await fetchJSON(`${API_BASE}/purchase`, { method: 'POST' });
-  alert('Purchase complete');
+  showMessage('Purchase complete');
   updateCartCount();
   loadProducts();
 }
@@ -98,7 +100,7 @@ async function viewStats() {
       .join('');
     setContent(`<h2>API Calls</h2><ul class="stats-list">${list}</ul>`);
   } catch (e) {
-    alert('Failed to load stats');
+    showMessage('Failed to load stats', true);
   }
 }
 
@@ -128,7 +130,7 @@ function showLogin() {
       updateCartCount();
       loadProducts();
     } catch (e) {
-      alert('Login failed');
+      showMessage('Login failed', true);
       username = null;
     }
   });
@@ -154,10 +156,10 @@ function showRegister() {
         body: JSON.stringify({ username: usernameVal, password: pw }),
         noAuth: true
       });
-      alert('Registered! Please log in.');
+      showMessage('Registered! Please log in.');
       showLogin();
     } catch (e) {
-      alert('Registration failed');
+      showMessage('Registration failed', true);
     }
   });
 }
@@ -178,6 +180,12 @@ async function updateCartCount() {
   } catch {
     document.getElementById('cartCount').textContent = 0;
   }
+}
+
+function showMessage(text, isError = false) {
+  const msg = $('#message');
+  msg.toggleClass('alert-danger', isError).toggleClass('alert-success', !isError);
+  msg.text(text).fadeIn(200).delay(1500).fadeOut(200);
 }
 
 document.getElementById('homeBtn').addEventListener('click', loadProducts);
