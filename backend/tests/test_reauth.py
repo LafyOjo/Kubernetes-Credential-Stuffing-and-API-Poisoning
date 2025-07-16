@@ -1,10 +1,9 @@
 import importlib
-import os
 
-from fastapi.testclient import TestClient
-from app.core.db import Base, engine, SessionLocal
-from app.core.security import get_password_hash
-from app.crud.users import create_user
+from fastapi.testclient import TestClient  # noqa: E402
+from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.security import get_password_hash  # noqa: E402
+from app.crud.users import create_user  # noqa: E402
 
 
 def _reload_app():
@@ -30,7 +29,12 @@ def test_missing_password_header(monkeypatch):
     monkeypatch.setenv("REAUTH_PER_REQUEST", "true")
     client = _reload_app()
 
-    token = client.post("/login", json={"username": "alice", "password": "pw"}).json()["access_token"]
+    token = (
+        client.post(
+            "/login",
+            json={"username": "alice", "password": "pw"},
+        ).json()["access_token"]
+    )
     resp = client.get("/api/me", headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 401
     assert resp.json()["detail"] == "Password required"
@@ -43,7 +47,12 @@ def test_reauth_success(monkeypatch):
     monkeypatch.setenv("REAUTH_PER_REQUEST", "true")
     client = _reload_app()
 
-    token = client.post("/login", json={"username": "alice", "password": "pw"}).json()["access_token"]
+    token = (
+        client.post(
+            "/login",
+            json={"username": "alice", "password": "pw"},
+        ).json()["access_token"]
+    )
     headers = {"Authorization": f"Bearer {token}", "X-Reauth-Password": "pw"}
     resp = client.get("/api/me", headers=headers)
     assert resp.status_code == 200
@@ -51,4 +60,3 @@ def test_reauth_success(monkeypatch):
 
     monkeypatch.setenv("REAUTH_PER_REQUEST", "false")
     _reload_app()
-

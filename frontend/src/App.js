@@ -8,6 +8,7 @@ import SecurityToggle from "./SecurityToggle";
 import LoginForm from "./LoginForm";
 import AttackSim from "./AttackSim";
 import UserAccounts from "./UserAccounts";
+import LoginStatus from "./LoginStatus";
 import "./App.css";
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
     <div className="app-container">
       <h1 className="dashboard-header">APIShield+ Dashboard</h1>
       <UserAccounts onSelect={setSelectedUser} />
+      <LoginStatus token={token} />
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />

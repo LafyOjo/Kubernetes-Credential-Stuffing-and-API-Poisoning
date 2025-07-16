@@ -140,7 +140,11 @@ if __name__ == "__main__":
     parser.add_argument("--jwt", action="store_true", help="Use JWT login endpoint")
     parser.add_argument("--rate", type=float, default=5, help="Attempts per second")
     parser.add_argument("--attempts", type=int, default=50, help="Number of attempts to send")
-    parser.add_argument("--score-base", default="http://localhost:8001", help="Detector API base URL")
+    parser.add_argument(
+        "--score-base",
+        default="http://localhost:8001",
+        help="Detector API base URL",
+    )
     parser.add_argument("--shop-url", default="http://localhost:3005", help="Demo shop base URL")
     args = parser.parse_args()
     attack(

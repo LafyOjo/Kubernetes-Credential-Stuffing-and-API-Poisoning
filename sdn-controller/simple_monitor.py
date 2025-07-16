@@ -2,7 +2,7 @@
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
-from ryu.controller.handler import MAIN_DISPATCHER, CONFIG_DISPATCHER, DEAD_DISPATCHER
+from ryu.controller.handler import MAIN_DISPATCHER, DEAD_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_3
 from ryu.lib import hub
@@ -40,7 +40,6 @@ class SimpleMonitor13(app_manager.RyuApp):
 
     def _request_stats(self, datapath):
         self.logger.debug("Sending stats request to %016x", datapath.id)
-        ofp = datapath.ofproto
         parser = datapath.ofproto_parser
         req = parser.OFPFlowStatsRequest(datapath)
         datapath.send_msg(req)
@@ -55,4 +54,3 @@ class SimpleMonitor13(app_manager.RyuApp):
                 "flow match=%s packets=%d bytes=%d",
                 stat.match, stat.packet_count, stat.byte_count,
             )
-

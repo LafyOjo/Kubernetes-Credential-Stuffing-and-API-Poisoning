@@ -1,4 +1,3 @@
-import os
 from typing import Any
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
