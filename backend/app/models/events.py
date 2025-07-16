@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from app.core.db import Base
 
+
 class Event(Base):
     __tablename__ = "events"
 

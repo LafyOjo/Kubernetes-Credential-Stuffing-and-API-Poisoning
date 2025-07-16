@@ -5,6 +5,7 @@ import time
 
 import httpx
 
+
 async def worker(client, url, payload, semaphore, results):
     async with semaphore:
         start = time.perf_counter()
@@ -13,12 +14,18 @@ async def worker(client, url, payload, semaphore, results):
         results.append(latency)
         resp.raise_for_status()
 
+
 async def run(url: str, concurrency: int, total: int):
     payload = {"client_ip": "127.0.0.1", "auth_result": "success"}
     semaphore = asyncio.Semaphore(concurrency)
     results: list[float] = []
     async with httpx.AsyncClient() as client:
-        tasks = [asyncio.create_task(worker(client, url, payload, semaphore, results)) for _ in range(total)]
+        tasks = [
+            asyncio.create_task(
+                worker(client, url, payload, semaphore, results)
+            )
+            for _ in range(total)
+        ]
         await asyncio.gather(*tasks)
     avg = sum(results) / len(results)
     print(f"Sent {len(results)} requests")

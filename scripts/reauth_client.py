@@ -51,7 +51,8 @@ def main() -> None:
             "Steps:\n"
             "  1. Replace 'alice' with your own username.\n"
             "  2. When 'Password:' appears, type the password you used at registration.\n"
-            "  3. For each request you will be asked for 'Re-auth password:' -- type the same password again.\n"
+            "  3. For each request you will be asked for 'Re-auth password:' "
+            "-- type the same password again.\n"
             "  Press Ctrl+C to stop the program at any time."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

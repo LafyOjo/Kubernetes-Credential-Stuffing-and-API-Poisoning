@@ -5,11 +5,11 @@ os.environ['SECRET_KEY'] = 'test-secret'
 
 from datetime import timedelta
 
-from fastapi.testclient import TestClient
-from app.main import app
-from app.core.db import Base, engine, SessionLocal
-from app.core.config import settings
-import app.api.auth as auth_module
+from fastapi.testclient import TestClient  # noqa: E402
+from app.main import app  # noqa: E402
+from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.config import settings  # noqa: E402
+import app.api.auth as auth_module  # noqa: E402
 
 client = TestClient(app)
 

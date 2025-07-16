@@ -4,9 +4,9 @@ import importlib
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from fastapi.testclient import TestClient
-import app.main as main_module
-from app.core.db import Base, engine, SessionLocal
+from fastapi.testclient import TestClient  # noqa: E402
+import app.main as main_module  # noqa: E402
+from app.core.db import Base, engine, SessionLocal  # noqa: E402
 
 client = None
 

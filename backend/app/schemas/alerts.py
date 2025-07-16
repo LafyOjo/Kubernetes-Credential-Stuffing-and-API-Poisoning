@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
+
 class AlertRead(BaseModel):
     id: int
     ip_address: str
