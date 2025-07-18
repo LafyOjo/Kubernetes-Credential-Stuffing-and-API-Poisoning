@@ -12,6 +12,8 @@ __pycache__/
 *.egg-info/
 # Local settings / secrets
 backend/.env
+server.key
+server.crt
 *.sqlite3
 *.db
 

@@ -287,7 +287,9 @@ demonstration purposes and no license or ownership is claimed.
    The Node service listens on port `3005` and requires the password on each API
    call via the `X-Reauth-Password` header.
 
-2. Generate a certificate and create the TLS secret:
+2. Generate a certificate and create the TLS secret. The repository does not
+   include `server.key` or `server.crt`, so run the script below to create them
+   locally before making the Kubernetes secret:
 
    ```bash
    bash scripts/generate-cert.sh
