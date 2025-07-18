@@ -74,7 +74,7 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
                 timeout=3,
             )
         except Exception:
-            pass
+            log_event(db, user.username, "shop_login_error", False)
 
     return {"access_token": token, "token_type": "bearer"}
 
