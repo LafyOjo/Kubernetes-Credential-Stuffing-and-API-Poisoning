@@ -188,14 +188,22 @@ function showMessage(text, isError = false) {
   msg.text(text).fadeIn(200).delay(1500).fadeOut(200);
 }
 
-document.getElementById('homeBtn').addEventListener('click', loadProducts);
-document.getElementById('aboutBtn').addEventListener('click', showAbout);
-document.getElementById('cartBtn').addEventListener('click', viewCart);
-document.getElementById('loginBtn').addEventListener('click', showLogin);
-document.getElementById('logoutBtn').addEventListener('click', logout);
-document.getElementById('statsBtn').addEventListener('click', viewStats);
-document.getElementById('servicesBtn').addEventListener('click', showServices);
-document.getElementById('contactBtn').addEventListener('click', showContact);
+function init() {
+  document.getElementById('homeBtn').addEventListener('click', loadProducts);
+  document.getElementById('aboutBtn').addEventListener('click', showAbout);
+  document.getElementById('cartBtn').addEventListener('click', viewCart);
+  document.getElementById('loginBtn').addEventListener('click', showLogin);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('statsBtn').addEventListener('click', viewStats);
+  document.getElementById('servicesBtn').addEventListener('click', showServices);
+  document.getElementById('contactBtn').addEventListener('click', showContact);
 
-loadProducts();
-updateCartCount();
+  loadProducts();
+  updateCartCount();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

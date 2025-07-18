@@ -3,6 +3,7 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
+const { spawn } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -177,4 +178,18 @@ app.get('/api-calls', requireAuth, async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Demo shop running on port ${PORT}`);
+  // Automatically open the shop home page in the default browser
+  const url = `http://localhost:${PORT}/`;
+  const cmd = process.platform === 'win32'
+    ? 'start'
+    : process.platform === 'darwin'
+      ? 'open'
+      : 'xdg-open';
+  try {
+    const child = spawn(cmd, [url], { stdio: 'ignore', detached: true });
+    child.on('error', () => {});
+    child.unref();
+  } catch {
+    // ignore failures on systems without an opener
+  }
 });
