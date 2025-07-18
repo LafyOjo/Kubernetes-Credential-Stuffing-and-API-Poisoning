@@ -173,6 +173,41 @@ The API will be available on <http://localhost:3005> by default.
 The shop UI is now served directly by the Node server, so simply browse to
 <http://localhost:3005/> after starting it.
 
+### Re-verification Demo
+
+To try the password re-verification feature while automatically logging into the
+Demo Shop, enable the relevant environment variables when starting each
+service:
+
+```bash
+# Start the shop with API integration and per-request password checks
+cd demo-shop
+FORWARD_API=true REAUTH_PER_REQUEST=true npm start
+```
+
+Create a `.env` file in `backend/` or export the variables before launching the
+backend:
+
+```bash
+REAUTH_PER_REQUEST=true
+LOGIN_WITH_DEMOSHOP=true
+DEMO_SHOP_URL=http://localhost:3005
+```
+
+Then start the backend and launch the dashboard, automatically logging in as the
+pre-created `alice` account:
+
+```bash
+cd frontend
+REACT_APP_API_BASE=http://localhost:8001 \
+REACT_APP_AUTO_USER=alice \
+REACT_APP_AUTO_PASS=secret \
+npm start
+```
+
+Opening <http://localhost:3000> now shows the dashboard already authenticated
+and you can browse the Demo Shop at the same time on port 3005.
+
 ## Credential Stuffing Simulation
 
 1. Start the React application:
