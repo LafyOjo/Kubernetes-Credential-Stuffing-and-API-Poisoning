@@ -33,6 +33,9 @@ detection logic, and another toggles SQLAlchemy debug logging:
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
   Prometheus metrics.
 
+A sample `backend/.env.example` file includes all of these optional settings
+with sensible defaults. Copy it to `.env` and adjust values as needed.
+
 When enabled, clients must supply the password again via the
 `X-Reauth-Password` header. The dashboard automatically prompts for
 the password whenever the API replies with `401` and then retries the
@@ -109,7 +112,8 @@ pip install -r requirements.txt
 # a C compiler and Rust are available.
 ```
 
-2. Create a `.env` file in `backend/` as shown in the **Configuration** section.
+2. Copy `backend/.env.example` to `backend/.env` and adjust any values as
+   needed.
 
 3. Run Alembic migrations to create the `alerts` table:
 
