@@ -16,6 +16,12 @@ async function fetchJSON(url, options = {}) {
     fetchOpts.headers['X-Reauth-Password'] = pw;
   }
   const res = await fetch(url, fetchOpts);
+  if (res.status === 401) {
+    try {
+      await logout();
+    } catch {}
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
 }
