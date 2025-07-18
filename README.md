@@ -68,8 +68,6 @@ Canceling the prompt or entering the wrong password logs you out and
 returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
 you prefer to disable this extra check.
 
-Set `REAUTH_PER_REQUEST=false` in `.env` if you prefer to disable this
-extra check.
 
 
 Example `.env`:
@@ -192,9 +190,6 @@ server starts your default browser opens the shop home page automatically at
    user's cart and orders from Demo Shop, demonstrating how Alice's data is
    exposed while Ben remains safe.
 
-   account displays how secure it is and lists the enabled protections. Alice
-   intentionally has reduced security while Ben has all security features
-   enabled.
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack
