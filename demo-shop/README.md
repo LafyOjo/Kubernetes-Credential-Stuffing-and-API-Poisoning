@@ -4,6 +4,7 @@ This directory contains a very small Node.js-based e-commerce example used in pl
 It can integrate with the APIShield+ backend for additional telemetry. By default
 this forwarding is **disabled** so the shop can run standalone without errors.
 Set the environment variable `FORWARD_API=true` to enable calls to the backend.
+Requests to the API use a short timeout controlled by `API_TIMEOUT_MS` (default `2000`).
 Each protected endpoint checks the `X-Reauth-Password` header to require the
 user's password on every request.
 
