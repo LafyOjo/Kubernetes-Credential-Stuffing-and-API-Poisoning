@@ -7,6 +7,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3005;
 const API_BASE = process.env.API_BASE || 'http://localhost:8001';
+const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 // Disable backend integration entirely by setting FORWARD_API=false
 // Disable integration with the APIShield backend unless explicitly enabled.
 // Most demos run the shop standalone so suppress the noisy API errors by default.
@@ -63,7 +64,11 @@ app.post('/register', async (req, res) => {
   users[username] = { password, cart: [] };
   if (FORWARD_API) {
     try {
-      await axios.post(`${API_BASE}/register`, { username, password });
+            await axios.post(
+        `${API_BASE}/register`,
+        { username, password },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Register API call failed');
     }
@@ -76,11 +81,15 @@ app.post('/login', async (req, res) => {
   if (!users[username] || users[username].password !== password) {
     if (FORWARD_API) {
       try {
-        await axios.post(`${API_BASE}/score`, {
-          client_ip: req.ip,
-          auth_result: 'failure',
-          with_jwt: false
-        });
+        await axios.post(
+          `${API_BASE}/score`,
+          {
+            client_ip: req.ip,
+            auth_result: 'failure',
+            with_jwt: false
+          },
+          { timeout: API_TIMEOUT }
+        );
       } catch (e) {
         console.error('Score API call failed');
       }
@@ -91,17 +100,23 @@ app.post('/login', async (req, res) => {
   req.session.password = password;
   if (FORWARD_API) {
     try {
-      const apiResp = await axios.post(`${API_BASE}/login`, { username, password });
-      req.session.apiToken = apiResp.data.access_token;
+const apiResp = await axios.post(
+        `${API_BASE}/login`,
+        { username, password },
+        { timeout: API_TIMEOUT }
+      );      req.session.apiToken = apiResp.data.access_token;
     } catch (e) {
       console.error('Backend login failed');
     }
     try {
-      await axios.post(`${API_BASE}/score`, {
-        client_ip: req.ip,
-        auth_result: 'success',
-        with_jwt: false
-      });
+      await axios.post(       `${API_BASE}/score`,
+        {
+          client_ip: req.ip,
+          auth_result: 'success',
+          with_jwt: false
+        },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Score API call failed');
     }
@@ -143,9 +158,13 @@ app.get('/api-calls', requireAuth, async (req, res) => {
     return res.json({});
   }
   try {
-    const resp = await axios.get(`${API_BASE}/api/user-calls`, {
-      headers: { Authorization: `Bearer ${req.session.apiToken}` },
-    });
+    const resp = await axios.get(
+      `${API_BASE}/api/user-calls`,
+      {
+        headers: { Authorization: `Bearer ${req.session.apiToken}` },
+        timeout: API_TIMEOUT,
+      }
+    );
     res.json(resp.data);
   } catch (e) {
     console.error('User call fetch failed');
