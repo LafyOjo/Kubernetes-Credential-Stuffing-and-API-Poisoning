@@ -1,37 +1,63 @@
 import os
 import importlib
+from fastapi.testclient import TestClient
 
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from fastapi.testclient import TestClient  # noqa: E402
-import app.main as main_module  # noqa: E402
-from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.db import Base, engine, SessionLocal
 
-client = None
+import app.main as main_module
+
+
+def _reload_app() -> TestClient:
+    importlib.reload(main_module)
+    return TestClient(main_module.app)
 
 
 def setup_function(_):
-    os.environ['ANOMALY_DETECTION'] = 'true'
-    importlib.reload(main_module)
-    global client
-    client = TestClient(main_module.app)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
 
 def teardown_function(_):
     SessionLocal().close()
-    os.environ.pop('ANOMALY_DETECTION', None)
-    importlib.reload(main_module)
 
 
-def test_anomalous_path_blocked():
+def test_anomalous_path_blocked_iforest(monkeypatch):
+    monkeypatch.setenv('ANOMALY_DETECTION', 'true')
+    monkeypatch.delenv('ANOMALY_MODEL', raising=False)
+    client = _reload_app()
+
     path = '/a' + 'b' * 100
     resp = client.get(path)
     assert resp.status_code == 403
 
+    monkeypatch.delenv('ANOMALY_DETECTION', raising=False)
+    _reload_app()
 
-def test_normal_path_allowed():
+
+def test_anomalous_path_blocked_lof(monkeypatch):
+    monkeypatch.setenv('ANOMALY_DETECTION', 'true')
+    monkeypatch.setenv('ANOMALY_MODEL', 'lof')
+    client = _reload_app()
+
+    path = '/a' + 'b' * 100
+    resp = client.get(path)
+    assert resp.status_code == 403
+
+    monkeypatch.delenv('ANOMALY_MODEL', raising=False)
+    monkeypatch.delenv('ANOMALY_DETECTION', raising=False)
+    _reload_app()
+
+
+def test_normal_path_allowed(monkeypatch):
+    monkeypatch.setenv('ANOMALY_DETECTION', 'true')
+    client = _reload_app()
+
     resp = client.get('/ping')
     assert resp.status_code == 200
+
+    monkeypatch.delenv('ANOMALY_DETECTION', raising=False)
+    _reload_app()
+
