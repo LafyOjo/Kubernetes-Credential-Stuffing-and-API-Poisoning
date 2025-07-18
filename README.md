@@ -27,7 +27,6 @@ anomaly detection, and enforcing a zero‑trust API key:
 - `REGISTER_WITH_DEMOSHOP` – set to `true` to also register the account with Demo Shop (default `false`).
 - `LOGIN_WITH_DEMOSHOP` – set to `true` to also log into Demo Shop when authenticating (default `false`).
 - `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:3005`).
-- `DEMO_SHOP_PATH` – path to the included `demo-shop` sources used when starting the demo.
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `ANOMALY_MODEL` – algorithm used when anomaly detection is enabled. Choose `isolation_forest` or `lof` (default `isolation_forest`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
@@ -84,7 +83,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 REGISTER_WITH_DEMOSHOP=true
 LOGIN_WITH_DEMOSHOP=true
 DEMO_SHOP_URL=http://localhost:3005
-DEMO_SHOP_PATH=./demo-shop
 ANOMALY_DETECTION=true
 # Algorithm for anomaly detection
 ANOMALY_MODEL=lof
