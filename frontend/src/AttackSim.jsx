@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
-import { apiFetch } from "./api";
+import { apiFetch, API_BASE } from "./api";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
 const DUMMY_PASSWORDS = [
@@ -76,7 +76,7 @@ export default function AttackSim({ user }) {
       let loginOk = false;
       let token = null;
       try {
-        const resp = await apiFetch("/login", {
+        const resp = await fetch(`${API_BASE}/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username: targetUser, password: pwd }),
