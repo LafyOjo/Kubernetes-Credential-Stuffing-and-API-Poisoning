@@ -34,6 +34,10 @@ detection logic, and another toggles SQLAlchemy debug logging:
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
   Prometheus metrics.
 
+A sample `backend/.env.example` file includes all of these optional settings
+with sensible defaults. Copy it to `.env` so your `.env` starts with all
+variables defined, then adjust values as needed.
+
 When enabled, clients must supply the password again via the
 `X-Reauth-Password` header. The dashboard automatically prompts for
 the password whenever the API replies with `401` and then retries the
@@ -72,29 +76,19 @@ Example `.env`:
 DATABASE_URL=sqlite:///./app.db
 SECRET_KEY=super-secret-key
 # Optional tuning parameters
-# Block after this many failures within FAIL_WINDOW_SECONDS
 FAIL_LIMIT=5
-# Number of seconds to look back when counting failures
 FAIL_WINDOW_SECONDS=60
-# Log SQL queries
 DB_ECHO=true
-# JWT token expiry in minutes
 ACCESS_TOKEN_EXPIRE_MINUTES=30
-# Forward successful registrations to Demo Shop
 REGISTER_WITH_DEMOSHOP=true
-# Forward logins to Demo Shop
 LOGIN_WITH_DEMOSHOP=true
-# Where the Demo Shop API is hosted
 DEMO_SHOP_URL=http://localhost:3005
-# Location of the demo shop source
 DEMO_SHOP_PATH=./demo-shop
-# Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
 # Algorithm for anomaly detection
 ANOMALY_MODEL=lof
 # Require password on every API request
 REAUTH_PER_REQUEST=false
-# Require X-API-Key header on every request
 ZERO_TRUST_API_KEY=demo-key
 ```
 
@@ -112,7 +106,9 @@ pip install -r requirements.txt
 # a C compiler and Rust are available.
 ```
 
-2. Create a `.env` file in `backend/` as shown in the **Configuration** section.
+2. Copy `backend/.env.example` to `backend/.env`. The example includes all
+   optional variables shown below, so your `.env` should match it unless you
+   change values.
 
 3. Run Alembic migrations to create the `alerts` table:
 
