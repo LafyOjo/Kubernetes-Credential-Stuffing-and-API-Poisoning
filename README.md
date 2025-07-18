@@ -13,8 +13,9 @@ strictly prohibited. The RockYou‑derived password list included under
 
 The backend reads environment variables from a `.env` file on startup. The
 `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
-error during import. Two optional variables control the credential stuffing
-detection logic, and another toggles SQLAlchemy debug logging:
+error during import. Several optional variables control features such as
+credential stuffing thresholds, debug logging, forwarding to the Demo Shop,
+anomaly detection, and enforcing a zero‑trust API key:
 
 - `FAIL_LIMIT` – how many failures are allowed within the window before
   blocking a client (default `5`).
