@@ -90,7 +90,7 @@ DEMO_SHOP_PATH=./demo-shop
 # Enable ML-based anomaly checks
 ANOMALY_DETECTION=true
 # Require password on every API request
-REAUTH_PER_REQUEST=true
+REAUTH_PER_REQUEST=false
 # Require X-API-Key header on every request
 ZERO_TRUST_API_KEY=demo-key
 ```
