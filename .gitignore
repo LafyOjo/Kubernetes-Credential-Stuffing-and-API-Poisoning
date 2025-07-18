@@ -1,6 +1,7 @@
 #––– Python / FastAPI ––––––––––––––––––––––––––––––––
 # Virtual-envs
 backend/.venv/
+.venv/
 venv/
 ENV/
 env/
@@ -54,4 +55,3 @@ docs/screenshots/**/thumbs/
 #––– OS-specific ––––––––––––––––––––––––––––––––––––
 Thumbs.db
 ehthumbs.db
-*.md
