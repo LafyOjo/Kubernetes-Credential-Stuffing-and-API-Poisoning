@@ -6,6 +6,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
+from app.core.access_log import AccessLogMiddleware
 from app.core.anomaly import AnomalyDetectionMiddleware
 from app.core.policy import PolicyEngineMiddleware
 from app.core.metrics import MetricsMiddleware
@@ -19,6 +20,7 @@ from app.api.security import router as security_router
 from app.api.user_stats import router as user_stats_router
 from app.api.events import router as events_router
 from app.api.last_logins import router as last_logins_router
+from app.api.access_logs import router as access_logs_router
 
 app = FastAPI(title="APIShield+")
 
@@ -34,6 +36,7 @@ app.add_middleware(
 # Log incoming requests and any presented Authorization headers
 app.add_middleware(APILoggingMiddleware)
 app.add_middleware(MetricsMiddleware)
+app.add_middleware(AccessLogMiddleware)
 
 # Enforce Zero Trust API key if configured
 app.add_middleware(ZeroTrustMiddleware)
@@ -53,6 +56,7 @@ app.include_router(security_router) # /api/security
 app.include_router(user_stats_router)  # /api/user-calls
 app.include_router(events_router)   # /api/events
 app.include_router(last_logins_router)  # /api/last-logins
+app.include_router(access_logs_router)  # /api/access-logs
 
 
 @app.get("/ping")

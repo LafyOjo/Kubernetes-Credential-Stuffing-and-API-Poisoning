@@ -33,6 +33,8 @@ detection logic, and another toggles SQLAlchemy debug logging:
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
   Prometheus metrics.
+- All API calls are recorded. Retrieve them via `/api/access-logs`. Non-admin
+  users only see their own history.
 
 A sample `backend/.env.example` file includes all of these optional settings
 with sensible defaults. Copy it to `.env` so your `.env` starts with all

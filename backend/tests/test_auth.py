@@ -94,6 +94,22 @@ def test_login_forward(monkeypatch):
     assert captured['payload'] == {'username': 'dan', 'password': 'pw'}
 
 
+def test_login_forward_error_logged(monkeypatch):
+    def fake_post(url, json, timeout=3):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(auth_module.requests, 'post', fake_post)
+    monkeypatch.setenv('LOGIN_WITH_DEMOSHOP', 'true')
+    monkeypatch.setenv('DEMO_SHOP_URL', 'http://shop')
+
+    client.post('/register', json={'username': 'eve', 'password': 'pw'})
+    resp = client.post('/login', json={'username': 'eve', 'password': 'pw'})
+    assert resp.status_code == 200
+    token = resp.json()['access_token']
+    resp = client.get('/api/events', headers={'Authorization': f'Bearer {token}'})
+    assert any(e['action'] == 'shop_login_error' for e in resp.json())
+
+
 def test_logout_revokes_token():
     client.post('/register', json={'username': 'erin', 'password': 'pw'})
     resp = client.post('/login', json={'username': 'erin', 'password': 'pw'})
