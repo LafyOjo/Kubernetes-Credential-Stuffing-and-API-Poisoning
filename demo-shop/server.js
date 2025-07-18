@@ -12,6 +12,7 @@ const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 // Disable integration with the APIShield backend unless explicitly enabled.
 // Most demos run the shop standalone so suppress the noisy API errors by default.
 const FORWARD_API = process.env.FORWARD_API === 'true';
+const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
 
 app.use(bodyParser.json());
 app.use(session({
@@ -50,9 +51,11 @@ function requireAuth(req, res, next) {
   if (!req.session.username) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  const pw = req.get('X-Reauth-Password');
-  if (!pw || pw !== req.session.password) {
-    return res.status(401).json({ error: 'Reauthentication failed' });
+  if (REAUTH_PER_REQUEST) {
+    const pw = req.get('X-Reauth-Password');
+    if (!pw || pw !== req.session.password) {
+      return res.status(401).json({ error: 'Reauthentication failed' });
+    }
   }
   next();
 }
