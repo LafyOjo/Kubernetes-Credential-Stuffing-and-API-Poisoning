@@ -14,6 +14,7 @@ router = APIRouter(
     tags=["alerts"],
 )
 
+
 @router.get("/", response_model=list[AlertRead])
 def read_alerts(db: Session = Depends(get_db)):
     return get_all_alerts(db)

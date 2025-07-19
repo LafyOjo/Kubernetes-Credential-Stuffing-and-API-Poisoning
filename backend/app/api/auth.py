@@ -24,7 +24,6 @@ from app.schemas.users import UserCreate, UserRead
 router = APIRouter(tags=["auth"])
 
 
-
 @router.post("/register", response_model=UserRead)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if get_user_by_username(db, user_in.username):
@@ -78,6 +77,7 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
 
     return {"access_token": token, "token_type": "bearer"}
 
+
 @router.post("/api/token")
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -99,6 +99,7 @@ async def login_for_access_token(
     )
     log_event(db, user.username, "token", True)
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.get("/api/me")
 async def read_me(current_user: dict = Depends(get_current_user)):

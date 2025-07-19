@@ -24,6 +24,7 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 # base class for models
 Base = declarative_base()
 
+
 def get_db():
     """
     FastAPI dependency that yields a SQLAlchemy Session,

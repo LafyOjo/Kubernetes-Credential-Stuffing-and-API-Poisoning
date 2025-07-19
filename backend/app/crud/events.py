@@ -23,7 +23,7 @@ def get_events(db: Session, hours: int | None = None) -> list[Event]:
 def get_last_logins(db: Session) -> dict[str, datetime]:
     rows = (
         db.query(Event.username, func.max(Event.timestamp))
-        .filter(Event.action == "login", Event.success == True)
+        .filter(Event.action == "login", Event.success.is_(True))
         .group_by(Event.username)
         .all()
     )

@@ -5,9 +5,9 @@ from fastapi.testclient import TestClient
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from app.core.db import Base, engine, SessionLocal
+from app.core.db import Base, engine, SessionLocal  # noqa: E402
 
-import app.main as main_module
+import app.main as main_module  # noqa: E402
 
 
 def _reload_app() -> TestClient:
@@ -60,4 +60,3 @@ def test_normal_path_allowed(monkeypatch):
 
     monkeypatch.delenv('ANOMALY_DETECTION', raising=False)
     _reload_app()
-

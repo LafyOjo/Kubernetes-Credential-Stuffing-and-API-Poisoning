@@ -27,12 +27,15 @@ USER_REQUEST_COUNT = Counter(
 
 _user_counts: defaultdict[str, int] = defaultdict(int)
 
+
 def increment_user(user: str) -> None:
     USER_REQUEST_COUNT.labels(user=user).inc()
     _user_counts[user] += 1
 
+
 def get_user_counts() -> dict[str, int]:
     return dict(_user_counts)
+
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

@@ -5,6 +5,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 logger = logging.getLogger("api_logger")
 logging.basicConfig(level=logging.INFO)
 
+
 class APILoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         token = request.headers.get("Authorization")
