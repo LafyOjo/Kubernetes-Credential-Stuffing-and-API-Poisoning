@@ -348,6 +348,29 @@ demonstration purposes and no license or ownership is claimed.
    python scripts/stuffing.py --score-base https://localhost:8001 --shop-url http://localhost:3005
    ```
 
+### Troubleshooting
+
+If `kubectl port-forward` fails with an error similar to:
+
+```
+E... memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"https://127.0.0.1:60279/api?timeout=32s\": net/http: TLS handshake timeout"
+```
+
+the cluster may not be running or `kubectl` is pointing to the wrong context.
+Ensure Docker is running and start the kind cluster again with:
+
+```bash
+bash infra/kind/up.sh
+```
+
+Check that your context is set to `kind-cred-demo` using:
+
+```bash
+kubectl config current-context
+```
+
+Once the cluster is up, re-run the port-forward command.
+
 ## `/score` endpoint
 
 The backend exposes `POST /score` which accepts a JSON payload:
