@@ -8,6 +8,19 @@ export default function ScoreForm({ onNewAlert }) {
   const [result, setResult] = useState("success");
   const [error, setError] = useState(null);
   const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
+  const [chain, setChain] = useState(null);
+
+  const fetchChain = async () => {
+    try {
+      const resp = await apiFetch("/api/security/chain");
+      if (resp.ok) {
+        const data = await resp.json();
+        setChain(data.chain);
+      }
+    } catch (err) {
+      console.error("Failed to fetch chain", err);
+    }
+  };
 
   useEffect(() => {
     async function fetchConfig() {
@@ -25,6 +38,7 @@ export default function ScoreForm({ onNewAlert }) {
       }
     }
     fetchConfig();
+    fetchChain();
   }, []);
 
   const handleSubmit = async e => {
@@ -33,9 +47,13 @@ export default function ScoreForm({ onNewAlert }) {
 
     try {
       const token = localStorage.getItem("token");
+      const headers = { "Content-Type": "application/json" };
+      if (chain) {
+        headers["X-Chain-Password"] = chain;
+      }
       const resp = await apiFetch("/score", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) })
       });
       if (!resp.ok) throw new Error(await resp.text());
@@ -44,8 +62,10 @@ export default function ScoreForm({ onNewAlert }) {
       if (data.fails_last_minute > threshold) {
         onNewAlert();
       }
+      await fetchChain();
     } catch (err) {
       setError(err.message);
+      fetchChain();
     }
   };
 
