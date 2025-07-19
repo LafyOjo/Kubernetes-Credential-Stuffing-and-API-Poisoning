@@ -3,7 +3,7 @@ import os
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
 
-from datetime import timedelta
+from datetime import timedelta  # noqa: E402
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app.main import app  # noqa: E402
@@ -59,6 +59,7 @@ def test_register_forward(monkeypatch):
     def fake_post(url, json, timeout=3):
         captured['url'] = url
         captured['payload'] = json
+
         class R:
             status_code = 200
         return R()
@@ -79,6 +80,7 @@ def test_login_forward(monkeypatch):
     def fake_post(url, json, timeout=3):
         captured['url'] = url
         captured['payload'] = json
+
         class R:
             status_code = 200
         return R()

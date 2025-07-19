@@ -40,7 +40,10 @@ class PolicyEngineMiddleware:
         with SessionLocal() as db:
             allowed = assess_risk(db, request)
         if not allowed:
-            response = JSONResponse({"detail": "Request denied by policy"}, status_code=HTTP_403_FORBIDDEN)
+            response = JSONResponse(
+                {"detail": "Request denied by policy"},
+                status_code=HTTP_403_FORBIDDEN,
+            )
             await response(scope, receive, send)
             return
         await self.app(scope, receive, send)

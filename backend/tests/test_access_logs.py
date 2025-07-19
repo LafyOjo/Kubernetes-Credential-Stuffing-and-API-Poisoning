@@ -32,5 +32,5 @@ def test_access_logs_recorded():
     resp = client.get('/api/access-logs', headers=headers)
     assert resp.status_code == 200
     logs = resp.json()
-    assert any(l['path'] == '/ping' for l in logs)
-    assert all(l['username'] == 'alice' for l in logs)
+    assert any(log['path'] == '/ping' for log in logs)
+    assert all(log['username'] == 'alice' for log in logs)

@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 from app.core.db import Base
 
+
 class AccessLog(Base):
     __tablename__ = "access_logs"
 

@@ -48,6 +48,7 @@ init_chain()
 
 router = APIRouter(prefix="/api/security", tags=["security"])
 
+
 @router.get("/")
 def get_security(_user=Depends(require_role("admin"))):
     """Return current security enforcement state."""
@@ -58,6 +59,7 @@ def get_security(_user=Depends(require_role("admin"))):
 def get_chain(_user=Depends(require_role("admin"))):
     """Retrieve the current chain value."""
     return {"chain": CURRENT_CHAIN}
+
 
 @router.post("/")
 def set_security(payload: dict, _user=Depends(require_role("admin"))):

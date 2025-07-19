@@ -9,6 +9,7 @@ from app.api.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
+
 @router.get("/", response_model=List[EventRead])
 def read_events(
     hours: Optional[int] = None,

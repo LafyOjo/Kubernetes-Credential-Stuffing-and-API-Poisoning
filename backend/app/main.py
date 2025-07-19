@@ -52,7 +52,7 @@ app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
 app.include_router(auth_router)     # /register, /login, /api/token
 app.include_router(config_router)   # /config
-app.include_router(security_router) # /api/security
+app.include_router(security_router)  # /api/security
 app.include_router(user_stats_router)  # /api/user-calls
 app.include_router(events_router)   # /api/events
 app.include_router(last_logins_router)  # /api/last-logins
@@ -69,4 +69,3 @@ def metrics() -> Response:
     """Expose Prometheus metrics."""
     data = generate_latest()
     return Response(content=data, media_type=CONTENT_TYPE_LATEST)
-
