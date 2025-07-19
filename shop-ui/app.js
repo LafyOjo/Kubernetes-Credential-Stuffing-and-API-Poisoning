@@ -180,6 +180,10 @@ async function logout() {
 }
 
 async function updateCartCount() {
+  if (!username) {
+    document.getElementById('cartCount').textContent = 0;
+    return;
+  }
   try {
     const items = await fetchJSON(`${API_BASE}/cart`);
     document.getElementById('cartCount').textContent = items.length;
