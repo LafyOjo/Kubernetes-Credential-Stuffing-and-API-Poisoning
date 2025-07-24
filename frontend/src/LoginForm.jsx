@@ -4,6 +4,7 @@ import { apiFetch } from "./api";
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async e => {
@@ -32,7 +33,18 @@ export default function LoginForm({ onLogin }) {
       </label>
       <label>
         Password:
-        <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
+        <input
+          type={showPassword ? "text" : "password"}
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(sp => !sp)}
+          style={{ marginLeft: "0.5rem" }}
+        >
+          {showPassword ? "Hide" : "Show"}
+        </button>
       </label>
       <button type="submit">Login</button>
       {error && <p style={{ color: "red" }}>{error}</p>}
