@@ -1,0 +1,29 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: oidc
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: detector
+  jwtRules:
+  - issuer: "https://keycloak.example.com/realms/demo"
+    jwksUri: "https://keycloak.example.com/realms/demo/protocol/openid-connect/certs"
+    audiences:
+    - "demo-api"
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: detector-abac
+  namespace: demo
+spec:
+  selector:
+    matchLabels:
+      app: detector
+  action: ALLOW
+  rules:
+  - when:
+    - key: request.auth.claims["role"]
+      values: ["admin"]

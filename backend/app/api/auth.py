@@ -57,7 +57,7 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     token = create_access_token(
-        data={"sub": user.username},
+        data={"sub": user.username, "role": user.role},
         expires_delta=timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         ),
@@ -92,7 +92,7 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = create_access_token(
-        data={"sub": user.username},
+        data={"sub": user.username, "role": user.role},
         expires_delta=timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )

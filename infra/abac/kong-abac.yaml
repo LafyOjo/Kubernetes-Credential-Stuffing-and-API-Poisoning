@@ -1,0 +1,26 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: oidc
+  namespace: demo
+plugin: openid-connect
+config:
+  issuer: "https://keycloak.example.com/realms/demo"
+  client_id: "demo-api"
+  client_secret: "demo-secret"
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: opa-abac
+  namespace: demo
+plugin: opa
+config:
+  policy: |
+    package kong.authz
+
+    default allow = false
+
+    allow {
+      input.jwt.claims.role == "admin"
+    }

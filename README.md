@@ -33,6 +33,10 @@ anomaly detection, and enforcing a zero‑trust API key:
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
   Prometheus metrics.
+- `OIDC_ISSUER` – issuer string included in tokens and validated when decoding
+  (default `https://keycloak.example.com/realms/demo`).
+- `OIDC_AUDIENCE` – audience value required in presented tokens (default
+  `demo-api`).
 - All API calls are recorded. Retrieve them via `/api/access-logs`. Non-admin
   users only see their own history.
 
@@ -89,6 +93,8 @@ ANOMALY_MODEL=lof
 # Require password on every API request
 REAUTH_PER_REQUEST=false
 ZERO_TRUST_API_KEY=demo-key
+OIDC_ISSUER=https://keycloak.example.com/realms/demo
+OIDC_AUDIENCE=demo-api
 ```
 
 ## Running the backend
@@ -370,6 +376,14 @@ kubectl config current-context
 ```
 
 Once the cluster is up, re-run the port-forward command.
+
+### ABAC via Kong and Istio
+
+Sample manifests in `infra/abac/` demonstrate attribute-based access control.
+`kong-abac.yaml` installs the Kong OIDC and OPA plugins to validate tokens and
+enforce a simple role policy. `istio-abac.yaml` configures Istio sidecars to
+accept the same tokens and restrict access based on the `role` claim. Apply the
+appropriate file with `kubectl apply -f` after deploying the cluster.
 
 ## `/score` endpoint
 
