@@ -32,7 +32,12 @@ def create_access_token(
     expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
-    to_encode.update({"exp": expire})
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),
+        "iss": settings.OIDC_ISSUER,
+        "aud": settings.OIDC_AUDIENCE,
+    })
     token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     logging.info("Issued token for %s: %s", data.get("sub"), token)
     return token
@@ -40,7 +45,13 @@ def create_access_token(
 
 def decode_access_token(token: str) -> dict[str, Any]:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            audience=settings.OIDC_AUDIENCE,
+            issuer=settings.OIDC_ISSUER,
+        )
         logging.info("Decoded token: %s", token)
         return payload
     except JWTError:

@@ -50,3 +50,15 @@ def require_role(required: str):
         return user
 
     return checker
+
+
+def require_claim(claim: str, value: str):
+    def checker(
+        user=Depends(get_current_user), token: str = Depends(oauth2_scheme)
+    ):
+        payload = decode_access_token(token)
+        if payload.get(claim) != value:
+            raise HTTPException(status_code=403, detail="Insufficient attributes")
+        return user
+
+    return checker
