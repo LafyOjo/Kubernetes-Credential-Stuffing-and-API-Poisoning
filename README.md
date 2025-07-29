@@ -532,7 +532,8 @@ using `pygame`.
 
 ## Performance evaluation
 
-Prometheus scrapes metrics from the detector service at `/metrics`. Use
+Prometheus scrapes metrics from the detector service at `/metrics`. The API now
+exposes CPU usage, memory consumption and request latency in milliseconds. Use
 `scripts/perf_test.py` to send concurrent requests and measure average latency.
 Launch the API and then run:
 
@@ -542,7 +543,8 @@ python scripts/perf_test.py --concurrency 20 --total 200
 
 View CPU and memory usage for the on-device model by running
 `training/run_inference.py`. Metrics are exported on port `8002` and can be
-scraped by Prometheus.
+scraped by Prometheus. The detector service itself also reports CPU and memory
+consumption in the `/metrics` output.
 
 ## Touchscreen feature menu
 
