@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiFetch } from "./api";
 
 export default function LoginForm({ onLogin }) {
@@ -24,6 +24,30 @@ export default function LoginForm({ onLogin }) {
       setError(err.message);
     }
   };
+
+  useEffect(() => {
+    const autoUser = process.env.REACT_APP_AUTO_USER;
+    const autoPass = process.env.REACT_APP_AUTO_PASS;
+    if (autoUser && autoPass && !localStorage.getItem("token")) {
+      setUsername(autoUser);
+      setPassword(autoPass);
+      (async () => {
+        try {
+          const resp = await apiFetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: autoUser, password: autoPass })
+          });
+          if (!resp.ok) throw new Error(await resp.text());
+          const data = await resp.json();
+          localStorage.setItem("token", data.access_token);
+          onLogin(data.access_token);
+        } catch (err) {
+          setError(err.message);
+        }
+      })();
+    }
+  }, [onLogin]);
 
   return (
     <form onSubmit={handleSubmit}>
