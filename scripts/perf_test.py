@@ -10,7 +10,7 @@ async def worker(client, url, payload, semaphore, results):
     async with semaphore:
         start = time.perf_counter()
         resp = await client.post(url, json=payload)
-        latency = time.perf_counter() - start
+        latency = (time.perf_counter() - start) * 1000
         results.append(latency)
         resp.raise_for_status()
 
@@ -29,8 +29,8 @@ async def run(url: str, concurrency: int, total: int):
         await asyncio.gather(*tasks)
     avg = sum(results) / len(results)
     print(f"Sent {len(results)} requests")
-    print(f"Average latency: {avg:.4f}s")
-    print(f"Max latency: {max(results):.4f}s")
+    print(f"Average latency: {avg:.2f} ms")
+    print(f"Max latency: {max(results):.2f} ms")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Simple load test")

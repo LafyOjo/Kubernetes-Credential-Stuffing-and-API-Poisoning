@@ -1,13 +1,19 @@
 from time import monotonic
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from prometheus_client import Counter, Histogram
+from prometheus_client import Counter, Histogram, Gauge
+import psutil
 from collections import defaultdict
 from app.core.security import decode_access_token
 
 REQUEST_LATENCY = Histogram(
     "api_request_latency_seconds",
     "Latency of API requests in seconds",
+    ["method", "endpoint"],
+)
+REQUEST_LATENCY_MS = Histogram(
+    "api_request_latency_milliseconds",
+    "Latency of API requests in milliseconds",
     ["method", "endpoint"],
 )
 REQUEST_COUNT = Counter(
@@ -24,6 +30,11 @@ USER_REQUEST_COUNT = Counter(
     "Total API requests per user",
     ["user"],
 )
+
+CPU_PERCENT = Gauge("api_cpu_percent", "Process CPU usage percent")
+MEM_BYTES = Gauge("api_memory_bytes", "Process memory usage in bytes")
+
+_process = psutil.Process()
 
 _user_counts: defaultdict[str, int] = defaultdict(int)
 
@@ -43,7 +54,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration = monotonic() - start
         REQUEST_LATENCY.labels(request.method, request.url.path).observe(duration)
+        REQUEST_LATENCY_MS.labels(request.method, request.url.path).observe(duration * 1000)
         REQUEST_COUNT.labels(request.method, request.url.path, response.status_code).inc()
+
+        # update process resource usage
+        CPU_PERCENT.set(_process.cpu_percent())
+        MEM_BYTES.set(_process.memory_info().rss)
 
         user = "anonymous"
         auth = request.headers.get("Authorization")
