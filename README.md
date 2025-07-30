@@ -1,80 +1,47 @@
 # APIShield+ Demo
 
-This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts.
+This repository contains a small FastAPI service used to detect credential stuffing attempts and a React dashboard for viewing alerts. This prroject is intended for the final project-code for Msc Networks and Security.
 
-## For final project dissertation Use Only
+This project is intended for testing security concepts in controlled environments. This project is also for educational purposes. Attacking systems without explicit authorization is strictly prohibited. 
 
-This project is intended for testing security concepts in controlled environments
-for educational purposes. Attacking systems without explicit authorization is
-strictly prohibited. The RockYou‑derived password list included under
-`scripts/data/rockyou.txt` is provided solely as a demonstration resource.
+Many of the used software services and libraries such as the 'The RockYou‑derived password list' that is found under the `scripts/data/rockyou.txt` directory is provided solely as a demonstration resource (as it can be used for hacking).
 
-## Configuration
+# 1. Configuration and Set-up
 
-The backend reads environment variables from a `.env` file on startup. The
-`SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
-error during import. Several optional variables control features such as
-credential stuffing thresholds, debug logging, forwarding to the Demo Shop,
-anomaly detection, and enforcing a zero‑trust API key:
+The backend reads important environment variables from a `.env` file on startup. This will be the important file that users can change and edit to alter how the program would work.
 
-- `FAIL_LIMIT` – how many failures are allowed within the window before
-  blocking a client (default `5`).
-- `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting
-  failures (default `60`).
+The `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an error during import. Several optional variables control features such as credential stuffing thresholds, failed-attempt blcoking limit, debug logging, forwarding to the Demo Shop, anomaly detection, and enforcing a zero‑trust API key:
+
+- `FAIL_LIMIT` – how many failures are allowed within the window before blocking a client (default `5`).
+- `FAIL_WINDOW_SECONDS` – the size of the window in seconds used when counting failures (default `60`).
 - `DB_ECHO` – set to `true` to log SQL statements (default `false`).
-- `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes
-  (default `30`).
+- `ACCESS_TOKEN_EXPIRE_MINUTES` – lifetime of issued JWT tokens in minutes (default `30`).
 - `REGISTER_WITH_DEMOSHOP` – set to `true` to also register the account with Demo Shop (default `false`).
 - `LOGIN_WITH_DEMOSHOP` – set to `true` to also log into Demo Shop when authenticating (default `false`).
 - `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:3005`).
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `ANOMALY_MODEL` – algorithm used when anomaly detection is enabled. Choose `isolation_forest` or `lof` (default `isolation_forest`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
-- `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
-  `X-API-Key` header. Invalid keys are logged via `/score` and show up in
-  Prometheus metrics.
-- `OIDC_ISSUER` – issuer string included in tokens and validated when decoding
-  (default `https://keycloak.example.com/realms/demo`).
-- `OIDC_AUDIENCE` – audience value required in presented tokens (default
-  `demo-api`).
-- All API calls are recorded. Retrieve them via `/api/access-logs`. Non-admin
-  users only see their own history.
+- `ZERO_TRUST_API_KEY` – if set, every request must include this value in the `X-API-Key` header. Invalid keys are logged via `/score` and show up in Prometheus metrics.
+- `OIDC_ISSUER` – issuer string included in tokens and validated when decoding (default `https://keycloak.example.com/realms/demo`).
+- `OIDC_AUDIENCE` – audience value required in presented tokens (default `demo-api`).
+- All API calls are recorded. Retrieve them via `/api/access-logs`. Non-admin users only see their own history.
 
-A sample `backend/.env.example` file includes all of these optional settings
-with sensible defaults. Copy it to `.env` so your `.env` starts with all
-variables defined, then adjust values as needed.
+A sample `backend/.env.example` file includes all of these optional settings with sensible defaults. Copy it to `.env` so your `.env` starts with all variables defined, then adjust values as needed.
 
-When enabled, clients must supply the password again via the
-`X-Reauth-Password` header. The dashboard automatically prompts for
-the password whenever the API replies with `401` and then retries the
-request. Enter the same password you used to log in. If you cancel or
-enter it incorrectly, you will be logged out and returned to the login
-screen. The helper script `scripts/reauth_client.py` demonstrates
-prompting for the password before each request when calling the API
-from the command line.
+When enabled, clients must supply the password again via the `X-Reauth-Password` header. The dashboard automatically prompts for the password whenever the API replies with `401` and then retries the request. Enter the same password you used to log in. If you cancel or enter it incorrectly, you will be logged out and returned to the login screen. The helper script `scripts/reauth_client.py` demonstrates prompting for the password before each request when calling the API from the command line. This is the projects first main approach to a Zero-Trust appraoch if thid feature doesnt work properly, the user can always go to the `.env` file and set the `REAUTH_PER_REQUEST` to false, so they can continue normal use of the application.
+
+The helper script `scripts/reauth_client.py` demonstrates prompting for the password before each request.
 
 To try it manually, register an account and then run:
-
-
-`X-Reauth-Password` header. The helper script
-`scripts/reauth_client.py` demonstrates prompting for the password
-before each request.
-
-To try it manually, register an account and then run:
-
 
 ```bash
 python scripts/reauth_client.py alice --base http://localhost:8001 --times 2
 ```
 
-The script logs in and prompts for your password before every request.
-Canceling the prompt or entering the wrong password logs you out and
-returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
-you prefer to disable this extra check.
+The script logs in and prompts for your password before every request. Canceling the prompt or entering the wrong password logs you out and returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if you prefer to disable this extra check.
 
-
-
-Example `.env`:
+Below is an example `.env`:
 
 ```env
 DATABASE_URL=sqlite:///./app.db
@@ -97,30 +64,31 @@ OIDC_ISSUER=https://keycloak.example.com/realms/demo
 OIDC_AUDIENCE=demo-api
 ```
 
-## Running the backend
+# 2. Running the backend
 
-1. Create and activate a virtual environment and install the requirements:
+1. Create and activate a virtual environment and install the requirements using these following commands (USING BASH TERMINAL FROM GIT NOT POWERSHELL):
 
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/Scripts/activate always check because sometimes some operating systems may save this in the libs/bin folder
+source .venv/Scripts/activate -> always check because sometimes some operating systems may save this in the libs/bin folder
 pip install -r requirements.txt
 # Packages are pinned to versions that ship wheels for Python 3.12. If
 # installation fails with compiler errors, make sure build tools such as
 # a C compiler and Rust are available.
 ```
 
-2. Copy `backend/.env.example` to `backend/.env`. The example includes all
-   optional variables shown below, so your `.env` should match it unless you
-   change values.
 
-3. Run Alembic migrations to create the `alerts` table:
+2. Copy `backend/.env.example` to `backend/.env`. The example includes all optional variables shown below, so your `.env` should match it unless you change values. Remeber some work better than others as many of the options are still in development
+
+3. Run Alembic migrations to create the `alerts` table (*VERY IMPORTANT*):
 
 ```bash
 alembic upgrade head
 ```
-**Note:** If `app.db` already exists from a previous run, `alembic upgrade head` may fail. Remove the file or run `alembic stamp head` before rerunning the upgrade.
+(*Note*) If `app.db` already exists from a previous run, using the `alembic upgrade head` may fail/return an error. The solution would be to Remove the `app.db` file or run `alembic stamp head` before rerunning the upgrade. My best bet is to delete the file and just re-run `alembic upgrade head`.
+
+
 
 4. Load the variables from `.env` and start the API server:
 
@@ -130,10 +98,11 @@ source .env
 set +a
 uvicorn app.main:app --reload --port 8001
 ```
-
 Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 
-## Running the frontend
+(*May be Worth having multiple terminals running like up to 6 termminals all with administrator privillages*)
+
+# 2. Running the frontend
 
 ```bash
 cd frontend
@@ -154,14 +123,11 @@ npm install --save-dev cross-env
 npm start
 ```
 
-The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
-this variable when building or running the frontend if the API lives at a
-different URL. Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key`
-header.
+The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override this variable when building or running the frontend if the API lives at a different URL. Set `REACT_APP_API_KEY` if the backend equires an `X-API-Key` header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
-## Starting the Demo Shop
+# 3. Starting the Demo Shop
 
 The demo shop sources are located in the `demo-shop/` directory.
 To run the shop locally execute:
@@ -172,11 +138,9 @@ npm install
 npm start
 ```
 
-The API will be available on <http://localhost:3005> by default. When the
-server starts your default browser opens the shop home page automatically at
-<http://localhost:3005/>.
+The API will be available on http://localhost:3005 by default. When the server starts your default browser opens the shop home page automatically at http://localhost:3005
 
-## Credential Stuffing Simulation
+# 4. Credential Stuffing Simulation
 
 1. Start the React application:
 
@@ -188,21 +152,11 @@ server starts your default browser opens the shop home page automatically at
 
    The dashboard will be served at <http://localhost:3000>.
 
-   The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an
-   account displays how secure it is as a progress bar and lists the enabled
-   protections. Alice intentionally has reduced security while Ben has all
-   security features enabled. When a login succeeds the simulator fetches the
-   user's cart and orders from Demo Shop, demonstrating how Alice's data is
-   exposed while Ben remains safe.
+ 1.  The dashboard shows two demo accounts, **Alice** and **Ben**. Selecting an account displays how secure that particular account is, as a progress bar and lists the enabled protections. Alice intentionally has reduced security while Ben has all security features enabled. When a login succeeds the simulator fetches the user's cart and orders from Demo Shop, demonstrating how Alice's data is exposed while Ben's account remains safe.
 
+2. Log in and locate the **Credential Stuffing Simulation** section. Choose a target account and click **Start Attack**. When targeting Alice the attack will usually succeed quickly. Ben's account requires the correct chain token so repeated guesses are blocked. Highlighting the difference in security between both accounts.
 
-2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
-   target account and click **Start Attack**. When targeting Alice the attack
-   will usually succeed quickly. Ben's account requires the correct chain token
-   so repeated guesses are blocked.
-
-3. To use the command-line to login and create a user that would be used across the services and for the 
-   purpose of testing we need to use the terminal, below is an example of how to register a user and login
+3. To use the command-line to login and create a user that would be used across the services and for the purpose of testing we need to use the terminal, below is an example of how to register a user and login.
    
    ```
   $ curl -X POST http://localhost:8001/register \
@@ -232,8 +186,7 @@ server starts your default browser opens the shop home page automatically at
    -H "Content-Type: application/json"
    -d '{"username": "alice", "password": "secret"}'
    ```
-   The response contains a JWT access token. Include it in the `Authorization`
-   header when calling protected endpoints or when logging out:
+   The response contains a JWT access token. Include it in the `Authorization` header when calling protected endpoints or when logging out:
 
    ```bash
    curl -X POST http://localhost:8001/logout \
@@ -247,18 +200,15 @@ python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
+
 Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
 
 
-`stuffing.py` performs a basic credential stuffing attack against the insecure
-login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API
-and illustrates how using token-based authentication blocks the attack.
+`stuffing.py` performs a basic credential stuffing attack against the insecure login endpoint. The `stuffingwithjwt.py` variant targets the JWT-protected API and illustrates how using token-based authentication locks the attack.
 
-The password list at `scripts/data/rockyou.txt` is derived from the widely
-circulated RockYou breach dataset. It is provided in this repository solely for
-demonstration purposes and no license or ownership is claimed.
+The password list at `scripts/data/rockyou.txt` is derived from the widely circulated RockYou breach dataset. It is provided in this repository solely for demonstration purposes and no license or ownership is claimed.
 
-## Running with Kubernetes
+# 5. Running with Kubernetes
 
 ### Prerequisites
 
@@ -269,14 +219,13 @@ demonstration purposes and no license or ownership is claimed.
 
 ### Steps
 
-1. Spin up a local cluster to run the detector service:
+1. Spin up a local cluster to run the detector service and run the bash scripts:
 
    ```bash
    bash infra/kind/up.sh
    ```
 
-   The script creates a kind cluster and installs Prometheus and Grafana. Start
-   the demo shop separately with:
+   The script creates a kind cluster and installs Prometheus and Grafana. Start the demo shop separately with: (*If the shop is already running there may be an error and the simplest thing to do is to clost the previous connection of the shop by going to the terminal and entering Ctrl + C.*)
 
    ```bash
    cd demo-shop
@@ -284,12 +233,9 @@ demonstration purposes and no license or ownership is claimed.
    node server.js
    ```
 
-   The Node service listens on port `3005` and requires the password on each API
-   call via the `X-Reauth-Password` header.
+   The Node service listens on port `3005` and requires the password on each API call via the `X-Reauth-Password` header. (*Only if you have enabled the option for this in the `.env`*)
 
-2. Generate a certificate and create the TLS secret. The repository does not
-   include `server.key` or `server.crt`, so run the script below to create them
-   locally before making the Kubernetes secret:
+2. Generate a certificate and create the TLS secret. The repository does not include `server.key` or `server.crt`, so run the script below to create them locally before making the Kubernetes secret:
 
    ```bash
    bash scripts/generate-cert.sh
@@ -307,8 +253,9 @@ demonstration purposes and no license or ownership is claimed.
        -n demo
    ```
 
-   Replace `<random-secret>` with any string you want to use as the secret key.
-4. Build the detector image:
+   Replace `<random-secret>` with any string you want to use as the secret key. This can be anything, such as favourite animal, favourite colour, anything as part of secure measures.
+
+4. Build the detector image (*Process of loading kubernetes in docker -> Effective use with Docker Desktop*):
 
    ```bash
    docker build -t detector:latest -f backend/Dockerfile backend
@@ -320,8 +267,7 @@ demonstration purposes and no license or ownership is claimed.
    kind load docker-image detector:latest --name cred-demo
    ```
 
-   If the image isn't loaded before applying the manifests, the detector pod will
-   remain in the `Pending` state. Check its status with:
+   If the image isn't loaded before applying the manifests, the detector pod will remain in the `Pending` state. Check its status with:
 
    ```bash
    kubectl get pods -n demo
@@ -362,8 +308,7 @@ If `kubectl port-forward` fails with an error similar to:
 E... memcache.go:265] "Unhandled Error" err="couldn't get current server API group list: Get \"https://127.0.0.1:60279/api?timeout=32s\": net/http: TLS handshake timeout"
 ```
 
-the cluster may not be running or `kubectl` is pointing to the wrong context.
-Ensure Docker is running and start the kind cluster again with:
+the cluster may not be running or `kubectl` is pointing to the wrong context. Ensure Docker is running and start the kind cluster again with:
 
 ```bash
 bash infra/kind/up.sh
@@ -379,11 +324,7 @@ Once the cluster is up, re-run the port-forward command.
 
 ### ABAC via Kong and Istio
 
-Sample manifests in `infra/abac/` demonstrate attribute-based access control.
-`kong-abac.yaml` installs the Kong OIDC and OPA plugins to validate tokens and
-enforce a simple role policy. `istio-abac.yaml` configures Istio sidecars to
-accept the same tokens and restrict access based on the `role` claim. Apply the
-appropriate file with `kubectl apply -f` after deploying the cluster.
+Sample manifests in `infra/abac/` demonstrate attribute-based access control. `kong-abac.yaml` installs the Kong OIDC and OPA plugins to validate tokens and enforce a simple role policy. `istio-abac.yaml` configures Istio sidecars to accept the same tokens and restrict access based on the `role` claim. Apply the appropriate file with `kubectl apply -f` after deploying the cluster.
 
 ## `/score` endpoint
 
@@ -403,9 +344,7 @@ Every call increments the `login_attempts_total` Prometheus counter labelled by 
 
 Otherwise it records the failure and returns `{"status": "ok"}`. A successful result simply records the metric.
 
-When `ZERO_TRUST_API_KEY` is enabled, any request missing or providing the wrong
-`X-API-Key` header is also counted as a failure via this endpoint so the
-dashboard and Prometheus reflect the attempts.
+When `ZERO_TRUST_API_KEY` is enabled, any request missing or providing the wrong `X-API-Key` header is also counted as a failure via this endpoint so the dashboard and Prometheus reflect the attempts.
 
 ## `/config` endpoint
 
@@ -417,26 +356,15 @@ dashboard and Prometheus reflect the attempts.
 
 ## `/api/security` endpoints
 
-The backend keeps a global `SECURITY_ENABLED` flag (default `true`) controlling
-whether failed login attempts trigger blocking. Use `GET /api/security` to
-retrieve the current state and `POST /api/security` with a JSON body of
-`{"enabled": true|false}` to update it.
+The backend keeps a global `SECURITY_ENABLED` flag (default `true`) controlling whether failed login attempts trigger blocking. Use `GET /api/security` to retrieve the current state and `POST /api/security` with a JSON body of `{"enabled": true|false}` to update it.
 
-When disabled, calls to `/score` will continue to record metrics but will never
-return `{"status": "blocked"}`.
+When disabled, calls to `/score` will continue to record metrics but will never return `{"status": "blocked"}`.
 
-When security is enabled the service also expects each request to `/score`
-include an `X-Chain-Password` header. This value is derived from the previous
-call's password combined with a random nonce. Fetch the current value from
-`GET /api/security/chain` and supply it with each request. After validation the
-password is rotated so replayed requests are rejected.
+When security is enabled the service also expects each request to `/score` include an `X-Chain-Password` header. This value is derived from the previous call's password combined with a random nonce. Fetch the current value from `GET /api/security/chain` and supply it with each request. After validation the password is rotated so replayed requests are rejected.
 
 ## `/api/alerts/stats` endpoint
 
-Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`.
-The response is a list of objects containing the minute, how many invalid
-credential attempts occurred, and how many times blocking was triggered.
-These stats power the dashboard chart.
+Authenticated clients can fetch aggregated statistics with `GET /api/alerts/stats`. The response is a list of objects containing the minute, how many invalid credential attempts occurred, and how many times blocking was triggered. These stats power the dashboard chart.
 
 ## JWT authentication
 
@@ -462,8 +390,7 @@ The backend allows cross-origin requests from `http://localhost:3000` so the Rea
 
 ## Running the tests
 
-The unit tests live in `backend/tests`. Install the backend requirements and run
-pytest from the `backend` directory so the `app` package is discoverable:
+The unit tests live in `backend/tests`. Install the backend requirements and run pytest from the `backend` directory so the `app` package is discoverable:
 
 ```bash
 pip install -r backend/requirements.txt
@@ -473,27 +400,19 @@ PYTHONPATH=. pytest
 
 ## Edge-hosted monitoring on Raspberry Pi
 
-To run the dashboard directly on a Raspberry Pi, follow the steps in
-`rpi/RasberryPiReadme.md`. In short, install the backend and frontend
-dependencies, then launch both services to expose the API on port `8001` and the
-React UI on port `3000` for any device on your LAN. A convenience script
-`python rpi/start_edge_service.py` starts both processes at once.
+To run the dashboard directly on a Raspberry Pi, follow the steps in `rpi/RasberryPiReadme.md`. In short, install the backend and frontend dependencies, then launch both services to expose the API on port `8001` and the React UI on port `3000` for any device on your LAN. A convenience script `python rpi/start_edge_service.py` starts both processes at once.
+
+(*WILL BE NECESSARY TO INCLUDE A 3.5 INCH TOUCH SCREEN TO THE RASPBERRY PI*)
 
 ## Local traffic generation with Mininet
 
-To emulate traffic directly on a Raspberry Pi or other host install
-[Mininet](http://mininet.org/) and run the helper script in the `mininet`
-directory:
+To emulate traffic directly on a Raspberry Pi or other host install [Mininet](http://mininet.org/) and run the helper script in the `mininet` directory:
 
 ```bash
 sudo python3 mininet/gen_traffic.py
 ```
 
-The script creates two virtual hosts connected by a switch. One host runs a
-simple Python HTTP server while the other issues a few baseline requests followed
-by a larger burst to mimic attack traffic. After sending the requests you will
-be dropped into the Mininet CLI where additional commands such as `pingall` or
-`iperf` can be used. Type `exit` to shut down the network.
+The script creates two virtual hosts connected by a switch. One host runs a simple Python HTTP server while the other issues a few baseline requests followed by a larger burst to mimic attack traffic. After sending the requests you will be dropped into the Mininet CLI where additional commands such as `pingall` or `iperf` can be used. Type `exit` to shut down the network.
 
 ## On-device ML inference
 
@@ -505,52 +424,38 @@ python training/run_inference.py --iface eth0
 
 ## Lightweight SDN controller
 
-Run a small [Ryu](https://osrg.github.io/ryu/) controller to gather OpenFlow
-statistics from an Open vSwitch instance. After installing the requirements at
-`sdn-controller/requirements.txt`, launch the controller with:
+Run a small [Ryu](https://osrg.github.io/ryu/) controller to gather OpenFlow statistics from an Open vSwitch instance. After installing the requirements at `sdn-controller/requirements.txt`, launch the controller with:
 
 ```bash
 ryu-manager sdn-controller/simple_monitor.py
 ```
 
-Point your switch at the Pi's IP on port `6633`. The script logs packet and byte
-counts for each active flow. Edit the code to forward these stats to the
-detector service if desired.
+Point your switch at the Pi's IP on port `6633`. The script logs packet and byte counts for each active flow. Edit the code to forward these stats to the detector service if desired.
 
 ## SPI display dashboard
 
-Attach a small SPI screen to the Raspberry Pi and render live alert statistics
-without opening a browser:
+Attach a small SPI screen to the Raspberry Pi and render live alert statistics without opening a browser:
 
 ```bash
 pip install -r rpi/requirements.txt
 python rpi/spi_display.py --api-base http://<pi-ip>:8001
 ```
 
-The script polls `/api/alerts/stats` and draws the latest values on the display
-using `pygame`.
+The script polls `/api/alerts/stats` and draws the latest values on the display using `pygame`.
 
 ## Performance evaluation
 
-Prometheus scrapes metrics from the detector service at `/metrics`. The API now
-exposes CPU usage, memory consumption and request latency in milliseconds. Use
-`scripts/perf_test.py` to send concurrent requests and measure average latency.
-Launch the API and then run:
+Prometheus scrapes metrics from the detector service at `/metrics`. The API now exposes CPU usage, memory consumption and request latency in milliseconds. Use `scripts/perf_test.py` to send concurrent requests and measure average latency. Launch the API and then run:
 
 ```bash
 python scripts/perf_test.py --concurrency 20 --total 200
 ```
 
-View CPU and memory usage for the on-device model by running
-`training/run_inference.py`. Metrics are exported on port `8002` and can be
-scraped by Prometheus. The detector service itself also reports CPU and memory
-consumption in the `/metrics` output.
+View CPU and memory usage for the on-device model by running `training/run_inference.py`. Metrics are exported on port `8002` and can be scraped by Prometheus. The detector service itself also reports CPU and memory consumption in the `/metrics` output.
 
 ## Touchscreen feature menu
 
-When the Pi has a 3.5" display attached you can launch an interactive menu to
-start any of the optional features. The menu works with both a touchscreen and
-a keyboard:
+When the Pi has a 3.5" display attached you can launch an interactive menu to start any of the optional features. The menu works with both a touchscreen and a keyboard:
 
 ```bash
 python rpi/menu.py
