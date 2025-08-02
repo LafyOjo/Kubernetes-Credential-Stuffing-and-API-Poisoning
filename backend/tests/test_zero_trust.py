@@ -32,6 +32,11 @@ def _auth_headers():
     return {'Authorization': f'Bearer {token}'}
 
 
+def test_login_trailing_slash():
+    resp = client.post('/login/', json={'username': 'admin', 'password': 'pw'})
+    assert resp.status_code == 200
+
+
 def teardown_function(_):
     SessionLocal().close()
     os.environ.pop('ZERO_TRUST_API_KEY', None)
