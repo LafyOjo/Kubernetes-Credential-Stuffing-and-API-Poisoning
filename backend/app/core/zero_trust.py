@@ -9,18 +9,23 @@ from app.api.score import record_attempt
 
 
 API_KEY = os.getenv("ZERO_TRUST_API_KEY")
+ALLOWED_PATHS = {"/ping", "/login", "/register", "/api/token"}
 
 
 class ZeroTrustMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if not API_KEY:
             return await call_next(request)
-        if request.url.path in {"/ping", "/login", "/register", "/api/token"}:
+
+        path = request.url.path.rstrip("/") or "/"
+        if path in ALLOWED_PATHS:
             return await call_next(request)
+
         header = request.headers.get("X-API-Key")
         if header != API_KEY:
             client_ip = request.client.host if request.client else "unknown"
             with SessionLocal() as db:
                 record_attempt(db, client_ip, False, detail="Invalid API key")
             return JSONResponse({"detail": "Invalid API key"}, status_code=HTTP_401_UNAUTHORIZED)
+
         return await call_next(request)
