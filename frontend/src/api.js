@@ -1,5 +1,6 @@
 export const API_BASE = process.env.REACT_APP_API_BASE || "";
-export const API_KEY = process.env.REACT_APP_API_KEY || "";
+export let API_KEY =
+  localStorage.getItem("apiKey") || process.env.REACT_APP_API_KEY || "";
 
 export function logout() {
   localStorage.removeItem("token");
@@ -23,6 +24,21 @@ export async function apiFetch(path, options = {}) {
   let resp = await fetch(url, { ...options, headers });
   if (resp.status !== 401 || skipAuth) {
     return resp;
+  }
+
+  if (!headers["X-API-Key"]) {
+    const key = window.prompt("Enter API key:");
+    if (!key) {
+      logout();
+      return resp;
+    }
+    API_KEY = key;
+    localStorage.setItem("apiKey", key);
+    headers["X-API-Key"] = key;
+    resp = await fetch(url, { ...options, headers });
+    if (resp.status !== 401) {
+      return resp;
+    }
   }
 
   const pw = window.prompt("Please enter your password:");
