@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3005';
+const API_BASE = '';
 let username = null;
 
 function setContent(html) {
@@ -123,17 +123,21 @@ function showLogin() {
   `);
   document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
-    username = document.getElementById('username').value;
+    const inputUser = document.getElementById('username').value;
     const pw = document.getElementById('pw').value;
     try {
       await fetchJSON(`${API_BASE}/login`, {
         method: 'POST',
-        body: JSON.stringify({ username, password: pw }),
+        body: JSON.stringify({ username: inputUser, password: pw }),
         noAuth: true
       });
+      username = inputUser;
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
-      updateCartCount();
+      const status = document.getElementById('userStatus');
+      status.textContent = `Logged in as ${username}`;
+      status.style.display = 'inline-block';
+      updateCartCount(true);
       loadProducts();
     } catch (e) {
       showMessage('Login failed', true);
@@ -175,17 +179,20 @@ async function logout() {
   username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
-  updateCartCount();
+  const status = document.getElementById('userStatus');
+  status.textContent = '';
+  status.style.display = 'none';
+  updateCartCount(true);
   loadProducts();
 }
 
-async function updateCartCount() {
+async function updateCartCount(skipAuth = false) {
   if (!username) {
     document.getElementById('cartCount').textContent = 0;
     return;
   }
   try {
-    const items = await fetchJSON(`${API_BASE}/cart`);
+    const items = await fetchJSON(`${API_BASE}/cart`, skipAuth ? { noAuth: true } : {});
     document.getElementById('cartCount').textContent = items.length;
   } catch {
     document.getElementById('cartCount').textContent = 0;
