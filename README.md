@@ -463,6 +463,8 @@ python rpi/menu.py
 
 Select a feature to run it and press `Esc` to return to the menu.
 
+The menu now includes an **Edge Monitoring (Anomaly Detection)** option. Choosing it launches the edge service with ML-based request anomaly checks enabled, trading additional processing time for the ability to catch malicious traffic.
+
 
 ## License
 

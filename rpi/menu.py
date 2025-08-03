@@ -12,6 +12,10 @@ FEATURES = [
         [sys.executable, str(REPO_ROOT / "rpi" / "start_edge_service.py")],
     ),
     (
+        "Edge Monitoring (Anomaly Detection)",
+        [sys.executable, str(REPO_ROOT / "rpi" / "start_edge_service_anomaly.py")],
+    ),
+    (
         "Mininet Traffic",
         ["sudo", "python3", str(REPO_ROOT / "mininet" / "gen_traffic.py")],
     ),
