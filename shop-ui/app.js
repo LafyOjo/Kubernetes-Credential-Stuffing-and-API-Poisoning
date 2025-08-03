@@ -1,5 +1,7 @@
 const API_BASE = '';
 let username = null;
+let cartItems = [];
+let currentView = 'products';
 
 function setContent(html) {
   $('#content').fadeOut(200, function () {
@@ -27,6 +29,7 @@ async function fetchJSON(url, options = {}) {
 }
 
 async function loadProducts() {
+  currentView = 'products';
   const products = await fetchJSON(`${API_BASE}/products`, { noAuth: true });
   const list = products.map(p => `
     <div class="col-md-4 mb-3">
@@ -49,16 +52,33 @@ async function addToCart(id) {
     });
     showMessage('Added to cart');
     updateCartCount();
+    if (currentView === 'cart') {
+      const items = await fetchJSON(`${API_BASE}/cart`);
+      renderCart(items);
+    }
   } catch (e) {
     showMessage('You must be logged in', true);
   }
 }
 
+function renderCart(items) {
+  cartItems = items;
+  const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('') || '<li class="list-group-item text-muted">Your cart is empty.</li>';
+  const total = items.reduce((sum, item) => sum + Number(item.price), 0);
+  const listEl = document.getElementById('cartItems');
+  const totalEl = document.getElementById('cartTotal');
+  if (listEl && totalEl) {
+    listEl.innerHTML = list;
+    totalEl.textContent = `$${total.toFixed(2)}`;
+  }
+}
+
 async function viewCart() {
+  currentView = 'cart';
   try {
     const items = await fetchJSON(`${API_BASE}/cart`);
-    const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
-    setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
+    setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3"></ul><div class="d-flex justify-content-between fw-bold mb-3"><span>Total:</span><span id="cartTotal">$0.00</span></div><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
+    renderCart(items);
   } catch (e) {
     showMessage('You must be logged in', true);
   }
