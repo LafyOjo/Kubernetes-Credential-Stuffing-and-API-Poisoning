@@ -166,34 +166,6 @@
                 { id: 10, name: 'Portable Power Bank', price: 39.99, imageUrl: 'https://placehold.co/150x150/E5E7EB/4B5563?text=Power+Bank', description: 'Never run out of power on the go. This high-capacity power bank can charge your phone multiple times and is compatible with most devices.' },
             ];
 
-            const USER_PROFILES = {
-                "alice": { 
-                    name: "Alice Smith", 
-                    profileImg: "https://placehold.co/150x150/A78BFA/FFFFFF?text=A", 
-                    email: "alice.smith@example.com",
-                    address: "123 Main Street, Anytown, CA 90210"
-                },
-                "bob": { 
-                    name: "Bob Johnson", 
-                    profileImg: "https://placehold.co/150x150/38BDF8/FFFFFF?text=B",
-                    email: "bob.johnson@example.com",
-                    address: "456 Oak Avenue, Somewhere, NY 10001"
-                }
-            };
-
-            const DUMMY_CARTS = {
-                "alice": [
-                    { id: 1, quantity: 1 },
-                    { id: 3, quantity: 2 },
-                    { id: 7, quantity: 1 }
-                ],
-                "bob": [
-                    { id: 2, quantity: 1 },
-                    { id: 5, quantity: 1 },
-                    { id: 6, quantity: 1 }
-                ]
-            };
-            
             const DUMMY_ORDER_HISTORY = {
                 "alice": [
                     { id: "ORD-12345", date: "2023-05-10", total: 179.98, items: [{ id: 8, quantity: 1 }, { id: 7, quantity: 1 }] },
@@ -204,7 +176,7 @@
                 ]
             };
 
-            const COMPROMISED_CREDENTIALS = {
+            const DEFAULT_CREDENTIALS = {
                 "alice": { username: 'alice', password: 'password123' },
                 "bob": { username: 'bob', password: 'password123' }
             };
@@ -409,6 +381,12 @@
                             <h4 class="font-bold text-lg text-gray-700">Shipping Address</h4>
                             <p class="text-gray-600">${currentUserProfile.address}</p>
                         </div>
+                        <div class="space-y-2">
+                            <h4 class="font-bold text-lg text-gray-700">Payment Info</h4>
+                            <p class="text-gray-600">Card: ${currentUserProfile.cardNumber || 'Not saved'}</p>
+                            <p class="text-gray-600">Expiry: ${currentUserProfile.cardExpiry || ''}</p>
+                            <p class="text-gray-600">CVC: ${currentUserProfile.cardCvc || ''}</p>
+                        </div>
                         <div class="flex space-x-4">
                             <button id="edit-profile-btn" class="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition ease-in-out">
                                 Edit Profile
@@ -449,12 +427,24 @@
                         </form>
                     `;
 
-                    document.getElementById('edit-profile-form').addEventListener('submit', (e) => {
+                    document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        currentUserProfile.name = document.getElementById('profile-name').value;
-                        currentUserProfile.email = document.getElementById('profile-email').value;
-                        currentUserProfile.address = document.getElementById('profile-address').value;
-                        showMessage("Profile updated! An attacker could have changed this data.", 'success');
+                        const updated = {
+                            name: document.getElementById('profile-name').value,
+                            email: document.getElementById('profile-email').value,
+                            address: document.getElementById('profile-address').value
+                        };
+                        const resp = await fetch('/profile', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated)
+                        });
+                        if (resp.ok) {
+                            Object.assign(currentUserProfile, updated);
+                            showMessage("Profile updated! An attacker could have changed this data.", 'success');
+                        } else {
+                            showMessage('Failed to update profile.', 'error');
+                        }
                         renderProfilePage();
                     });
 
@@ -608,9 +598,21 @@
                     renderView();
                 });
 
-                document.getElementById('pay-button').addEventListener('click', () => {
+                document.getElementById('pay-button').addEventListener('click', async () => {
                     const form = document.getElementById('payment-form');
                     if (form.reportValidity()) {
+                        const cardNumber = document.getElementById('card-number').value;
+                        const cardExpiry = document.getElementById('card-expiry').value;
+                        const cardCvc = document.getElementById('card-cvc').value;
+                        if (loggedInUser) {
+                            await fetch('/profile', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ cardNumber, cardExpiry, cardCvc })
+                            });
+                            Object.assign(currentUserProfile, { cardNumber, cardExpiry, cardCvc });
+                        }
+                        await fetch('/purchase', { method: 'POST' });
                         showMessage('Payment successful! Thank you for your order.', 'success');
                         setTimeout(() => {
                             clearCart();
@@ -825,10 +827,19 @@
             }
 
             // Handles a successful login event
-            function handleSuccessfulLogin(username) {
+            async function handleSuccessfulLogin(username) {
                 loggedInUser = username;
-                currentUserProfile = { ...USER_PROFILES[username] }; // Copy profile data
-                userCart = DUMMY_CARTS[username] || []; // Load a dummy cart
+                try {
+                    const resp = await fetch('/profile');
+                    if (resp.ok) {
+                        currentUserProfile = await resp.json();
+                    } else {
+                        currentUserProfile = {};
+                    }
+                } catch {
+                    currentUserProfile = {};
+                }
+                userCart = [];
                 localStorage.removeItem('guestCart');
                 updateAuthUI();
                 renderCart();
@@ -848,37 +859,50 @@
             }
 
             // --- Event Handlers ---
-            loginFormEl.addEventListener('submit', (e) => {
+            loginFormEl.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const username = usernameInput.value;
                 const password = passwordInput.value;
 
-                const credentials = COMPROMISED_CREDENTIALS[username];
+                const resp = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
 
-                if (credentials && credentials.password === password) {
-                    handleSuccessfulLogin(username);
+                if (resp.ok) {
+                    await handleSuccessfulLogin(username);
                     showMessage(`Logged in as ${username}.`, 'success');
                 } else {
                     showMessage("Invalid username or password. Try 'alice' or 'bob' with 'password123'", 'error');
                 }
             });
 
-            stuffingButton.addEventListener('click', () => {
+            stuffingButton.addEventListener('click', async () => {
                 const originalText = stuffingButton.textContent;
                 stuffingButton.textContent = 'Attempting login...';
                 stuffingButton.disabled = true;
 
-                // Simulate a short network delay
-                setTimeout(() => {
-                    const targetUser = attackTargetSelect.value;
-                    handleSuccessfulLogin(targetUser);
-                    stuffingButton.textContent = originalText;
-                    stuffingButton.disabled = false;
+                const targetUser = attackTargetSelect.value;
+                const creds = DEFAULT_CREDENTIALS[targetUser];
+                await new Promise(r => setTimeout(r, 1000));
+                const resp = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(creds)
+                });
+                if (resp.ok) {
+                    await handleSuccessfulLogin(targetUser);
                     showMessage(`Credential stuffing attack successful! You now have access to '${targetUser}'s' account.`, 'error');
-                }, 1000); 
+                } else {
+                    showMessage('Attack failed.', 'error');
+                }
+                stuffingButton.textContent = originalText;
+                stuffingButton.disabled = false;
             });
 
-            logoutButton.addEventListener('click', () => {
+            logoutButton.addEventListener('click', async () => {
+                await fetch('/logout', { method: 'POST' });
                 initializeApp();
                 showMessage('Logged out successfully.', 'info');
             });
