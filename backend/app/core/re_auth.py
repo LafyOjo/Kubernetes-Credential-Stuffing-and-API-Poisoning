@@ -60,6 +60,7 @@ class ReAuthMiddleware(BaseHTTPMiddleware):
                     False,
                     detail="Invalid credentials",
                     with_jwt=True,
+                    token=token,
                 )
                 log_event(db, username, "reauth", False)
                 return JSONResponse(
