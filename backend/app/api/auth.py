@@ -19,6 +19,7 @@ from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
 from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
+from app.core.account_security import calculate_security_score
 
 
 router = APIRouter(tags=["auth"])
@@ -30,7 +31,18 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed = get_password_hash(user_in.password)
     role = user_in.role or "user"
-    user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
+    score = calculate_security_score(
+        user_in.password,
+        two_factor=user_in.two_factor,
+        security_question=user_in.security_question,
+    )
+    user = create_user(
+        db,
+        username=user_in.username,
+        password_hash=hashed,
+        role=role,
+        security_score=score,
+    )
 
     if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
