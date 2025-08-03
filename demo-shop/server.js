@@ -43,9 +43,47 @@ const products = [
   { id: 15, name: 'Performance Cap', price: 22 }
 ];
 
-// Pre‑register a demo user so the credentials alice/secret work out of the box
+// Pre‑register demo users with default credentials and profile data
+// so credential stuffing attacks can expose personal information.
+const defaultProfile = {
+  name: '',
+  email: '',
+  address: '',
+  profileImg: '',
+  cardNumber: '',
+  cardExpiry: '',
+  cardCvc: ''
+};
+
 const users = {
-  alice: { password: 'secret', cart: [] }
+  alice: {
+    password: 'password123',
+    cart: [],
+    profile: {
+      ...defaultProfile,
+      name: 'Alice Smith',
+      email: 'alice.smith@example.com',
+      address: '123 Main Street, Anytown, CA 90210',
+      profileImg: 'https://placehold.co/150x150/A78BFA/FFFFFF?text=A',
+      cardNumber: '4111111111111111',
+      cardExpiry: '12/25',
+      cardCvc: '123'
+    }
+  },
+  bob: {
+    password: 'password123',
+    cart: [],
+    profile: {
+      ...defaultProfile,
+      name: 'Bob Johnson',
+      email: 'bob.johnson@example.com',
+      address: '456 Oak Avenue, Somewhere, NY 10001',
+      profileImg: 'https://placehold.co/150x150/38BDF8/FFFFFF?text=B',
+      cardNumber: '5555555555554444',
+      cardExpiry: '11/24',
+      cardCvc: '456'
+    }
+  }
 };
 
 function requireAuth(req, res, next) {
@@ -65,7 +103,11 @@ app.post('/register', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'missing' });
   if (users[username]) return res.status(409).json({ error: 'exists' });
-  users[username] = { password, cart: [] };
+  users[username] = {
+    password,
+    cart: [],
+    profile: { ...defaultProfile, name: username }
+  };
   if (FORWARD_API) {
     try {
             await axios.post(
@@ -152,6 +194,18 @@ app.get('/cart', requireAuth, (req, res) => {
 app.post('/purchase', requireAuth, (req, res) => {
   users[req.session.username].cart = [];
   res.json({ status: 'purchased' });
+});
+
+app.get('/profile', requireAuth, (req, res) => {
+  const profile = users[req.session.username].profile || {};
+  res.json(profile);
+});
+
+app.put('/profile', requireAuth, (req, res) => {
+  const profile = users[req.session.username].profile || {};
+  Object.assign(profile, req.body);
+  users[req.session.username].profile = profile;
+  res.json({ status: 'ok' });
 });
 
 app.get('/api-calls', requireAuth, async (req, res) => {
