@@ -1,34 +1,27 @@
-import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import LoginForm from "./LoginForm";
-import DashboardMain from "./DashboardMain";
-import MetricsPage from "./MetricsPage";
-import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import MainContent from "./components/MainContent";
+import { ThemeProvider } from "./theme/ThemeProvider";
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem("token"));
-
-  if (!token) {
-    return (
-      <div className="app-container">
-        <h1 className="dashboard-header">Please log in</h1>
-        <LoginForm onLogin={setToken} />
-      </div>
-    );
-  }
-
   return (
-    <Router>
-      <div className="app-container">
-        <nav className="nav-links">
-          <Link to="/">Dashboard</Link> | <Link to="/metrics">Metrics</Link>
-        </nav>
-        <Routes>
-          <Route path="/" element={<DashboardMain token={token} />} />
-          <Route path="/metrics" element={<MetricsPage />} />
-        </Routes>
-      </div>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <div className="flex">
+          <Sidebar />
+          <div className="flex-1 flex flex-col min-h-screen bg-gray-50 dark:bg-[#1E1E2D]">
+            <Header />
+            <main className="flex-1 overflow-y-auto p-4">
+              <Routes>
+                <Route path="/" element={<MainContent />} />
+                <Route path="/metrics" element={<MainContent />} />
+              </Routes>
+            </main>
+          </div>
+        </div>
+      </Router>
+    </ThemeProvider>
   );
 }
 
