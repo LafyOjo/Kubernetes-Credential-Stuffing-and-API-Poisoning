@@ -8,6 +8,9 @@ from app.api.dependencies import require_role
 # Global flag controlling credential stuffing enforcement
 SECURITY_ENABLED = True
 
+# Automatically revoke a user's token when credential stuffing is detected
+AUTO_LOGOUT_ON_COMPROMISE = False
+
 # Password chain used when SECURITY_ENABLED is True. Each API call must present
 # the current value which is then rotated. This helps detect replayed or stale
 # requests.
@@ -52,7 +55,10 @@ router = APIRouter(prefix="/api/security", tags=["security"])
 @router.get("/")
 def get_security(_user=Depends(require_role("admin"))):
     """Return current security enforcement state."""
-    return {"enabled": SECURITY_ENABLED}
+    return {
+        "enabled": SECURITY_ENABLED,
+        "logout_on_compromise": AUTO_LOGOUT_ON_COMPROMISE,
+    }
 
 
 @router.get("/chain")
@@ -64,15 +70,31 @@ def get_chain(_user=Depends(require_role("admin"))):
 @router.post("/")
 def set_security(payload: dict, _user=Depends(require_role("admin"))):
     """Update security enforcement state."""
+
     enabled = payload.get("enabled")
-    if not isinstance(enabled, bool):
-        raise HTTPException(status_code=422, detail="'enabled' boolean required")
-    global SECURITY_ENABLED
-    SECURITY_ENABLED = enabled
-    if enabled:
-        init_chain()
-    else:
-        # Clear chain when security disabled
-        global CURRENT_CHAIN
-        CURRENT_CHAIN = None
-    return {"enabled": SECURITY_ENABLED}
+    logout = payload.get("logout_on_compromise")
+
+    global SECURITY_ENABLED, AUTO_LOGOUT_ON_COMPROMISE
+
+    if enabled is not None:
+        if not isinstance(enabled, bool):
+            raise HTTPException(status_code=422, detail="'enabled' boolean required")
+        SECURITY_ENABLED = enabled
+        if enabled:
+            init_chain()
+        else:
+            # Clear chain when security disabled
+            global CURRENT_CHAIN
+            CURRENT_CHAIN = None
+
+    if logout is not None:
+        if not isinstance(logout, bool):
+            raise HTTPException(
+                status_code=422, detail="'logout_on_compromise' boolean required"
+            )
+        AUTO_LOGOUT_ON_COMPROMISE = logout
+
+    return {
+        "enabled": SECURITY_ENABLED,
+        "logout_on_compromise": AUTO_LOGOUT_ON_COMPROMISE,
+    }

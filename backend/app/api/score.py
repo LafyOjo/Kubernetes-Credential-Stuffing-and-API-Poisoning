@@ -6,6 +6,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
 from sqlalchemy.orm import Session
+from app.core.security import revoke_token
 
 from app.core.db import get_db
 from app.models.alerts import Alert
@@ -57,6 +58,7 @@ def record_attempt(
     *,
     with_jwt: bool = False,
     detail: str | None = None,
+    token: str | None = None,
 ) -> Dict[str, Any]:
     """Record a login attempt and return the same structure as ``score``."""
 
@@ -89,6 +91,8 @@ def record_attempt(
         db.add(alert)
         db.commit()
         db.refresh(alert)
+        if token and security.AUTO_LOGOUT_ON_COMPROMISE:
+            revoke_token(token)
         return {"status": "blocked", "fails_last_minute": fail_count + 1}
 
     alert = Alert(
@@ -126,9 +130,15 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     if client_ip is None or auth_result not in ("success", "failure"):
         raise HTTPException(status_code=422, detail="Invalid payload")
 
+    auth_header = request.headers.get("Authorization", "")
+    token = None
+    if with_jwt and auth_header.startswith("Bearer "):
+        token = auth_header.split()[1]
+
     return record_attempt(
         db,
         client_ip,
         auth_result == "success",
         with_jwt=with_jwt,
+        token=token,
     )

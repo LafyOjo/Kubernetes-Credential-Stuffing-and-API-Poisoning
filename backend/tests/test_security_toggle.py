@@ -56,3 +56,22 @@ def test_score_not_blocked_when_disabled():
         assert resp.status_code == 200
         # should never be blocked
         assert resp.json()['status'] == 'ok'
+
+
+def test_logout_on_compromise_revokes_token():
+    from app.api import security
+    # enable auto logout
+    client.post('/api/security', json={'logout_on_compromise': True}, headers=_auth_headers())
+    security.init_chain()
+    with SessionLocal() as db:
+        create_user(db, username='bob', password_hash=get_password_hash('pw'), role='user')
+    resp = client.post('/login', json={'username': 'bob', 'password': 'pw'})
+    token = resp.json()['access_token']
+    auth_headers = {'Authorization': f'Bearer {token}'}
+    ip = '2.2.2.2'
+    for _ in range(6):
+        chain = security.CURRENT_CHAIN
+        headers = {'X-Chain-Password': chain, **auth_headers}
+        client.post('/score', json={'client_ip': ip, 'auth_result': 'failure', 'with_jwt': True}, headers=headers)
+    resp = client.get('/api/me', headers=auth_headers)
+    assert resp.status_code == 401

@@ -5,6 +5,7 @@ import EventsTable from "./EventsTable";
 import ShopIframe from "./ShopIframe";
 import AlertsChart from "./AlertsChart";
 import SecurityToggle from "./SecurityToggle";
+import AutoLogoutToggle from "./AutoLogoutToggle";
 import AttackSim from "./AttackSim";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
@@ -31,6 +32,7 @@ export default function DashboardMain({ token }) {
         <AttackSim user={selectedUser} />
         <div className="security-box">
           <SecurityToggle />
+          <AutoLogoutToggle />
         </div>
       </div>
     </div>
