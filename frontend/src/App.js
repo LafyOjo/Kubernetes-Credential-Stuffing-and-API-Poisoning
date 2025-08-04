@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { AUTH_TOKEN_KEY } from "./api";
 import { useState, useEffect } from "react";
+
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
@@ -13,6 +16,11 @@ import { TOKEN_KEY, logAuditEvent } from "./api";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
+  const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
+  const [selectedUser, setSelectedUser] = useState("alice");
+
+  const handleLogout = () => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
   const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
 

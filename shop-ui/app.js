@@ -1,6 +1,9 @@
 const API_BASE = 'http://localhost:3005';
+const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
+
 const TOKEN_KEY = 'apiShieldAuthToken';
 const AUDIT_URL = 'http://localhost:8000/api/audit/log';
+
 let username = null;
 
 function setContent(html) {
@@ -157,6 +160,7 @@ function showLogin() {
         body: JSON.stringify({ username, password: pw }),
         noAuth: true
       });
+      localStorage.setItem(AUTH_TOKEN_KEY, 'true');
       localStorage.setItem(TOKEN_KEY, data.access_token);
       await logAuditEvent('user_login_success');
       document.getElementById('loginBtn').style.display = 'none';
@@ -166,6 +170,7 @@ function showLogin() {
     } catch (e) {
       showMessage('Login failed', true);
       username = null;
+      localStorage.removeItem(AUTH_TOKEN_KEY);
     }
   });
   document.getElementById('registerLink').addEventListener('click', showRegister);
@@ -200,6 +205,13 @@ function showRegister() {
 
 // Determine whether the user already has an active session
 async function checkSession() {
+  if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+    username = null;
+    document.getElementById('loginBtn').style.display = 'inline-block';
+    document.getElementById('logoutBtn').style.display = 'none';
+    updateCartCount();
+    return;
+  }
   try {
     const data = await fetchJSON(`${API_BASE}/session`);
     if (data.loggedIn) {
@@ -207,14 +219,18 @@ async function checkSession() {
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
     } else {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
       username = null;
       document.getElementById('loginBtn').style.display = 'inline-block';
       document.getElementById('logoutBtn').style.display = 'none';
     }
-    updateCartCount();
   } catch {
-    // Ignore errors – treat as not logged in
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    username = null;
+    document.getElementById('loginBtn').style.display = 'inline-block';
+    document.getElementById('logoutBtn').style.display = 'none';
   }
+  updateCartCount();
 }
 
 async function logout() {
@@ -224,6 +240,7 @@ async function logout() {
     showMessage('Logout failed', true);
     return;
   }
+  localStorage.removeItem(AUTH_TOKEN_KEY);
   await logAuditEvent('user_logout');
   localStorage.removeItem(TOKEN_KEY);
   username = null;
