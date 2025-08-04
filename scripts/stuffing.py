@@ -88,7 +88,7 @@ def attack(
             )
             if score_resp.json().get("status") == "blocked":
                 blocked += 1
-        except Exception as exc:
+        except requests.exceptions.RequestException as exc:
             print("SCORE ERROR:", exc)
 
         if login_ok:
