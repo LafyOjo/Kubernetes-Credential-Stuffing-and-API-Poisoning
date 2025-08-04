@@ -6,6 +6,8 @@ import { apiFetch } from "../api";
 
 function Dashboard() {
   const [ping, setPing] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     apiFetch("/ping")
@@ -14,16 +16,18 @@ function Dashboard() {
       .catch((err) => console.error("Ping failed:", err));
   }, []);
 
+  const handleNewAlert = () => setRefresh((r) => r + 1);
+
   return (
     <div style={{ padding: "1rem" }}>
       <h1>APIShield+ Dashboard</h1>
       <p>Backend ping says: {ping ?? "Loading…"} </p>
 
-      <ScoreForm />
+      <ScoreForm token={token} onNewAlert={handleNewAlert} />
 
       <hr style={{ margin: "2rem 0" }} />
 
-      <AlertsTable />
+      <AlertsTable token={token} refresh={refresh} />
     </div>
   );
 }
