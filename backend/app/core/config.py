@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False
     REGISTER_WITH_DEMOSHOP: bool = False
     LOGIN_WITH_DEMOSHOP: bool = False
-    DEMO_SHOP_URL: str = "http://localhost:3005"
+    DEMO_SHOP_URL: str = "http://localhost:8001"
     ANOMALY_DETECTION: bool = False
     ANOMALY_MODEL: str = "lof"
     REAUTH_PER_REQUEST: bool = False

@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3005';
+const API_BASE = 'http://localhost:8001';
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
 const AUDIT_URL = 'http://localhost:8000/api/audit/log';
 
