@@ -2,8 +2,6 @@
 export const API_BASE = process.env.REACT_APP_API_BASE || "";
 export const API_KEY = process.env.REACT_APP_API_KEY || "";
 export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
-// Maintain legacy name for compatibility
-export const TOKEN_KEY = AUTH_TOKEN_KEY;
 export const USERNAME_KEY = "apiShieldUsername";
 
 export async function logAuditEvent(event, username) {
