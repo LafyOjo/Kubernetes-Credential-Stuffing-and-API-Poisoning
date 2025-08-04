@@ -164,21 +164,21 @@ const apiResp = await axios.post(
 });
 
 app.post('/logout', async (req, res) => {
-  if (FORWARD_API && req.session.apiToken) {
-    try {
-      await axios.post(
-        `${API_BASE}/logout`,
-        null,
-        {
-          headers: { Authorization: `Bearer ${req.session.apiToken}` },
-          timeout: API_TIMEOUT,
-        }
-      );
-    } catch (e) {
-      console.error('Backend logout failed', e);
-    }
-  }
   if (FORWARD_API) {
+    if (req.session.apiToken) {
+      try {
+        await axios.post(
+          `${API_BASE}/logout`,
+          null,
+          {
+            headers: { Authorization: `Bearer ${req.session.apiToken}` },
+            timeout: API_TIMEOUT,
+          }
+        );
+      } catch (e) {
+        console.error('Backend logout failed', e);
+      }
+    }
     try {
       await axios.post(
         `${API_BASE}/api/audit/log`,
