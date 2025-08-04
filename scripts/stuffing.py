@@ -3,12 +3,24 @@ import itertools
 import time
 import argparse
 from pathlib import Path
+from typing import Optional, Union
 
 
-def load_creds(path, limit=None):
-    """Load credentials from a file with an optional limit."""
+def load_creds(path: Union[Path, str, None] = None, limit: Optional[int] = None):
+    """Load credentials from a file with an optional limit.
+
+    If *path* is not provided, the bundled ``rockyou.txt`` file located in the
+    ``data`` directory alongside this script will be used. Accepts either
+    ``Path`` objects or strings for *path*.
+    """
+
+    if path is None:
+        path = Path(__file__).with_name("data").joinpath("rockyou.txt")
+    else:
+        path = Path(path)
+
     passwords = []
-    with open(path, newline="", encoding="latin-1") as f:
+    with path.open(newline="", encoding="latin-1") as f:
         for i, line in enumerate(f):
             passwords.append(line.strip())
             if limit and i + 1 >= limit:
@@ -16,9 +28,7 @@ def load_creds(path, limit=None):
     return passwords
 
 
-passwords = load_creds(
-    Path(__file__).with_name("data").joinpath("rockyou.txt"), limit=5000
-)
+passwords = load_creds(limit=5000)
 pool = itertools.cycle(passwords)
 
 
