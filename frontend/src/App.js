@@ -30,7 +30,7 @@ function App() {
       <h1 className="dashboard-header">APIShield+ Dashboard</h1>
       <UserAccounts onSelect={setSelectedUser} />
       <LoginStatus token={token} />
-      <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
+      <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />
       <EventsTable token={token} />
