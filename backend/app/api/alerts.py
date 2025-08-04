@@ -5,7 +5,7 @@ from sqlalchemy import func, case
 
 from app.core.db import get_db
 from app.crud.alerts import get_all_alerts
-from app.schemas.alerts import AlertRead, AlertStat
+from app.schemas.alerts import AlertRead, AlertStat, AlertSummary
 from app.api.dependencies import get_current_user
 from app.models.alerts import Alert
 
@@ -44,3 +44,24 @@ def read_alert_stats(
         {"time": row.time, "invalid": int(row.invalid), "blocked": int(row.blocked)}
         for row in rows
     ]
+
+
+@router.get("/summary", response_model=AlertSummary)
+def read_alert_summary(
+    db: Session = Depends(get_db),
+    _user: dict = Depends(get_current_user),
+):
+    """Return aggregate counts of alert types."""
+    total = db.query(Alert).count()
+    blocked = (
+        db.query(Alert)
+        .filter(Alert.detail == "Blocked: too many failures")
+        .count()
+    )
+    wrong = total - blocked
+    return {
+        "total": total,
+        "blocked": blocked,
+        "wrong_password": wrong,
+        "credential_stuffing": blocked,
+    }

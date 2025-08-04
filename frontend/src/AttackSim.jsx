@@ -27,7 +27,13 @@ export default function AttackSim({ user }) {
           await apiFetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: name, password: info.password }),
+            body: JSON.stringify({
+              username: name,
+              password: info.password,
+              two_factor: info.twoFactor,
+              security_question: info.securityQuestion,
+              role: info.role,
+            }),
           });
           await fetch(`${SHOP_URL}/register`, {
             method: "POST",
@@ -37,6 +43,26 @@ export default function AttackSim({ user }) {
         } catch (err) {
           // ignore errors (likely already registered)
         }
+      }
+      try {
+        await apiFetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: "admin",
+            password: "AdminPass!1",
+            role: "admin",
+            two_factor: true,
+            security_question: true,
+          }),
+        });
+        await fetch(`${SHOP_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: "admin", password: "AdminPass!1" }),
+        });
+      } catch (err) {
+        // ignore admin registration errors
       }
     }
     ensureUsers();

@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import MetricCard from "./MetricCard";
 import LineChartCard from "./LineChartCard";
 import DonutChartCard from "./DonutChartCard";
+import AdminUserForm from "./AdminUserForm";
 import { apiFetch } from "../api";
 
-const MainContent = () => {
+const MainContent = ({ token }) => {
   const [metrics, setMetrics] = useState({
     totalHacks: 0,
     blocked: 0,
@@ -36,6 +37,8 @@ const MainContent = () => {
       }
     }
     load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
   }, []);
 
   const donutData = [
@@ -71,6 +74,7 @@ const MainContent = () => {
       </div>
       <LineChartCard data={lineData} />
       <DonutChartCard data={donutData} />
+      <AdminUserForm token={token} />
     </div>
   );
 };

@@ -1,11 +1,12 @@
 import { Search, Bell, Sun, Moon } from "lucide-react";
 import { useTheme } from "../theme/ThemeProvider";
 
-const Header = () => {
+const Header = ({ onLogout }) => {
   const { theme, toggleTheme } = useTheme();
   return (
     <header className="flex items-center justify-between px-4 py-2 border-b bg-white dark:bg-[#27293D]">
-      <div className="flex items-center">
+      <div className="flex items-center space-x-4">
+        <h1 className="text-2xl font-bold">APIShield+</h1>
         <Search className="h-5 w-5 text-gray-500" />
         <input
           type="text"
@@ -25,11 +26,12 @@ const Header = () => {
             <Sun className="h-5 w-5" />
           )}
         </button>
-        <img
-          src="https://i.pravatar.cc/32"
-          alt="avatar"
-          className="rounded-full h-8 w-8"
-        />
+        <button
+          onClick={onLogout}
+          className="text-sm px-2 py-1 rounded bg-gray-200 dark:bg-gray-700"
+        >
+          Logout
+        </button>
       </div>
     </header>
   );

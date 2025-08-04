@@ -4,6 +4,7 @@ import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
 import ShopIframe from "./ShopIframe";
 import AlertsChart from "./AlertsChart";
+import AlertsSummary from "./AlertsSummary";
 import SecurityToggle from "./SecurityToggle";
 import AutoLogoutToggle from "./AutoLogoutToggle";
 import AttackSim from "./AttackSim";
@@ -24,6 +25,7 @@ export default function DashboardMain({ token }) {
       <JwtViewer token={token} />
       <EndpointDemo token={token} />
       <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
+      <AlertsSummary token={token} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />
       <EventsTable token={token} />
