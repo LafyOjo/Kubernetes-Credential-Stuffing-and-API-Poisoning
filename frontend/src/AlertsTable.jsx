@@ -7,9 +7,8 @@ export default function AlertsTable({ refresh, token }) {
 
   const loadAlerts = async () => {
     try {
-      const resp = await apiFetch("/api/alerts", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const resp = await apiFetch("/api/alerts", { headers });
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {
