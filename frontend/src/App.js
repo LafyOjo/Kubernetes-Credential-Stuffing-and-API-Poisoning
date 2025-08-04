@@ -31,13 +31,15 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+      <div className="header">
+        <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
+      </div>
       <div className="dashboard-section">
         <UserAccounts onSelect={setSelectedUser} />
       </div>
       <div className="dashboard-section">
         <LoginStatus token={token} />
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
       <div className="dashboard-section">
         <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />

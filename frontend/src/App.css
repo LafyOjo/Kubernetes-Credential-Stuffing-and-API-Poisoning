@@ -11,6 +11,12 @@ body {
   padding: 2rem;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .dashboard-header {
   color: #ff5722;
   text-align: center;
