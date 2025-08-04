@@ -6,6 +6,9 @@ from pathlib import Path
 from typing import Optional, Union
 
 
+REQUEST_TIMEOUT = 3
+
+
 def load_creds(path: Union[Path, str, None] = None, limit: Optional[int] = None):
     """Load credentials from a file with an optional limit.
 
@@ -120,7 +123,7 @@ def attack(
                 f"{score_base}/score",
                 json=score_payload,
                 headers=headers,
-                timeout=3,
+                timeout=REQUEST_TIMEOUT,
             )
             if score_resp.json().get("status") == "blocked":
                 blocked += 1
@@ -132,7 +135,7 @@ def attack(
                 except Exception as exc:
                     print("CHAIN ERROR:", exc)
         except requests.exceptions.RequestException as exc:
-            print("SCORE ERROR:", exc)
+            print(f"SCORE ERROR contacting {score_base}/score: {exc}")
 
         if login_ok:
             success += 1
