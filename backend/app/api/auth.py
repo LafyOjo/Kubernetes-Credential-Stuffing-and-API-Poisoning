@@ -120,8 +120,12 @@ async def read_me(current_user=Depends(get_current_user)):
         "role": current_user.role,
     }
 
-
 @router.post("/logout")
-async def logout(token: str = Depends(oauth2_scheme)):
+async def logout(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    user = await get_current_user(token=token, db=db)
+    log_event(db, user.username, "logout", True)
     revoke_token(token)
     return {"detail": "Logged out"}
