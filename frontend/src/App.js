@@ -13,6 +13,7 @@ import AttackSim from "./AttackSim";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import "./App.css";
+import { AUTH_TOKEN_KEY, logAuditEvent } from "./api";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -28,6 +29,7 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       const current = localStorage.getItem(AUTH_TOKEN_KEY);
+      setToken(prev => (prev === current ? prev : current));
       setToken((prev) => (prev === current ? prev : current));
     }, 1000);
     return () => clearInterval(interval);
