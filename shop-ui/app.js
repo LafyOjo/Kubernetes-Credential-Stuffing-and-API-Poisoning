@@ -170,6 +170,25 @@ function showRegister() {
   });
 }
 
+// Determine whether the user already has an active session
+async function checkSession() {
+  try {
+    const data = await fetchJSON(`${API_BASE}/session`, { noAuth: true });
+    if (data.loggedIn) {
+      username = data.username;
+      document.getElementById('loginBtn').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+    } else {
+      username = null;
+      document.getElementById('loginBtn').style.display = 'inline-block';
+      document.getElementById('logoutBtn').style.display = 'none';
+    }
+    updateCartCount();
+  } catch {
+    // Ignore errors – treat as not logged in
+  }
+}
+
 async function logout() {
   await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
   username = null;
@@ -209,7 +228,7 @@ function init() {
   document.getElementById('contactBtn').addEventListener('click', showContact);
 
   loadProducts();
-  updateCartCount();
+  checkSession();
 }
 
 if (document.readyState === 'loading') {

@@ -26,6 +26,7 @@ The service listens on port `3005` by default and exposes simple JSON endpoints:
 - `POST /register` – create an account
 - `POST /login` – log in and begin a session
 - `POST /logout` – log out
+- `GET /session` – check whether the current browser session is logged in
 - `GET /products` – list products
 - `POST /cart` – add a product to the cart (requires `X-Reauth-Password` when
   `REAUTH_PER_REQUEST=true`)
