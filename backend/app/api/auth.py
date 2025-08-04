@@ -17,9 +17,10 @@ from app.api.dependencies import oauth2_scheme
 from app.core.security import revoke_token
 from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
+from app.crud.policies import get_policy_for_user
 from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
-from app.api.score import record_attempt
+from app.api.score import record_attempt, is_rate_limited, DEFAULT_FAIL_LIMIT
 
 
 router = APIRouter(tags=["auth"])
@@ -50,9 +51,14 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
+    policy = get_policy_for_user(db, user) if user else None
+    fail_limit = policy.failed_attempts_limit if policy else DEFAULT_FAIL_LIMIT
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts")
+
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
-        record_attempt(db, request.client.host, False)
+        record_attempt(db, request.client.host, False, user_id=user.id if user else None)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -65,7 +71,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         ),
     )
     log_event(db, user.username, "login", True)
-    record_attempt(db, request.client.host, True)
+    record_attempt(db, request.client.host, True, user_id=user.id)
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
