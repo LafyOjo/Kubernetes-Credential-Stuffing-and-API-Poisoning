@@ -16,6 +16,11 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [selectedUser, setSelectedUser] = useState("alice");
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+  };
+
   if (!token) {
     return (
       <div className="app-container">
@@ -30,6 +35,7 @@ function App() {
       <h1 className="dashboard-header">APIShield+ Dashboard</h1>
       <UserAccounts onSelect={setSelectedUser} />
       <LoginStatus token={token} />
+      <button className="logout-button" onClick={handleLogout}>Logout</button>
       <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />
       <AlertsChart token={token} />
       <AlertsTable refresh={refreshKey} token={token} />

@@ -150,6 +150,16 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
+.logout-button {
+  padding: 0.5rem 1rem;
+  background-color: #e53935;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
 .progress {
   width: 100%;
   background: #eee;
