@@ -27,14 +27,6 @@ function App() {
     setToken(null);
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const current = localStorage.getItem(AUTH_TOKEN_KEY);
-      setToken((prev) => (prev === current ? prev : current));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Refresh tables when auth status changes
   useEffect(() => {
     setRefreshKey((k) => k + 1);
