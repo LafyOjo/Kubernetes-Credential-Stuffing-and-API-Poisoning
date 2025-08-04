@@ -1,4 +1,6 @@
 const API_BASE = 'http://localhost:3005';
+const TOKEN_KEY = 'apiShieldAuthToken';
+
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
 const AUDIT_URL = 'http://localhost:8000/api/audit/log';
 
@@ -158,6 +160,8 @@ function showLogin() {
         body: JSON.stringify({ username, password: pw }),
         noAuth: true
       });
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+
       localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
       await logAuditEvent('user_login_success');
       document.getElementById('loginBtn').style.display = 'none';
@@ -167,7 +171,7 @@ function showLogin() {
     } catch (e) {
       showMessage('Login failed', true);
       username = null;
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   });
   document.getElementById('registerLink').addEventListener('click', showRegister);
@@ -202,7 +206,7 @@ function showRegister() {
 
 // Determine whether the user already has an active session
 async function checkSession() {
-  if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+  if (!localStorage.getItem(TOKEN_KEY)) {
     username = null;
     document.getElementById('loginBtn').style.display = 'inline-block';
     document.getElementById('logoutBtn').style.display = 'none';
@@ -216,13 +220,13 @@ async function checkSession() {
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
     } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
       username = null;
       document.getElementById('loginBtn').style.display = 'inline-block';
       document.getElementById('logoutBtn').style.display = 'none';
     }
   } catch {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
     username = null;
     document.getElementById('loginBtn').style.display = 'inline-block';
     document.getElementById('logoutBtn').style.display = 'none';
@@ -237,7 +241,6 @@ async function logout() {
     showMessage('Logout failed', true);
     return;
   }
-  localStorage.removeItem(AUTH_TOKEN_KEY);
   await logAuditEvent('user_logout');
   username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
