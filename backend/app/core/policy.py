@@ -31,7 +31,7 @@ class PolicyEngineMiddleware:
             await self.app(scope, receive, send)
             return
         request = Request(scope, receive=receive)
-        if request.url.path == "/score":
+        if request.url.path in {"/score", "/register", "/login"}:
             await self.app(scope, receive, send)
             return
         # Create DB session lazily to avoid overhead
