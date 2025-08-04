@@ -91,7 +91,10 @@ app.post('/login', async (req, res) => {
           { timeout: API_TIMEOUT }
         );
       } catch (e) {
-        // Ignore expected 401 from invalid credentials
+        // Ignore expected 401 but surface other errors
+        if (e.response?.status !== 401) {
+          console.error('Login API call failed');
+        }
       }
       try {
         await axios.post(
