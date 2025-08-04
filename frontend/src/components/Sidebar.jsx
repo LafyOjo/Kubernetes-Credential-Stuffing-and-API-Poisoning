@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Home, BarChart2, Menu } from "lucide-react";
+import { Home, BarChart2, Menu, List } from "lucide-react";
 
 const menuItems = [
   { label: "Dashboard", to: "/", icon: Home },
   { label: "Metrics", to: "/metrics", icon: BarChart2 },
+  { label: "Legacy", to: "/legacy", icon: List },
 ];
 
 const Sidebar = () => {

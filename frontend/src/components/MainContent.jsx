@@ -4,7 +4,7 @@ import LineChartCard from "./LineChartCard";
 import DonutChartCard from "./DonutChartCard";
 import { apiFetch } from "../api";
 
-const MainContent = () => {
+const MainContent = ({ token }) => {
   const [metrics, setMetrics] = useState({
     totalHacks: 0,
     blocked: 0,
