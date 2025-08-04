@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { AUTH_TOKEN_KEY } from "./api";
 import { useState, useEffect } from "react";
 
 import ScoreForm from "./ScoreForm";
@@ -12,27 +10,22 @@ import AttackSim from "./AttackSim";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import "./App.css";
-import { TOKEN_KEY, logAuditEvent } from "./api";
+import { AUTH_TOKEN_KEY, logAuditEvent } from "./api";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
 
-  const handleLogout = () => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-  const [token, setToken] = useState(localStorage.getItem(TOKEN_KEY));
-  const [selectedUser, setSelectedUser] = useState("alice");
-
   const handleLogout = async () => {
     await logAuditEvent("user_logout");
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     setToken(null);
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const current = localStorage.getItem(TOKEN_KEY);
+      const current = localStorage.getItem(AUTH_TOKEN_KEY);
       setToken(prev => (prev === current ? prev : current));
     }, 1000);
     return () => clearInterval(interval);
