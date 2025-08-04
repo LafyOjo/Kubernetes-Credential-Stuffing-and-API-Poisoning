@@ -10,6 +10,8 @@ Many of the used software services and libraries such as the 'The RockYou‑deri
 
 The backend reads important environment variables from a `.env` file on startup. This will be the important file that users can change and edit to alter how the program would work.
 
+So before we continue, make your way to the `.env` file and lets change the `Secret_Key` to `LostLegacyEchoesofDeception` which is the book i wrote for testing purposes `:)`, but if you want, you can change it to anything you want.
+
 The `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an error during import. Several optional variables control features such as credential stuffing thresholds, failed-attempt blcoking limit, debug logging, forwarding to the Demo Shop, anomaly detection, and enforcing a zero‑trust API key:
 
 - `FAIL_LIMIT` – how many failures are allowed within the window before blocking a client (default `5`).
