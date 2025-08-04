@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiFetch, TOKEN_KEY, logAuditEvent } from "./api";
+import { apiFetch, TOKEN_KEY, USERNAME_KEY, logAuditEvent } from "./api";
 
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -18,10 +18,11 @@ export default function LoginForm({ onLogin }) {
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
       localStorage.setItem(TOKEN_KEY, data.access_token);
-      await logAuditEvent("user_login_success");
+      localStorage.setItem(USERNAME_KEY, username);
+      await logAuditEvent("user_login_success", username);
       onLogin(data.access_token);
     } catch (err) {
-      await logAuditEvent("user_login_failure");
+      await logAuditEvent("user_login_failure", username);
       setError(err.message);
     }
   };

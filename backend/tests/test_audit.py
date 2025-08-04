@@ -26,3 +26,8 @@ def test_audit_log_persists_event():
     with SessionLocal() as db:
         rows = db.query(AuditLog).all()
         assert any(r.event == 'user_login_success' and r.username == 'alice' for r in rows)
+
+
+def test_audit_log_rejects_invalid_event():
+    resp = client.post('/api/audit/log', json={'event': 'invalid_event', 'username': 'alice'})
+    assert resp.status_code == 422
