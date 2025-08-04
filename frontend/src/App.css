@@ -18,6 +18,14 @@ body {
   margin-bottom: 2rem;
 }
 
+.dashboard-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
 .score-form {
   display: flex;
   gap: 1rem;

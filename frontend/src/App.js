@@ -32,17 +32,31 @@ function App() {
   return (
     <div className="app-container">
       <h1 className="dashboard-header">APIShield+ Dashboard</h1>
-      <UserAccounts onSelect={setSelectedUser} />
-      <LoginStatus token={token} />
-      <button className="logout-button" onClick={handleLogout}>Logout</button>
-      <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />
-      <AlertsChart token={token} />
-      <AlertsTable refresh={refreshKey} token={token} />
-      <EventsTable token={token} />
-      <div className="attack-section">
-        <AttackSim user={selectedUser} />
-        <div className="security-box">
-          <SecurityToggle />
+      <div className="dashboard-section">
+        <UserAccounts onSelect={setSelectedUser} />
+      </div>
+      <div className="dashboard-section">
+        <LoginStatus token={token} />
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
+      </div>
+      <div className="dashboard-section">
+        <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />
+      </div>
+      <div className="dashboard-section">
+        <AlertsChart token={token} />
+      </div>
+      <div className="dashboard-section">
+        <AlertsTable refresh={refreshKey} token={token} />
+      </div>
+      <div className="dashboard-section">
+        <EventsTable token={token} />
+      </div>
+      <div className="dashboard-section">
+        <div className="attack-section">
+          <AttackSim user={selectedUser} />
+          <div className="security-box">
+            <SecurityToggle />
+          </div>
         </div>
       </div>
     </div>
