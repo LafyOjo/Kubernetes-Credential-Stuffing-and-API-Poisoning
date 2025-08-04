@@ -69,6 +69,7 @@ def record_attempt(
     with_jwt: bool = False,
     detail: str | None = None,
     user_id: int | None = None,
+    fail_limit: int | None = None,
 ) -> Dict[str, Any]:
     """Record a login attempt and return the same structure as ``score``."""
 
@@ -83,7 +84,7 @@ def record_attempt(
             FAILED_USER_ATTEMPTS.pop(user_id, None)
         return {"status": "ok", "fails_last_minute": 0}
 
-    fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
+    ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
     window_start = datetime.utcnow() - timedelta(seconds=window_seconds)
     fail_count = (
@@ -94,14 +95,18 @@ def record_attempt(
     )
 
     if user_id is not None:
-        window_seconds_user = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
+        window_seconds_user = int(
+            os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS)
+        )
         now = datetime.utcnow()
         attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
         attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds_user)]
         attempts.append(now)
+        if fail_limit is not None and len(attempts) > fail_limit:
+            attempts = attempts[-fail_limit:]
         FAILED_USER_ATTEMPTS[user_id] = attempts
 
-    if security.SECURITY_ENABLED and fail_count >= fail_limit:
+    if security.SECURITY_ENABLED and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
         alert = Alert(
             ip_address=client_ip,

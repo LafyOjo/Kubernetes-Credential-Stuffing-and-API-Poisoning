@@ -58,7 +58,13 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
 
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
-        record_attempt(db, request.client.host, False, user_id=user.id if user else None)
+        record_attempt(
+            db,
+            request.client.host,
+            False,
+            user_id=user.id if user else None,
+            fail_limit=fail_limit,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -71,7 +77,13 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         ),
     )
     log_event(db, user.username, "login", True)
-    record_attempt(db, request.client.host, True, user_id=user.id)
+    record_attempt(
+        db,
+        request.client.host,
+        True,
+        user_id=user.id,
+        fail_limit=fail_limit,
+    )
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
