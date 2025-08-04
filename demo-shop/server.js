@@ -152,7 +152,7 @@ app.post('/logout', async (req, res) => {
         }
       );
     } catch (e) {
-      console.error('Backend logout failed');
+      console.error('Backend logout failed', e);
     }
   }
   req.session.apiToken = null;
