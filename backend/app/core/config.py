@@ -11,6 +11,16 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     OIDC_ISSUER: str = "https://keycloak.example.com/realms/demo"
     OIDC_AUDIENCE: str = "demo-api"
+    FAIL_LIMIT: int = 5
+    FAIL_WINDOW_SECONDS: int = 60
+    DB_ECHO: bool = False
+    REGISTER_WITH_DEMOSHOP: bool = False
+    LOGIN_WITH_DEMOSHOP: bool = False
+    DEMO_SHOP_URL: str = "http://localhost:3005"
+    ANOMALY_DETECTION: bool = False
+    ANOMALY_MODEL: str = "lof"
+    REAUTH_PER_REQUEST: bool = False
+    ZERO_TRUST_API_KEY: str = "demo-key"
 
     class Config:
         # automatically load a “.env” file from your project root
