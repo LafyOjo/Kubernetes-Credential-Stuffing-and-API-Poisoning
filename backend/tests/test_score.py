@@ -15,14 +15,14 @@ from app.core.security import get_password_hash  # noqa: E402
 client = TestClient(app)
 
 
-def _auth_headers():
-    resp = client.post('/login', json={'username': 'admin', 'password': 'pw'})
+def _auth_headers(c):
+    resp = c.post('/login', json={'username': 'admin', 'password': 'pw'})
     token = resp.json()['access_token']
     return {'Authorization': f'Bearer {token}'}
 
 
-def current_chain():
-    return client.get('/api/security/chain', headers=_auth_headers()).json()['chain']
+def current_chain(c=client):
+    return c.get('/api/security/chain', headers=_auth_headers(c)).json()['chain']
 
 
 def setup_function(_):
