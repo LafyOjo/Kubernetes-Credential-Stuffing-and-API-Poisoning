@@ -46,31 +46,36 @@ export default function AttackSim({ user }) {
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
-  const [chain, setChain] = useState(null);
+  const [chainToken, setChainToken] = useState(null);
+
+  const fetchChainToken = async () => {
+    try {
+      const resp = await apiFetch("/api/security/chain");
+      if (resp.ok) {
+        const data = await resp.json();
+        setChainToken(data.chain);
+        return data.chain;
+      }
+    } catch (err) {
+      console.error("Chain fetch error", err);
+    }
+    return null;
+  };
 
   const simulateAttack = async () => {
     setRunning(true);
     setResults(null);
     setError(null);
-    setChain(null);
+    setChainToken(null);
     let securityEnabled = false;
-    let chainToken = null;
+    let currentChain = null;
     try {
       const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
         if (securityEnabled) {
-          try {
-            const chainResp = await apiFetch("/api/security/chain");
-            if (chainResp.ok) {
-              const chainData = await chainResp.json();
-              chainToken = chainData.chain;
-              setChain(chainToken);
-            }
-          } catch (err) {
-            console.error("Chain fetch error", err);
-          }
+          currentChain = await fetchChainToken();
         }
       }
     } catch (err) {
@@ -119,8 +124,8 @@ export default function AttackSim({ user }) {
 
       try {
         const headers = { "Content-Type": "application/json" };
-        if (securityEnabled && chainToken) {
-          headers["X-Chain-Password"] = chainToken;
+        if (securityEnabled && currentChain) {
+          headers["X-Chain-Password"] = currentChain;
         }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
@@ -146,16 +151,7 @@ export default function AttackSim({ user }) {
       }
 
       if (securityEnabled) {
-        try {
-          const chainResp = await apiFetch("/api/security/chain");
-          if (chainResp.ok) {
-            const chainData = await chainResp.json();
-            chainToken = chainData.chain;
-            setChain(chainToken);
-          }
-        } catch (err) {
-          console.error("Chain refresh error", err);
-        }
+        currentChain = await fetchChainToken();
       }
 
       if (loginOk) {
