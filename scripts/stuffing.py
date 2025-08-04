@@ -6,21 +6,24 @@ from pathlib import Path
 from typing import Optional, Union
 
 
+# Location of the bundled password list used for credential stuffing attacks.
+# This uses ``__file__`` so the script works no matter the working directory.
+ROCKYOU_PATH = Path(__file__).with_name("data").joinpath("rockyou.txt")
+
+
+def load_creds(path: Union[Path, str] = ROCKYOU_PATH, limit: Optional[int] = None):
 REQUEST_TIMEOUT = 3
 
 
 def load_creds(path: Union[Path, str, None] = None, limit: Optional[int] = None):
     """Load credentials from a file with an optional limit.
 
-    If *path* is not provided, the bundled ``rockyou.txt`` file located in the
-    ``data`` directory alongside this script will be used. Accepts either
-    ``Path`` objects or strings for *path*.
+    *path* may be a :class:`pathlib.Path` or string. By default the bundled
+    ``rockyou.txt`` file located in the ``data`` directory alongside this
+    script is used.
     """
 
-    if path is None:
-        path = Path(__file__).with_name("data").joinpath("rockyou.txt")
-    else:
-        path = Path(path)
+    path = Path(path)
 
     passwords = []
     with path.open(newline="", encoding="latin-1") as f:
