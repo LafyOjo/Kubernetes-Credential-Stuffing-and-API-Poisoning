@@ -1,5 +1,9 @@
 const API_BASE = 'http://localhost:3005';
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
+
+const TOKEN_KEY = 'apiShieldAuthToken';
+const AUDIT_URL = 'http://localhost:8000/api/audit/log';
+
 let username = null;
 
 function setContent(html) {
@@ -12,9 +16,10 @@ async function fetchJSON(url, options = {}) {
   const { noAuth, ...opts } = options;
   const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts };
   if (!noAuth) {
-    const pw = prompt('Please re-enter your password');
-    if (pw === null) throw new Error('Password required');
-    fetchOpts.headers['X-Reauth-Password'] = pw;
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      fetchOpts.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   let res;
   try {
@@ -30,6 +35,24 @@ async function fetchJSON(url, options = {}) {
   }
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
   return res.json();
+}
+
+async function logAuditEvent(event) {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  try {
+    await fetch(AUDIT_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ event })
+    });
+  } catch (e) {
+    // ignore logging errors
+    console.error('audit log failed', e);
+  }
 }
 
 async function loadProducts() {
@@ -132,12 +155,14 @@ function showLogin() {
     username = document.getElementById('username').value;
     const pw = document.getElementById('pw').value;
     try {
-      await fetchJSON(`${API_BASE}/login`, {
+      const data = await fetchJSON(`${API_BASE}/login`, {
         method: 'POST',
         body: JSON.stringify({ username, password: pw }),
         noAuth: true
       });
       localStorage.setItem(AUTH_TOKEN_KEY, 'true');
+      localStorage.setItem(TOKEN_KEY, data.access_token);
+      await logAuditEvent('user_login_success');
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
       updateCartCount();
@@ -188,7 +213,7 @@ async function checkSession() {
     return;
   }
   try {
-    const data = await fetchJSON(`${API_BASE}/session`, { noAuth: true });
+    const data = await fetchJSON(`${API_BASE}/session`);
     if (data.loggedIn) {
       username = data.username;
       document.getElementById('loginBtn').style.display = 'none';
@@ -216,6 +241,8 @@ async function logout() {
     return;
   }
   localStorage.removeItem(AUTH_TOKEN_KEY);
+  await logAuditEvent('user_logout');
+  localStorage.removeItem(TOKEN_KEY);
   username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
@@ -254,6 +281,16 @@ function init() {
 
   loadProducts();
   checkSession();
+
+  // Poll for token changes across tabs/apps
+  let lastToken = localStorage.getItem(TOKEN_KEY);
+  setInterval(() => {
+    const current = localStorage.getItem(TOKEN_KEY);
+    if (current !== lastToken) {
+      lastToken = current;
+      checkSession();
+    }
+  }, 1000);
 }
 
 if (document.readyState === 'loading') {
