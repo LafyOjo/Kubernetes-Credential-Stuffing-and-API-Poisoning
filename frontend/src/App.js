@@ -13,10 +13,8 @@ import "./App.css";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
+
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
-  const [token, setToken] = useState(
-    localStorage.getItem(AUTH_TOKEN_KEY)
-  );
   const [selectedUser, setSelectedUser] = useState("alice");
 
   const handleLogout = async () => {

@@ -247,9 +247,12 @@ export default function AttackSim({ user }) {
                 </p>
               )}
               {results.first_cart && (
-                <p>
-                  Cart <code>{JSON.stringify(results.first_cart)}</code>
-                </p>
+                <div>
+                  <p>Cart</p>
+                  <pre>
+                    <code>{JSON.stringify(results.first_cart, null, 2)}</code>
+                  </pre>
+                </div>
               )}
             </>
           )}
