@@ -109,6 +109,15 @@ app.post('/login', async (req, res) => {
       } catch (e) {
         console.error('Score API call failed');
       }
+      try {
+        await axios.post(
+          `${API_BASE}/api/audit/log`,
+          { event: 'user_login_failure', username },
+          { timeout: API_TIMEOUT }
+        );
+      } catch (e) {
+        console.error('Audit log failed');
+      }
     }
     return res.status(401).json({ error: 'invalid credentials' });
   }
@@ -136,6 +145,15 @@ const apiResp = await axios.post(
     } catch (e) {
       console.error('Score API call failed');
     }
+    try {
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_login_success', username },
+        { timeout: API_TIMEOUT }
+      );
+    } catch (e) {
+      console.error('Audit log failed');
+    }
   }
   res.json({ status: 'ok' });
 });
@@ -153,6 +171,17 @@ app.post('/logout', async (req, res) => {
       );
     } catch (e) {
       console.error('Backend logout failed', e);
+    }
+  }
+  if (FORWARD_API) {
+    try {
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_logout', username: req.session.username },
+        { timeout: API_TIMEOUT }
+      );
+    } catch (e) {
+      console.error('Audit log failed', e);
     }
   }
   req.session.apiToken = null;

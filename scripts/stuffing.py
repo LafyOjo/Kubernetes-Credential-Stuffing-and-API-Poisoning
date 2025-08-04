@@ -13,7 +13,16 @@ REQUEST_TIMEOUT = 3
 
 
 def load_creds(path: Union[Path, str] = ROCKYOU_PATH, limit: Optional[int] = None):
-    """Load credentials from a file with an optional limit.
+
+
+REQUEST_TIMEOUT = 3
+
+
+def load_creds(
+    path: Union[Path, str, None] = ROCKYOU_PATH, limit: Optional[int] = None
+):
+
+  """Load credentials from a file with an optional limit.
 
     *path* may be a :class:`pathlib.Path` or string. By default the bundled
     ``rockyou.txt`` file located in the ``data`` directory alongside this
@@ -185,6 +194,8 @@ def attack(
                     first_success_time = time.time() - start
 
                 time.sleep(1 / rate_per_sec)
+
+            time.sleep(1 / rate_per_sec)
     except KeyboardInterrupt:
         print("Interrupted by user, printing summary...")
         print_summary()

@@ -18,6 +18,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--shop-url", default="http://localhost:3005", help="Demo shop base URL"
     )
+    parser.add_argument("--api-key", help="API key for protected endpoints")
+    parser.add_argument(
+        "--chain-url",
+        default="/api/security/chain",
+        help="Endpoint to fetch rotating chain value",
+    )
     args = parser.parse_args()
 
     attack(
@@ -26,4 +32,7 @@ if __name__ == "__main__":
         use_jwt=True,
         score_base=args.score_base,
         shop_url=args.shop_url,
+        api_key=args.api_key,
+        chain_url=args.chain_url,
     )
+

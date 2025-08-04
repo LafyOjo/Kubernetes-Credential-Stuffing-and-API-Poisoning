@@ -3,5 +3,6 @@ from .users import User
 from .events import Event
 from .access_logs import AccessLog
 from .policies import Policy
+from .audit_logs import AuditLog
 
-__all__ = ["Alert", "User", "Event", "AccessLog", "Policy"]
+__all__ = ["Alert", "User", "Event", "AccessLog", "Policy", "AuditLog"]
