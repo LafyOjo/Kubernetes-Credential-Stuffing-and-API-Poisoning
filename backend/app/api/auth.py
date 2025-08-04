@@ -54,7 +54,10 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     policy = get_policy_for_user(db, user) if user else None
     fail_limit = policy.failed_attempts_limit if policy else DEFAULT_FAIL_LIMIT
     if user and is_rate_limited(db, user.id, fail_limit):
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts")
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
 
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
@@ -141,17 +144,16 @@ async def read_me(current_user=Depends(get_current_user)):
         "role": current_user.role,
     }
 
+
 @router.post("/logout")
 async def logout(
     token: str = Depends(oauth2_scheme),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    success = False
     try:
         revoke_token(token)
-        success = True
+        log_event(db, current_user.username, "logout", True)
     except Exception:
-        pass
-    log_event(db, current_user.username, "logout", success)
+        log_event(db, current_user.username, "logout", False)
     return {"detail": "Logged out"}
