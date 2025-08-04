@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function AlertsSummary({ token }) {
+export default function AlertsSummary({ token, refresh }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
 
@@ -20,7 +20,7 @@ export default function AlertsSummary({ token }) {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (!data) return <p>Loading...</p>;

@@ -12,6 +12,7 @@ import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import JwtViewer from "./JwtViewer";
 import EndpointDemo from "./EndpointDemo";
+import "./legacy.css";
 
 export default function DashboardMain({ token }) {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -24,14 +25,17 @@ export default function DashboardMain({ token }) {
       <LoginStatus token={token} />
       <JwtViewer token={token} />
       <EndpointDemo token={token} />
-      <ScoreForm onNewAlert={() => setRefreshKey(k => k + 1)} />
-      <AlertsSummary token={token} />
-      <AlertsChart token={token} />
+      <ScoreForm onNewAlert={() => setRefreshKey((k) => k + 1)} />
+      <AlertsSummary token={token} refresh={refreshKey} />
+      <AlertsChart token={token} refresh={refreshKey} />
       <AlertsTable refresh={refreshKey} token={token} />
       <EventsTable token={token} />
       <ShopIframe />
       <div className="attack-section">
-        <AttackSim user={selectedUser} />
+        <AttackSim
+          user={selectedUser}
+          onComplete={() => setRefreshKey((k) => k + 1)}
+        />
         <div className="security-box">
           <SecurityToggle />
           <AutoLogoutToggle />

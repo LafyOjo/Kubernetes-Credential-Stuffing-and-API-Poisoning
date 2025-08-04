@@ -9,9 +9,10 @@ const DUMMY_PASSWORDS = [
   "password1",
   "secret",
   "letmein",
+  "password123",
 ];
 
-export default function AttackSim({ user }) {
+export default function AttackSim({ user, onComplete }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
   useEffect(() => {
@@ -207,6 +208,9 @@ export default function AttackSim({ user }) {
     const totalTime = (performance.now() - start) / 1000;
     setResults((r) => ({ ...r, total_time: totalTime }));
     setRunning(false);
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (

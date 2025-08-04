@@ -22,7 +22,7 @@ ChartJS.register(
   Legend
 );
 
-export default function AlertsChart({ token }) {
+export default function AlertsChart({ token, refresh }) {
   const [stats, setStats] = useState([]);
   const [error, setError] = useState(null);
 
@@ -41,7 +41,7 @@ export default function AlertsChart({ token }) {
   useEffect(() => {
     loadStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (stats.length === 0) return <p>No data yet.</p>;
