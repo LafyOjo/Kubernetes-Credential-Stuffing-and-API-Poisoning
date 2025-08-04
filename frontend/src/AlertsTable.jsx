@@ -7,6 +7,7 @@ export default function AlertsTable({ refresh, token }) {
 
   const loadAlerts = async () => {
     try {
+      // Only include Authorization header when a token is available
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const resp = await apiFetch("/api/alerts", { headers });
       if (!resp.ok) throw new Error(await resp.text());
