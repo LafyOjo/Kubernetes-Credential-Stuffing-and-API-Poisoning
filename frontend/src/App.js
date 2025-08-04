@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-
+import {
+  AUTH_TOKEN_KEY,
+  logAuditEvent,
+} from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
@@ -27,6 +30,7 @@ function App() {
     const interval = setInterval(() => {
       const current = localStorage.getItem(AUTH_TOKEN_KEY);
       setToken(prev => (prev === current ? prev : current));
+      setToken((prev) => (prev === current ? prev : current));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -46,10 +50,7 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1 className="dashboard-header">APIShield+ Dashboard</h1>
-        <button
-          className="logout-button"
-          onClick={handleLogout}
-        >
+        <button className="logout-button" onClick={handleLogout}>
           Logout
         </button>
       </div>
@@ -60,7 +61,10 @@ function App() {
         <LoginStatus token={token} />
       </div>
       <div className="dashboard-section">
-        <ScoreForm token={token} onNewAlert={() => setRefreshKey(k => k + 1)} />
+        <ScoreForm
+          token={token}
+          onNewAlert={() => setRefreshKey((k) => k + 1)}
+        />
       </div>
       <div className="dashboard-section">
         <AlertsChart token={token} />
@@ -84,3 +88,4 @@ function App() {
 }
 
 export default App;
+
