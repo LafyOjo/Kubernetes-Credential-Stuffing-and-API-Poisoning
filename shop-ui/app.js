@@ -281,13 +281,17 @@ function init() {
   loadProducts();
   checkSession();
 
-  // Poll for token changes across tabs/apps
+  // Poll for token changes across tabs/apps and refresh UI
   let lastToken = localStorage.getItem(AUTH_TOKEN_KEY);
   setInterval(() => {
     const current = localStorage.getItem(AUTH_TOKEN_KEY);
     if (current !== lastToken) {
       lastToken = current;
       checkSession();
+      // If the stats view is active, refresh it
+      if (document.querySelector('.stats-list')) {
+        viewStats();
+      }
     }
   }, 1000);
 }
