@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AUTH_TOKEN_KEY, logout } from "./api";
+import { AUTH_TOKEN_KEY, USERNAME_KEY, logout, logAuditEvent } from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
