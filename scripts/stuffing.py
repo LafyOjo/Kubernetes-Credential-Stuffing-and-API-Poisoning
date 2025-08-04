@@ -12,6 +12,10 @@ ROCKYOU_PATH = Path(__file__).with_name("data").joinpath("rockyou.txt")
 
 
 def load_creds(path: Union[Path, str] = ROCKYOU_PATH, limit: Optional[int] = None):
+REQUEST_TIMEOUT = 3
+
+
+def load_creds(path: Union[Path, str, None] = None, limit: Optional[int] = None):
     """Load credentials from a file with an optional limit.
 
     *path* may be a :class:`pathlib.Path` or string. By default the bundled
@@ -122,7 +126,7 @@ def attack(
                 f"{score_base}/score",
                 json=score_payload,
                 headers=headers,
-                timeout=3,
+                timeout=REQUEST_TIMEOUT,
             )
             if score_resp.json().get("status") == "blocked":
                 blocked += 1
@@ -134,7 +138,7 @@ def attack(
                 except Exception as exc:
                     print("CHAIN ERROR:", exc)
         except requests.exceptions.RequestException as exc:
-            print("SCORE ERROR:", exc)
+            print(f"SCORE ERROR contacting {score_base}/score: {exc}")
 
         if login_ok:
             success += 1
