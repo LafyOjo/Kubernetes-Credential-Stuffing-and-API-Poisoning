@@ -24,7 +24,9 @@ function App() {
     return (
       <div className="app-container">
         <h1 className="dashboard-header">Please log in</h1>
-        <LoginForm onLogin={setToken} />
+        <div className="dashboard-section">
+          <LoginForm onLogin={setToken} />
+        </div>
       </div>
     );
   }
