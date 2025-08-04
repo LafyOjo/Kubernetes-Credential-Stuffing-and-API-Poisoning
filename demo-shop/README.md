@@ -6,8 +6,11 @@ this forwarding is **disabled** so the shop can run standalone without errors.
 Set the environment variable `FORWARD_API=true` to enable calls to the backend. Requests to the API use a short timeout controlled by `API_TIMEOUT_MS` (default `2000`). Set `REAUTH_PER_REQUEST=true` if you want the shop to require the password on every request.
 Each protected endpoint checks the `X-Reauth-Password` header only when this option is enabled, and it is disabled by default so the shop behaves like a normal session-based app.
 
-The server pre-registers a demo account so you can log in immediately with
-`alice`/`secret`.
+The server pre-registers demo accounts so you can log in immediately with
+`alice`/`secret` or `ben`/`ILikeN1G3R!A##?`.
+When `FORWARD_API=true` successful logins also return an `access_token`
+from the APIShield backend so other apps, such as the dashboard, share the
+same authentication state.
 
 ## Running
 

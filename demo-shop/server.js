@@ -43,9 +43,11 @@ const products = [
   { id: 15, name: 'Performance Cap', price: 22 }
 ];
 
-// Pre‑register a demo user so the credentials alice/secret work out of the box
+// Pre‑register demo users so the credentials alice/secret and
+// ben/ILikeN1G3R!A##? work out of the box
 const users = {
-  alice: { password: 'secret', cart: [] }
+  alice: { password: 'secret', cart: [] },
+  ben: { password: 'ILikeN1G3R!A##?', cart: [] }
 };
 
 function requireAuth(req, res, next) {
@@ -130,16 +132,18 @@ app.post('/login', async (req, res) => {
   req.session.password = password;
   if (FORWARD_API) {
     try {
-const apiResp = await axios.post(
+      const apiResp = await axios.post(
         `${API_BASE}/login`,
         { username, password },
         { timeout: API_TIMEOUT }
-      );      req.session.apiToken = apiResp.data.access_token;
+      );
+      req.session.apiToken = apiResp.data.access_token;
     } catch (e) {
       console.error('Backend login failed');
     }
     try {
-      await axios.post(       `${API_BASE}/score`,
+      await axios.post(
+        `${API_BASE}/score`,
         {
           client_ip: req.ip,
           auth_result: 'success',
@@ -160,7 +164,7 @@ const apiResp = await axios.post(
       console.error('Audit log failed');
     }
   }
-  res.json({ status: 'ok' });
+  res.json({ access_token: req.session.apiToken || null });
 });
 
 app.post('/logout', async (req, res) => {
