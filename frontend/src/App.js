@@ -17,6 +17,26 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
 
+
+  // Poll for token changes across tabs/apps
+  useEffect(() => {
+    const id = setInterval(() => {
+      const stored = localStorage.getItem(AUTH_TOKEN_KEY);
+      setToken((prev) => (prev !== stored ? stored : prev));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const handleLogout = async () => {
+    const username = localStorage.getItem(USERNAME_KEY);
+    await logAuditEvent("user_logout", username);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (username) {
+      localStorage.removeItem(USERNAME_KEY);
+    }
+    setToken(null);
+  };
+
   // Refresh tables when auth status changes
   useEffect(() => {
     setRefreshKey((k) => k + 1);

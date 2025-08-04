@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { USER_DATA } from "./UserAccounts";
 import { apiFetch, API_BASE } from "./api";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
@@ -47,6 +47,7 @@ export default function AttackSim({ user }) {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [chainToken, setChainToken] = useState(null);
+  const chainRef = useRef(null);
 
   const fetchChainToken = async () => {
     try {
@@ -54,6 +55,7 @@ export default function AttackSim({ user }) {
       if (resp.ok) {
         const data = await resp.json();
         setChainToken(data.chain);
+        chainRef.current = data.chain;
         return data.chain;
       }
     } catch (err) {
@@ -67,15 +69,15 @@ export default function AttackSim({ user }) {
     setResults(null);
     setError(null);
     setChainToken(null);
+    chainRef.current = null;
     let securityEnabled = false;
-    let currentChain = null;
     try {
       const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
         if (securityEnabled) {
-          currentChain = await fetchChainToken();
+          await fetchChainToken();
         }
       }
     } catch (err) {
@@ -124,8 +126,8 @@ export default function AttackSim({ user }) {
 
       try {
         const headers = { "Content-Type": "application/json" };
-        if (securityEnabled && currentChain) {
-          headers["X-Chain-Password"] = currentChain;
+        if (securityEnabled && chainRef.current) {
+          headers["X-Chain-Password"] = chainRef.current;
         }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
@@ -151,7 +153,7 @@ export default function AttackSim({ user }) {
       }
 
       if (securityEnabled) {
-        currentChain = await fetchChainToken();
+        await fetchChainToken();
       }
 
       if (loginOk) {
