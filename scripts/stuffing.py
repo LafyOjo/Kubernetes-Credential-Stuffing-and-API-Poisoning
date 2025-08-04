@@ -115,6 +115,7 @@ def attack(
                 except Exception as exc:
                     print("CHAIN ERROR:", exc)
         except Exception as exc:
+        except requests.exceptions.RequestException as exc:
             print("SCORE ERROR:", exc)
 
         if login_ok:
