@@ -86,6 +86,15 @@ app.post('/login', async (req, res) => {
     if (FORWARD_API) {
       try {
         await axios.post(
+          `${API_BASE}/login`,
+          { username, password },
+          { timeout: API_TIMEOUT }
+        );
+      } catch (e) {
+        // Ignore expected 401 from invalid credentials
+      }
+      try {
+        await axios.post(
           `${API_BASE}/score`,
           {
             client_ip: req.ip,
