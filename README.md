@@ -241,7 +241,7 @@ python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
-Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
+Both scripts accept `--score-base`, `--shop-url`, `--api-key`, and `--chain-url` (defaults to `/api/security/chain`) to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
 
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
