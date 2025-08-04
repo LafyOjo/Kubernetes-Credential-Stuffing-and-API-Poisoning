@@ -4,22 +4,28 @@ export const USER_DATA = {
   alice: {
     name: "Alice",
     password: "secret",
-
-    security: 30,
+    security: 0,
+    twoFactor: false,
+    securityQuestion: false,
+    role: "user",
     features: [
       "Weak password",
       "No MFA",
       "Token reuse allowed",
+      "No JWT protection",
     ],
   },
   ben: {
     name: "Ben",
     password: "ILikeN1G3R!A##?",
-
     security: 90,
+    twoFactor: true,
+    securityQuestion: false,
+    role: "user",
     features: [
       "Strong password requirements",
       "MFA enabled",
+      "JWT-protected endpoints",
       "Rotating chain token",
     ],
   },
