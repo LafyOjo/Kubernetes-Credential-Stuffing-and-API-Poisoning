@@ -24,15 +24,19 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_policies_id'), 'policies', ['id'], unique=False)
 
-    op.add_column('users', sa.Column('policy_id', sa.Integer(), nullable=True))
-    op.create_foreign_key('users_policy_id_fkey', 'users', 'policies', ['policy_id'], ['id'])
-    op.create_index(op.f('ix_users_policy_id'), 'users', ['policy_id'], unique=False)
+    with op.batch_alter_table('users') as batch_op:
+        batch_op.add_column(sa.Column('policy_id', sa.Integer(), nullable=True))
+        batch_op.create_foreign_key(
+            'users_policy_id_fkey', 'policies', ['policy_id'], ['id']
+        )
+        batch_op.create_index(op.f('ix_users_policy_id'), ['policy_id'], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index(op.f('ix_users_policy_id'), table_name='users')
-    op.drop_constraint('users_policy_id_fkey', 'users', type_='foreignkey')
-    op.drop_column('users', 'policy_id')
+    with op.batch_alter_table('users') as batch_op:
+        batch_op.drop_index(op.f('ix_users_policy_id'))
+        batch_op.drop_constraint('users_policy_id_fkey', type_='foreignkey')
+        batch_op.drop_column('policy_id')
 
     op.drop_index(op.f('ix_policies_id'), table_name='policies')
     op.drop_table('policies')
