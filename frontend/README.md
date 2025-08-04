@@ -6,9 +6,13 @@ Refer to the root README for instructions on starting the shop.
 
 ## Environment Variables
 
-The frontend is preconfigured to talk to the demo shop backend running on
-`http://localhost:8001`. This base URL is provided via the
-`REACT_APP_API_BASE` variable in the `.env` file.
+The dashboard uses the `REACT_APP_API_BASE` environment variable to reach
+the backend API. It defaults to an empty string so Create React App's proxy
+can forward requests to the backend at `http://localhost:8001`.
+
+If your API runs on a different host or port, set `REACT_APP_API_BASE` in
+`frontend/.env` or provide it through your start script so the dashboard can
+locate the correct endpoint.
 
 ## Available Scripts
 
