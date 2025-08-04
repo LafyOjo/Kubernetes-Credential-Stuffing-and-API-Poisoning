@@ -28,7 +28,7 @@ body {
 .dashboard-section {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background-color: #ffffff;
+  background: #ffffff;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }

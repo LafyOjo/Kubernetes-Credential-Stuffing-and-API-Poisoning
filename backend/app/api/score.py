@@ -1,7 +1,7 @@
 # backend/app/api/score.py
 
 from typing import Any, Dict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
@@ -54,7 +54,7 @@ FAILED_USER_ATTEMPTS: Dict[int, list[datetime]] = {}
 
 def is_rate_limited(db: Session, user_id: int, limit: int) -> bool:
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
     attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds)]
     FAILED_USER_ATTEMPTS[user_id] = attempts
@@ -86,7 +86,7 @@ def record_attempt(
 
     ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
-    window_start = datetime.utcnow() - timedelta(seconds=window_seconds)
+    window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
     fail_count = (
         db.query(Alert)
         .filter(Alert.ip_address == client_ip)
@@ -98,7 +98,7 @@ def record_attempt(
         window_seconds_user = int(
             os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS)
         )
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
         attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds_user)]
         attempts.append(now)

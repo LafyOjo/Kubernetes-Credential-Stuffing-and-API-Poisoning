@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { apiFetch, TOKEN_KEY, logAuditEvent } from "./api";
 
+import { apiFetch, AUTH_TOKEN_KEY, logAuditEvent } from "./api";
+
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +20,8 @@ export default function LoginForm({ onLogin }) {
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
       localStorage.setItem(TOKEN_KEY, data.access_token);
+
+      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
       await logAuditEvent("user_login_success");
       onLogin(data.access_token);
     } catch (err) {

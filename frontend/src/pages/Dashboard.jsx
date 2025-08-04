@@ -4,10 +4,14 @@ import ScoreForm from "../ScoreForm";
 import AlertsTable from "../AlertsTable";
 import { apiFetch, TOKEN_KEY } from "../api";
 
+import { apiFetch, AUTH_TOKEN_KEY } from "../api";
+
 function Dashboard() {
   const [ping, setPing] = useState(null);
   const [refresh, setRefresh] = useState(0);
   const token = localStorage.getItem(TOKEN_KEY);
+
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
   useEffect(() => {
     apiFetch("/ping")

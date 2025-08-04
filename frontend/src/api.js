@@ -5,6 +5,11 @@ export const TOKEN_KEY = "apiShieldAuthToken";
 
 export function logout() {
   const token = localStorage.getItem(TOKEN_KEY);
+
+export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
+
+export function logout() {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   if (token) {
     fetch(`${API_BASE}/api/audit/log`, {
       method: "POST",
@@ -15,7 +20,7 @@ export function logout() {
       body: JSON.stringify({ event: "user_logout" }),
     }).catch(() => {});
   }
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(AUTH_TOKEN_KEY);
   window.location.reload();
 }
 
@@ -23,8 +28,12 @@ export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   const headers = { ...(options.headers || {}) };
   const token = localStorage.getItem(TOKEN_KEY);
+
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const skipAuth =
-    url.endsWith("/login") || url.endsWith("/register") || url.endsWith("/api/token");
+    url.endsWith("/login") ||
+    url.endsWith("/register") ||
+    url.endsWith("/api/token");
   if (token && !skipAuth && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -64,3 +73,4 @@ export async function logAuditEvent(event) {
     console.error("audit log failed", err);
   }
 }
+

@@ -1,5 +1,7 @@
 const API_BASE = 'http://localhost:3005';
 const TOKEN_KEY = 'apiShieldAuthToken';
+
+const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
 const AUDIT_URL = 'http://localhost:8000/api/audit/log';
 
 let username = null;
@@ -14,7 +16,7 @@ async function fetchJSON(url, options = {}) {
   const { noAuth, ...opts } = options;
   const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts };
   if (!noAuth) {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (token) {
       fetchOpts.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -36,7 +38,7 @@ async function fetchJSON(url, options = {}) {
 }
 
 async function logAuditEvent(event) {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const headers = { 'Content-Type': 'application/json' };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -159,6 +161,8 @@ function showLogin() {
         noAuth: true
       });
       localStorage.setItem(TOKEN_KEY, data.access_token);
+
+      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
       await logAuditEvent('user_login_success');
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
@@ -238,7 +242,6 @@ async function logout() {
     return;
   }
   await logAuditEvent('user_logout');
-  localStorage.removeItem(TOKEN_KEY);
   username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
@@ -279,9 +282,9 @@ function init() {
   checkSession();
 
   // Poll for token changes across tabs/apps
-  let lastToken = localStorage.getItem(TOKEN_KEY);
+  let lastToken = localStorage.getItem(AUTH_TOKEN_KEY);
   setInterval(() => {
-    const current = localStorage.getItem(TOKEN_KEY);
+    const current = localStorage.getItem(AUTH_TOKEN_KEY);
     if (current !== lastToken) {
       lastToken = current;
       checkSession();
