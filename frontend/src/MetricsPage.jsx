@@ -24,10 +24,15 @@ export default function MetricsPage() {
   const [metrics, setMetrics] = useState(null);
 
   useEffect(() => {
-    fetch(`${API_BASE}/metrics`)
-      .then(res => res.text())
-      .then(text => setMetrics(parseMetrics(text)))
-      .catch(err => console.error("Metrics fetch error", err));
+    const load = () => {
+      fetch(`${API_BASE}/metrics`)
+        .then(res => res.text())
+        .then(text => setMetrics(parseMetrics(text)))
+        .catch(err => console.error("Metrics fetch error", err));
+    };
+    load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
   }, []);
 
   if (!metrics) {

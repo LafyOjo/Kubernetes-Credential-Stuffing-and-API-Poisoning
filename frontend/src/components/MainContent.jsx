@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import MetricCard from "./MetricCard";
 import LineChartCard from "./LineChartCard";
 import DonutChartCard from "./DonutChartCard";
+import AdminUserForm from "./AdminUserForm";
 import { apiFetch } from "../api";
 
 const MainContent = ({ token }) => {
@@ -36,6 +37,8 @@ const MainContent = ({ token }) => {
       }
     }
     load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
   }, []);
 
   const donutData = [
@@ -71,6 +74,7 @@ const MainContent = ({ token }) => {
       </div>
       <LineChartCard data={lineData} />
       <DonutChartCard data={donutData} />
+      <AdminUserForm token={token} />
     </div>
   );
 };
