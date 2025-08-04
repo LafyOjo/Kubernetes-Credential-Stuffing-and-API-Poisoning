@@ -4,13 +4,16 @@ export const API_KEY = process.env.REACT_APP_API_KEY || "";
 export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
 // Maintain legacy name for compatibility
 export const TOKEN_KEY = AUTH_TOKEN_KEY;
+export const USERNAME_KEY = "apiShieldUsername";
 
-export async function logAuditEvent(event) {
+export async function logAuditEvent(event, username) {
   try {
+    const payload = { event };
+    if (username) payload.username = username;
     await apiFetch("/api/audit/log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event }),
+      body: JSON.stringify(payload),
     });
   } catch (err) {
     // Fail silently; audit logging should not disrupt UX
@@ -20,10 +23,14 @@ export async function logAuditEvent(event) {
 
 export function logout() {
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  const username = localStorage.getItem(USERNAME_KEY);
   if (token) {
-    logAuditEvent("user_logout");
+    logAuditEvent("user_logout", username);
   }
   localStorage.removeItem(AUTH_TOKEN_KEY);
+  if (username) {
+    localStorage.removeItem(USERNAME_KEY);
+  }
   window.location.reload();
 }
 

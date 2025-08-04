@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AUTH_TOKEN_KEY, logAuditEvent } from "./api";
+import { AUTH_TOKEN_KEY, USERNAME_KEY, logAuditEvent } from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
@@ -18,8 +18,12 @@ function App() {
   const [selectedUser, setSelectedUser] = useState("alice");
 
   const handleLogout = async () => {
-    await logAuditEvent("user_logout");
+    const username = localStorage.getItem(USERNAME_KEY);
+    await logAuditEvent("user_logout", username);
     localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (username) {
+      localStorage.removeItem(USERNAME_KEY);
+    }
     setToken(null);
   };
 

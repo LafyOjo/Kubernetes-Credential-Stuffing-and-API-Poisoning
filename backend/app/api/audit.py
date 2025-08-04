@@ -25,7 +25,7 @@ async def audit_ws(ws: WebSocket):
             _listeners.remove(ws)
 
 
-async def _broadcast(event: str):
+async def _broadcast(event: str) -> None:
     """Send an audit event to all listeners."""
     for ws in list(_listeners):
         try:
@@ -37,6 +37,6 @@ async def _broadcast(event: str):
 @router.post("/log")
 async def audit_log(log: AuditLogCreate, db: Session = Depends(get_db)):
     """Record an audit event from a frontend and broadcast to listeners."""
-    create_audit_log(db, log.username, log.event)
-    await _broadcast(log.event)
+    create_audit_log(db, log.username, log.event.value)
+    await _broadcast(log.event.value)
     return {"status": "logged"}

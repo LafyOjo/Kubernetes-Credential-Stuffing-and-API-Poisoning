@@ -76,6 +76,15 @@ app.post('/register', async (req, res) => {
     } catch (e) {
       console.error('Register API call failed');
     }
+    try {
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_register', username },
+        { timeout: API_TIMEOUT }
+      );
+    } catch (e) {
+      console.error('Audit log failed');
+    }
   }
   res.json({ status: 'ok' });
 });
