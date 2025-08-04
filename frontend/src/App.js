@@ -4,7 +4,7 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import MainContent from "./components/MainContent";
 import LoginForm from "./LoginForm";
-import DashboardMain from "./DashboardMain";
+import DashboardMain from "./DashboardMain.jsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
 function App() {
