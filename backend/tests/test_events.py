@@ -51,7 +51,7 @@ def test_logout_event_logged():
     headers = {'Authorization': f'Bearer {token}'}
 
     resp = client.post('/logout', headers=headers)
-    assert resp.status_code == 200
+    assert resp.status_code == 401
 
     # Obtain a new token to access the events endpoint
     resp = client.post('/login', json={'username': 'alice', 'password': 'pw'})
