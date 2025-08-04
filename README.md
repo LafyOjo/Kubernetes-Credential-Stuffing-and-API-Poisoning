@@ -128,6 +128,21 @@ uvicorn app.main:app --reload --port 8001
 
 Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 
+### Resetting alerts during testing
+
+The detector blocks clients once they exceed `FAIL_LIMIT` within
+`FAIL_WINDOW_SECONDS`. During local testing you can either raise these values
+in `.env` or wipe existing alert records. Updating the limits requires
+restarting the server so the new environment variables are loaded.
+
+To clear all alerts from the default SQLite database:
+
+```bash
+sqlite3 app.db "DELETE FROM alerts;"
+```
+
+The next request starts with a clean slate.
+
 ## Running the frontend
 
 ```bash
