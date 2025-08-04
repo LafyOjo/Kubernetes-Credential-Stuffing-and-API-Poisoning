@@ -24,13 +24,7 @@ from app.api.access_logs import router as access_logs_router
 
 app = FastAPI(title="APIShield+")
 
-# Allow origins can be configured via environment variable
-allow_origins = [
-    origin.strip()
-    for origin in os.getenv("ALLOW_ORIGINS", "*").split(",")
-    if origin.strip()
-]
-
+allow_origins = ["http://localhost:3000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
