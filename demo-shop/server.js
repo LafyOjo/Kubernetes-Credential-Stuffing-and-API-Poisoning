@@ -86,6 +86,15 @@ app.post('/login', async (req, res) => {
     if (FORWARD_API) {
       try {
         await axios.post(
+          `${API_BASE}/login`,
+          { username, password },
+          { timeout: API_TIMEOUT }
+        );
+      } catch (e) {
+        // Ignore expected 401 from invalid credentials
+      }
+      try {
+        await axios.post(
           `${API_BASE}/score`,
           {
             client_ip: req.ip,
@@ -128,9 +137,31 @@ const apiResp = await axios.post(
   res.json({ status: 'ok' });
 });
 
-app.post('/logout', (req, res) => {
+app.post('/logout', async (req, res) => {
+  if (FORWARD_API && req.session.apiToken) {
+    try {
+      await axios.post(
+        `${API_BASE}/logout`,
+        null,
+        {
+          headers: { Authorization: `Bearer ${req.session.apiToken}` },
+          timeout: API_TIMEOUT,
+        }
+      );
+    } catch (e) {
+      console.error('Backend logout failed');
+    }
+  }
   req.session.apiToken = null;
   req.session.destroy(() => res.json({ status: 'ok' }));
+});
+
+// Report whether the current session is authenticated
+app.get('/session', (req, res) => {
+  if (req.session.username) {
+    return res.json({ loggedIn: true, username: req.session.username });
+  }
+  res.json({ loggedIn: false });
 });
 
 app.get('/products', (req, res) => {

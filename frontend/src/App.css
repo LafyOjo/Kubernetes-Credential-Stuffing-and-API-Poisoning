@@ -11,11 +11,26 @@ body {
   padding: 2rem;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .dashboard-header {
   color: #ff5722;
   text-align: center;
   font-family: "Trebuchet MS", Helvetica, sans-serif;
   margin-bottom: 2rem;
+}
+
+/* Consistent spacing and visual grouping across the dashboard */
+.dashboard-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .score-form {
@@ -157,7 +172,6 @@ body {
   color: #fff;
   border-radius: 4px;
   cursor: pointer;
-  margin-bottom: 1rem;
 }
 
 .progress {
@@ -186,7 +200,4 @@ body {
 .toggle-buttons button.active {
   background: #6200ea;
   color: #fff;
-}
-.shop-frame {
-  margin-top: 2rem;
 }

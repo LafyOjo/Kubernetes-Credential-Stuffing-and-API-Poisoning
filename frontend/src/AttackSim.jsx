@@ -46,17 +46,32 @@ export default function AttackSim({ user }) {
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [chain, setChain] = useState(null);
 
   const simulateAttack = async () => {
     setRunning(true);
     setResults(null);
     setError(null);
+    setChain(null);
     let securityEnabled = false;
+    let chainToken = null;
     try {
       const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
+        if (securityEnabled) {
+          try {
+            const chainResp = await apiFetch("/api/security/chain");
+            if (chainResp.ok) {
+              const chainData = await chainResp.json();
+              chainToken = chainData.chain;
+              setChain(chainToken);
+            }
+          } catch (err) {
+            console.error("Chain fetch error", err);
+          }
+        }
       }
     } catch (err) {
       console.error("Security state error", err);
@@ -67,7 +82,6 @@ export default function AttackSim({ user }) {
     let firstTime = null;
     let firstInfo = null;
     let firstCart = null;
-    let firstOrders = null;
 
     const start = performance.now();
 
@@ -104,9 +118,13 @@ export default function AttackSim({ user }) {
       }
 
       try {
+        const headers = { "Content-Type": "application/json" };
+        if (securityEnabled && chainToken) {
+          headers["X-Chain-Password"] = chainToken;
+        }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             client_ip: "10.0.0.1",
             auth_result: loginOk ? "success" : "failure",
@@ -125,6 +143,19 @@ export default function AttackSim({ user }) {
         }
       } catch (err) {
         console.error("Score error", err);
+      }
+
+      if (securityEnabled) {
+        try {
+          const chainResp = await apiFetch("/api/security/chain");
+          if (chainResp.ok) {
+            const chainData = await chainResp.json();
+            chainToken = chainData.chain;
+            setChain(chainToken);
+          }
+        } catch (err) {
+          console.error("Chain refresh error", err);
+        }
       }
 
       if (loginOk) {
@@ -149,15 +180,11 @@ export default function AttackSim({ user }) {
 
       if (shopOk && firstCart === null) {
         try {
-          const cartResp = await fetch(`${SHOP_URL}/carts/${targetUser}/items`);
+          const cartResp = await fetch(`${SHOP_URL}/cart`, {
+            credentials: "include",
+          });
           if (cartResp.ok) {
             firstCart = await cartResp.json();
-          }
-          const orderResp = await fetch(
-            `${SHOP_URL}/orders/search/customerId?custId=${targetUser}`
-          );
-          if (orderResp.ok) {
-            firstOrders = await orderResp.json();
           }
         } catch (err) {
           console.error("Fetch shop info", err);
@@ -172,7 +199,6 @@ export default function AttackSim({ user }) {
         first_success_time: firstTime,
         first_user_info: firstInfo,
         first_cart: firstCart,
-        first_orders: firstOrders,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -227,11 +253,6 @@ export default function AttackSim({ user }) {
               {results.first_cart && (
                 <p>
                   Cart <code>{JSON.stringify(results.first_cart)}</code>
-                </p>
-              )}
-              {results.first_orders && (
-                <p>
-                  Orders <code>{JSON.stringify(results.first_orders)}</code>
                 </p>
               )}
             </>
