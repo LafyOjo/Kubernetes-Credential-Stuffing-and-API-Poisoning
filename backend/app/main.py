@@ -7,7 +7,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
 from app.core.access_log import AccessLogMiddleware
-from app.core.anomaly import AnomalyDetectionMiddleware
+from app.core.anomaly import AnomalyDetectionMiddleware, load_model
 from app.core.policy import PolicyEngineMiddleware
 from app.core.metrics import MetricsMiddleware
 from app.core.re_auth import ReAuthMiddleware
@@ -48,6 +48,10 @@ app.add_middleware(PolicyEngineMiddleware)
 # Optional ML-driven anomaly detection
 if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
     app.add_middleware(AnomalyDetectionMiddleware)
+
+    @app.on_event("startup")
+    async def init_anomaly_model() -> None:
+        load_model(app)
 
 app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
