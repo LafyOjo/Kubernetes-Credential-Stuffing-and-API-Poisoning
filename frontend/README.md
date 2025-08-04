@@ -4,6 +4,12 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 The demo shop backend used by the dashboard is located in `../demo-shop`.
 Refer to the root README for instructions on starting the shop.
 
+## Environment Variables
+
+The frontend is preconfigured to talk to the demo shop backend running on
+`http://localhost:8001`. This base URL is provided via the
+`REACT_APP_API_BASE` variable in the `.env` file.
+
 ## Available Scripts
 
 In the project directory, you can run:
