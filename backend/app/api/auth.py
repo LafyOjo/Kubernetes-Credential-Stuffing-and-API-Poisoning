@@ -126,9 +126,12 @@ async def read_me(current_user=Depends(get_current_user)):
 @router.post("/logout")
 async def logout(
     token: str = Depends(oauth2_scheme),
+    current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    user = await get_current_user(token=token, db=db)
-    log_event(db, user.username, "logout", True)
-    revoke_token(token)
+    try:
+        revoke_token(token)
+        log_event(db, current_user.username, "logout", True)
+    except Exception:
+        log_event(db, current_user.username, "logout", False)
     return {"detail": "Logged out"}
