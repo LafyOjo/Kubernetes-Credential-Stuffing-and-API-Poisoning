@@ -84,18 +84,14 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!users[username] || users[username].password !== password) {
     if (FORWARD_API) {
-      try {
-        await axios.post(
-          `${API_BASE}/login`,
-          { username, password },
-          { timeout: API_TIMEOUT }
-        );
-      } catch (e) {
-        // Ignore expected 401 but surface other errors
-        if (e.response?.status !== 401) {
-          console.error('Login API call failed');
-        }
-      }
+      await axios
+        .post(`${API_BASE}/login`, { username, password }, { timeout: API_TIMEOUT })
+        .catch((e) => {
+          // Ignore expected 401 but surface other errors
+          if (e.response?.status !== 401) {
+            console.error('Login API call failed', e);
+          }
+        });
       try {
         await axios.post(
           `${API_BASE}/score`,
