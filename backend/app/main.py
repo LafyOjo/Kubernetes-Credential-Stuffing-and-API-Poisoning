@@ -24,10 +24,16 @@ from app.api.access_logs import router as access_logs_router
 
 app = FastAPI(title="APIShield+")
 
-# DEVELOPMENT: allow your React dev server to talk to FastAPI
+# Allow origins can be configured via environment variable
+allow_origins = [
+    origin.strip()
+    for origin in os.getenv("ALLOW_ORIGINS", "*").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # or ["*"] to cover everything
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
