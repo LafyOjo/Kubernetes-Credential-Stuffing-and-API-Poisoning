@@ -102,8 +102,23 @@ async def login_for_access_token(
 
 
 @router.get("/api/me")
-async def read_me(current_user: dict = Depends(get_current_user)):
-    return current_user
+async def read_me(current_user=Depends(get_current_user)):
+    """Return basic information about the authenticated user.
+
+    The credential stuffing simulator expects to see both the username and
+    the password hash of the compromised account.  Returning the SQLAlchemy
+    model directly can result in the password hash being omitted or the
+    object not being JSON serialisable in some environments.  Explicitly
+    constructing the response dictionary ensures these fields are always
+    present.
+    """
+
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "password_hash": current_user.password_hash,
+        "role": current_user.role,
+    }
 
 
 @router.post("/logout")
