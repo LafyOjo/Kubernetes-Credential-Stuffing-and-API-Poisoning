@@ -12,8 +12,6 @@ function decode(token) {
 
 export default function AdminUserForm({ token }) {
   const decoded = decode(token);
-  if (!decoded || decoded.role !== "admin") return null;
-
   const [form, setForm] = useState({
     username: "",
     password: "",
@@ -22,6 +20,8 @@ export default function AdminUserForm({ token }) {
     security_question: false,
   });
   const [message, setMessage] = useState(null);
+
+  if (!decoded || decoded.role !== "admin") return null;
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
