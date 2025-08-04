@@ -19,3 +19,10 @@ class AlertStat(BaseModel):
     time: datetime
     invalid: int
     blocked: int
+
+
+class AlertSummary(BaseModel):
+    total: int
+    blocked: int
+    wrong_password: int
+    credential_stuffing: int
