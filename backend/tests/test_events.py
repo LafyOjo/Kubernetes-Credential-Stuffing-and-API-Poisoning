@@ -1,4 +1,5 @@
 import os
+import time
 
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
@@ -31,3 +32,22 @@ def test_login_event_logged():
     assert resp.status_code == 200
     events = resp.json()
     assert any(e['action'] == 'login' and e['success'] for e in events)
+
+
+def test_logout_event_logged():
+    resp = client.post('/login', json={'username': 'alice', 'password': 'pw'})
+    assert resp.status_code == 200
+    token = resp.json()['access_token']
+
+    resp = client.post('/logout', headers={'Authorization': f'Bearer {token}'})
+    assert resp.status_code == 200
+
+    time.sleep(1)
+    resp = client.post('/login', json={'username': 'alice', 'password': 'pw'})
+    assert resp.status_code == 200
+    new_token = resp.json()['access_token']
+
+    resp = client.get('/api/events', headers={'Authorization': f'Bearer {new_token}'})
+    assert resp.status_code == 200
+    events = resp.json()
+    assert any(e['action'] == 'logout' and e['success'] for e in events)
