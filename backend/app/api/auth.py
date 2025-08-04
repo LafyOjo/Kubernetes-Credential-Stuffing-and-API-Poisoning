@@ -123,7 +123,6 @@ async def read_me(current_user=Depends(get_current_user)):
         "role": current_user.role,
     }
 
-
 @router.post("/logout")
 async def logout(
     token: str = Depends(oauth2_scheme),

@@ -48,6 +48,16 @@ def test_logout_event_logged():
     new_token = resp.json()['access_token']
 
     resp = client.get('/api/events', headers={'Authorization': f'Bearer {new_token}'})
+    headers = {'Authorization': f'Bearer {token}'}
+
+    resp = client.post('/logout', headers=headers)
+    assert resp.status_code == 200
+
+    # Obtain a new token to access the events endpoint
+    resp = client.post('/login', json={'username': 'alice', 'password': 'pw'})
+    token = resp.json()['access_token']
+    resp = client.get('/api/events', headers={'Authorization': f'Bearer {token}'})
+
     assert resp.status_code == 200
     events = resp.json()
     assert any(e['action'] == 'logout' and e['success'] for e in events)
