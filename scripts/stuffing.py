@@ -28,6 +28,8 @@ def attack(
     use_jwt=False,
     score_base="http://localhost:8001",
     shop_url="http://localhost:3005",
+    api_key=None,
+    chain_url="/api/security/chain",
 ):
     """Send repeated login attempts and report detection results.
 
@@ -65,6 +67,84 @@ def attack(
                 if token:
                     session.get(
                         f"{score_base}/api/alerts",
+
+    base_headers = {}
+    chain = None
+    chain_endpoint = None
+    if api_key:
+        base_headers["X-API-Key"] = api_key
+        if chain_url:
+            chain_endpoint = chain_url if chain_url.startswith("http") else f"{score_base}{chain_url}"
+            try:
+                resp = session.get(chain_endpoint, headers=base_headers, timeout=3)
+                if resp.ok:
+                    chain = resp.json().get("chain")
+            except Exception as exc:
+                print("CHAIN ERROR:", exc)
+    for i in range(1, attempts + 1):
+        pwd = next(pool)
+        ip = "10.0.0.1"
+        user = "alice"
+
+        token = None
+        if use_jwt:
+            login_resp = session.post(
+                f"{score_base}/api/token",
+                data={"username": user, "password": pwd},
+                timeout=3,
+            )
+            login_ok = login_resp.status_code == 200
+            token = login_resp.json().get("access_token") if login_ok else None
+            if token:
+                session.get(
+                    f"{score_base}/api/alerts",
+                    headers={"Authorization": f"Bearer {token}"},
+                    timeout=3,
+                )
+        else:
+            login_resp = session.post(
+                f"{shop_url}/login",
+                json={"username": user, "password": pwd},
+                headers={"X-Forwarded-For": ip},
+                timeout=3,
+            )
+            login_ok = login_resp.status_code == 200
+
+        score_payload = {
+            "client_ip": ip,
+            "auth_result": "success" if login_ok else "failure",
+            "with_jwt": use_jwt,
+        }
+
+        try:
+            headers = dict(base_headers)
+            if chain:
+                headers["X-Chain-Password"] = chain
+            score_resp = session.post(
+                f"{score_base}/score",
+                json=score_payload,
+                headers=headers,
+                timeout=3,
+            )
+            if score_resp.json().get("status") == "blocked":
+                blocked += 1
+            if chain_endpoint:
+                try:
+                    resp = session.get(chain_endpoint, headers=base_headers, timeout=3)
+                    if resp.ok:
+                        chain = resp.json().get("chain")
+                except Exception as exc:
+                    print("CHAIN ERROR:", exc)
+        except Exception as exc:
+        except requests.exceptions.RequestException as exc:
+            print("SCORE ERROR:", exc)
+
+        if login_ok:
+            success += 1
+            if token:
+                try:
+                    info_resp = requests.get(
+                        f"{score_base}/api/me",
                         headers={"Authorization": f"Bearer {token}"},
                         timeout=3,
                     )
@@ -154,6 +234,12 @@ if __name__ == "__main__":
         help="Detector API base URL",
     )
     parser.add_argument("--shop-url", default="http://localhost:3005", help="Demo shop base URL")
+    parser.add_argument("--api-key", help="API key for protected endpoints")
+    parser.add_argument(
+        "--chain-url",
+        default="/api/security/chain",
+        help="Endpoint to fetch rotating chain value",
+    )
     args = parser.parse_args()
     attack(
         rate_per_sec=args.rate,
@@ -161,4 +247,6 @@ if __name__ == "__main__":
         use_jwt=args.jwt,
         score_base=args.score_base,
         shop_url=args.shop_url,
+        api_key=args.api_key,
+        chain_url=args.chain_url,
     )

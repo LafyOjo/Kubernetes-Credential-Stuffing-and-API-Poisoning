@@ -46,17 +46,32 @@ export default function AttackSim({ user }) {
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [chain, setChain] = useState(null);
 
   const simulateAttack = async () => {
     setRunning(true);
     setResults(null);
     setError(null);
+    setChain(null);
     let securityEnabled = false;
+    let chainToken = null;
     try {
       const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
+        if (securityEnabled) {
+          try {
+            const chainResp = await apiFetch("/api/security/chain");
+            if (chainResp.ok) {
+              const chainData = await chainResp.json();
+              chainToken = chainData.chain;
+              setChain(chainToken);
+            }
+          } catch (err) {
+            console.error("Chain fetch error", err);
+          }
+        }
       }
     } catch (err) {
       console.error("Security state error", err);
@@ -104,9 +119,13 @@ export default function AttackSim({ user }) {
       }
 
       try {
+        const headers = { "Content-Type": "application/json" };
+        if (securityEnabled && chainToken) {
+          headers["X-Chain-Password"] = chainToken;
+        }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             client_ip: "10.0.0.1",
             auth_result: loginOk ? "success" : "failure",
@@ -125,6 +144,19 @@ export default function AttackSim({ user }) {
         }
       } catch (err) {
         console.error("Score error", err);
+      }
+
+      if (securityEnabled) {
+        try {
+          const chainResp = await apiFetch("/api/security/chain");
+          if (chainResp.ok) {
+            const chainData = await chainResp.json();
+            chainToken = chainData.chain;
+            setChain(chainToken);
+          }
+        } catch (err) {
+          console.error("Chain refresh error", err);
+        }
       }
 
       if (loginOk) {

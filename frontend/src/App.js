@@ -35,7 +35,12 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1 className="dashboard-header">APIShield+ Dashboard</h1>
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
+        <button
+          className="logout-button"
+          onClick={handleLogout}
+        >
+          Logout
+        </button>
       </div>
       <div className="dashboard-section">
         <UserAccounts onSelect={setSelectedUser} />
