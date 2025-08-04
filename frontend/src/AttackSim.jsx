@@ -82,7 +82,6 @@ export default function AttackSim({ user }) {
     let firstTime = null;
     let firstInfo = null;
     let firstCart = null;
-    let firstOrders = null;
 
     const start = performance.now();
 
@@ -181,15 +180,11 @@ export default function AttackSim({ user }) {
 
       if (shopOk && firstCart === null) {
         try {
-          const cartResp = await fetch(`${SHOP_URL}/carts/${targetUser}/items`);
+          const cartResp = await fetch(`${SHOP_URL}/cart`, {
+            credentials: "include",
+          });
           if (cartResp.ok) {
             firstCart = await cartResp.json();
-          }
-          const orderResp = await fetch(
-            `${SHOP_URL}/orders/search/customerId?custId=${targetUser}`
-          );
-          if (orderResp.ok) {
-            firstOrders = await orderResp.json();
           }
         } catch (err) {
           console.error("Fetch shop info", err);
@@ -204,7 +199,6 @@ export default function AttackSim({ user }) {
         first_success_time: firstTime,
         first_user_info: firstInfo,
         first_cart: firstCart,
-        first_orders: firstOrders,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -259,11 +253,6 @@ export default function AttackSim({ user }) {
               {results.first_cart && (
                 <p>
                   Cart <code>{JSON.stringify(results.first_cart)}</code>
-                </p>
-              )}
-              {results.first_orders && (
-                <p>
-                  Orders <code>{JSON.stringify(results.first_orders)}</code>
                 </p>
               )}
             </>
