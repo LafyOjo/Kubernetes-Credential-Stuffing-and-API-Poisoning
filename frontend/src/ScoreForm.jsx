@@ -3,16 +3,22 @@ import { apiFetch } from "./api";
 
 const DEFAULT_THRESHOLD = 5;
 
-export default function ScoreForm({ onNewAlert }) {
+export default function ScoreForm({ token, onNewAlert }) {
   const [ip, setIp] = useState("");
   const [result, setResult] = useState("success");
   const [error, setError] = useState(null);
+  const [warning, setWarning] = useState(null);
   const [threshold, setThreshold] = useState(DEFAULT_THRESHOLD);
   const [chain, setChain] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const fetchChain = async () => {
     try {
       const resp = await apiFetch("/api/security/chain");
+      if (resp.status === 401 || resp.status === 403) {
+        setWarning("Admin token required to fetch security chain");
+        return;
+      }
       if (resp.ok) {
         const data = await resp.json();
         setChain(data.chain);
@@ -23,9 +29,39 @@ export default function ScoreForm({ onNewAlert }) {
   };
 
   useEffect(() => {
-    async function fetchConfig() {
+    const verifyAdmin = async () => {
+      if (!token) {
+        setWarning("Admin token required to fetch settings");
+        return;
+      }
+      try {
+        const resp = await apiFetch("/api/me");
+        if (!resp.ok) {
+          if (resp.status === 401 || resp.status === 403) {
+            setWarning("Admin token required to fetch settings");
+          }
+          return;
+        }
+        const data = await resp.json();
+        if (data.role !== "admin") {
+          setWarning("Admin token required to fetch settings");
+          return;
+        }
+        setIsAdmin(true);
+        await fetchConfig();
+        await fetchChain();
+      } catch (err) {
+        console.error("Failed to verify admin token", err);
+      }
+    };
+
+    const fetchConfig = async () => {
       try {
         const resp = await apiFetch("/config");
+        if (resp.status === 401 || resp.status === 403) {
+          setWarning("Admin token required to fetch config");
+          return;
+        }
         if (resp.ok) {
           const data = await resp.json();
           if (data.fail_limit) {
@@ -36,17 +72,16 @@ export default function ScoreForm({ onNewAlert }) {
         // ignore config errors and keep default
         console.error("Failed to fetch config", err);
       }
-    }
-    fetchConfig();
-    fetchChain();
-  }, []);
+    };
+
+    verifyAdmin();
+  }, [token]);
 
   const handleSubmit = async e => {
     e.preventDefault();
     setError(null);
 
     try {
-      const token = localStorage.getItem("token");
       const headers = { "Content-Type": "application/json" };
       if (chain) {
         headers["X-Chain-Password"] = chain;
@@ -62,10 +97,14 @@ export default function ScoreForm({ onNewAlert }) {
       if (data.fails_last_minute > threshold) {
         onNewAlert();
       }
-      await fetchChain();
+      if (isAdmin) {
+        await fetchChain();
+      }
     } catch (err) {
       setError(err.message);
-      fetchChain();
+      if (isAdmin) {
+        fetchChain();
+      }
     }
   };
 
@@ -93,6 +132,7 @@ export default function ScoreForm({ onNewAlert }) {
       </label>
       <button type="submit">Submit to /score</button>
       {error && <p className="error-text">{error}</p>}
+      {warning && <p className="error-text">{warning}</p>}
     </form>
   );
 }
