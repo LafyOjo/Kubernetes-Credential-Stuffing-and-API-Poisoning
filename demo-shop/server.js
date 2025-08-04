@@ -133,6 +133,14 @@ app.post('/logout', (req, res) => {
   req.session.destroy(() => res.json({ status: 'ok' }));
 });
 
+// Report whether the current session is authenticated
+app.get('/session', (req, res) => {
+  if (req.session.username) {
+    return res.json({ loggedIn: true, username: req.session.username });
+  }
+  res.json({ loggedIn: false });
+});
+
 app.get('/products', (req, res) => {
   res.json(products);
 });
