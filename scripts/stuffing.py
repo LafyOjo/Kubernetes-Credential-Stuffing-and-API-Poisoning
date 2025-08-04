@@ -2,6 +2,7 @@ import requests
 import itertools
 import time
 import argparse
+from pathlib import Path
 
 
 def load_creds(path, limit=None):
@@ -15,7 +16,9 @@ def load_creds(path, limit=None):
     return passwords
 
 
-passwords = load_creds("scripts/data/rockyou.txt", limit=5000)
+passwords = load_creds(
+    Path(__file__).with_name("data").joinpath("rockyou.txt"), limit=5000
+)
 pool = itertools.cycle(passwords)
 
 
