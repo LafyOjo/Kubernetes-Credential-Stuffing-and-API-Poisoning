@@ -186,8 +186,8 @@ server starts your default browser opens the shop home page automatically at
    account displays how secure it is as a progress bar and lists the enabled
    protections. Alice intentionally has reduced security while Ben has all
    security features enabled. When a login succeeds the simulator fetches the
-   user's cart and orders from Demo Shop, demonstrating how Alice's data is
-   exposed while Ben remains safe.
+  user's cart from Demo Shop, demonstrating how Alice's data is exposed while
+  Ben remains safe.
 
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
