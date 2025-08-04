@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from "react";
 import ScoreForm from "../ScoreForm";
 import AlertsTable from "../AlertsTable";
-import { apiFetch } from "../api";
+import { apiFetch, TOKEN_KEY } from "../api";
 
 function Dashboard() {
   const [ping, setPing] = useState(null);
   const [refresh, setRefresh] = useState(0);
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(TOKEN_KEY);
 
   useEffect(() => {
     apiFetch("/ping")
