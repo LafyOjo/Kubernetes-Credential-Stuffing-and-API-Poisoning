@@ -15,7 +15,12 @@ async function fetchJSON(url, options = {}) {
     if (pw === null) throw new Error('Password required');
     fetchOpts.headers['X-Reauth-Password'] = pw;
   }
-  const res = await fetch(url, fetchOpts);
+  let res;
+  try {
+    res = await fetch(url, fetchOpts);
+  } catch {
+    throw new Error('Network error');
+  }
   if (res.status === 401) {
     try {
       await logout();
@@ -190,7 +195,12 @@ async function checkSession() {
 }
 
 async function logout() {
-  await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
+  try {
+    await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
+  } catch {
+    showMessage('Logout failed', true);
+    return;
+  }
   username = null;
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
