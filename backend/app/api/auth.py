@@ -147,9 +147,11 @@ async def logout(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    success = False
     try:
         revoke_token(token)
-        log_event(db, current_user.username, "logout", True)
+        success = True
     except Exception:
-        log_event(db, current_user.username, "logout", False)
+        pass
+    log_event(db, current_user.username, "logout", success)
     return {"detail": "Logged out"}
