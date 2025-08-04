@@ -3,7 +3,7 @@ import os
 import requests
 
 from app.core.config import settings
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,7 @@ from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
 from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
+from app.api.score import record_attempt
 
 
 router = APIRouter(tags=["auth"])
@@ -47,10 +48,11 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(user_in: UserCreate, db: Session = Depends(get_db)):
+def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
+        record_attempt(db, request.client.host, False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -63,6 +65,7 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
         ),
     )
     log_event(db, user.username, "login", True)
+    record_attempt(db, request.client.host, True)
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
