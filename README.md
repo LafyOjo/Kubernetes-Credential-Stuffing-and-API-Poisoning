@@ -131,27 +131,11 @@ Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 
 ```bash
 cd frontend
-npm install 
-
-# if there is an error re-run the command with the below command this is because linux runs commands differently to windows which is why there may be an error
-npm install --save-dev cross-env
-
-# If there is still an error go to the package-lock.json and input this code to hard-code the URL into the react-development server 
-"scripts": 
-{
-"start": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts start",
-"build": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts build",
-"test": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts test",
-  "eject": "react-scripts eject"
-}
-# once this is done then 
+npm install
 npm start
 ```
 
-The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
-this variable when building or running the frontend if the API lives at a
-different URL. Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key`
-header.
+The dashboard uses the `REACT_APP_API_BASE` environment variable to reach the backend API. By default, requests are proxied to `http://localhost:8001`. If your API runs on a different host or port, set `REACT_APP_API_BASE` in `frontend/.env` or when starting the app (e.g., `REACT_APP_API_BASE=https://api.example.com npm start`). Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key` header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
