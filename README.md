@@ -29,7 +29,7 @@ anomaly detection, and enforcing a zero‑trust API key:
 - `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:3005`).
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
 - `ANOMALY_MODEL` – algorithm used when anomaly detection is enabled. Choose
-  `isolation_forest` or `lof` (default `isolation_forest`).
+  `isolation_forest` or `lof` (default `lof`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
@@ -86,7 +86,7 @@ LOGIN_WITH_DEMOSHOP=true
 DEMO_SHOP_URL=http://localhost:3005
 ANOMALY_DETECTION=true
 # Algorithm for anomaly detection
-ANOMALY_MODEL=isolation_forest
+ANOMALY_MODEL=lof
 # Require password on every API request
 REAUTH_PER_REQUEST=false
 ZERO_TRUST_API_KEY=demo-key

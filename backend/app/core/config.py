@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     LOGIN_WITH_DEMOSHOP: bool = False
     DEMO_SHOP_URL: str = "http://localhost:3005"
     ANOMALY_DETECTION: bool = False
-    ANOMALY_MODEL: str = "isolation_forest"
+    ANOMALY_MODEL: str = "lof"
     REAUTH_PER_REQUEST: bool = False
     ZERO_TRUST_API_KEY: str = "demo-key"
 

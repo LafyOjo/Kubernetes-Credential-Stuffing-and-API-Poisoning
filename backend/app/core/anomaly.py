@@ -39,7 +39,7 @@ _model: Any = None
 def get_model() -> _Model | None:
     global _model
     if _model is None and IsolationForest is not None:
-        algo = os.getenv("ANOMALY_MODEL", "isolation_forest").lower()
+        algo = os.getenv("ANOMALY_MODEL", "lof").lower()
         _model = _Model(algo)
     return _model
 
