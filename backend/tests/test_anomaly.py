@@ -26,7 +26,7 @@ def teardown_function(_):
     SessionLocal().close()
 
 
-def test_anomalous_path_blocked_iforest(monkeypatch):
+def test_anomalous_path_blocked_lof(monkeypatch):
     monkeypatch.setenv('ANOMALY_DETECTION', 'true')
     monkeypatch.delenv('ANOMALY_MODEL', raising=False)
     client = _reload_app()
@@ -39,9 +39,9 @@ def test_anomalous_path_blocked_iforest(monkeypatch):
     _reload_app()
 
 
-def test_anomalous_path_blocked_lof(monkeypatch):
+def test_anomalous_path_blocked_iforest(monkeypatch):
     monkeypatch.setenv('ANOMALY_DETECTION', 'true')
-    monkeypatch.setenv('ANOMALY_MODEL', 'lof')
+    monkeypatch.setenv('ANOMALY_MODEL', 'isolation_forest')
     client = _reload_app()
 
     path = '/a' + 'b' * 100

@@ -50,6 +50,13 @@ def load_model(app: FastAPI) -> _Model | None:
                 app.state.anomaly_model = model
     return model
 
+def get_model() -> _Model | None:
+    global _model
+    if _model is None and IsolationForest is not None:
+        algo = os.getenv("ANOMALY_MODEL", "lof").lower()
+        _model = _Model(algo)
+    return _model
+
 
 def get_model(request: Request) -> _Model | None:
     """Retrieve the model from ``request.app.state``."""
