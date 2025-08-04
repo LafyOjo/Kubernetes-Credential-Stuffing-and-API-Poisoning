@@ -1,6 +1,7 @@
 from datetime import timedelta
 import os
 import requests
+import logging
 
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -34,6 +35,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     role = user_in.role or "user"
     user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
 
+    warning: str | None = None
     if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:8001").rstrip("/")
         try:
@@ -43,9 +45,17 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
                 timeout=3,
             )
         except Exception:
-            pass
+            logging.exception(
+                "Failed registering user %s with Demo Shop at %s",
+                user_in.username,
+                shop_url,
+            )
+            warning = "Demo Shop registration failed"
 
-    return user
+    response = {"id": user.id, "username": user.username, "role": user.role}
+    if warning:
+        response["warning"] = warning
+    return response
 
 
 @router.post("/login")
