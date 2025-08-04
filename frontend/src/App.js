@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  AUTH_TOKEN_KEY,
-  logAuditEvent,
-} from "./api";
+import { AUTH_TOKEN_KEY, logAuditEvent } from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
@@ -17,6 +14,9 @@ import "./App.css";
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
+  const [token, setToken] = useState(
+    localStorage.getItem(AUTH_TOKEN_KEY)
+  );
   const [selectedUser, setSelectedUser] = useState("alice");
 
   const handleLogout = async () => {
@@ -32,6 +32,11 @@ function App() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Refresh tables when auth status changes
+  useEffect(() => {
+    setRefreshKey((k) => k + 1);
+  }, [token]);
 
   if (!token) {
     return (
