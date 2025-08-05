@@ -164,7 +164,7 @@ export default function AttackSim({ user, token }) {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await apiFetch("/api/me", {
+              const infoResp = await fetch(`${API_BASE}/api/me`, {
                 headers: { Authorization: `Bearer ${token}` },
               });
               if (infoResp.ok) {

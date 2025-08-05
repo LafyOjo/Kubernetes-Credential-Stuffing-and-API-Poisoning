@@ -22,6 +22,7 @@ from app.api.events import router as events_router
 from app.api.last_logins import router as last_logins_router
 from app.api.access_logs import router as access_logs_router
 from app.api.audit import router as audit_router
+from app.api.policies import router as policies_router
 
 app = FastAPI(title="APIShield+")
 
@@ -72,6 +73,7 @@ app.include_router(events_router)   # /api/events
 app.include_router(last_logins_router)  # /api/last-logins
 app.include_router(access_logs_router)  # /api/access-logs
 app.include_router(audit_router)  # /api/audit/log
+app.include_router(policies_router)  # /api/policies and assignments
 
 
 @app.get("/ping")
