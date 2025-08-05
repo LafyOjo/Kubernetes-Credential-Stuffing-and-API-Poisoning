@@ -189,6 +189,12 @@ server starts your default browser opens the shop home page automatically at
   user's cart from Demo Shop, demonstrating how Alice's data is exposed while
   Ben remains safe.
 
+   The attack simulator also provisions example policies through the API. It
+   creates a lenient policy for Alice and a strict one for Ben using
+   `POST /api/policies` and assigns them to each user via
+   `POST /api/users/{username}/policy/{policy_id}`. This setup shows how
+   different policy settings affect the outcome of the demo.
+
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack
