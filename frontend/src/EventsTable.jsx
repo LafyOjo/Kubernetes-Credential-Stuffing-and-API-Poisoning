@@ -9,6 +9,7 @@ export default function EventsTable() {
   const load = async () => {
     const query = hours ? `?hours=${hours}` : "";
     try {
+      // apiFetch automatically appends authentication headers
       const resp = await apiFetch(`/api/events${query}`);
       if (!resp.ok) throw new Error(await resp.text());
       setEvents(await resp.json());
