@@ -27,7 +27,7 @@ function App() {
     return () => clearInterval(id);
   }, []);
 
-  // Clear session tokens and log the event without a full reload
+
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
@@ -56,7 +56,7 @@ function App() {
     <div className="app-container">
       {/* Dashboard title and logout */}
       <div className="header">
-        <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+        <h2 className="dashboard-header">APIShield+ Dashboard</h2>
         <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
       <div className="dashboard-section">
