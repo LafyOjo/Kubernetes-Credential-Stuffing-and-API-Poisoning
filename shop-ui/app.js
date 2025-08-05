@@ -1,4 +1,3 @@
-const API_BASE = 'http://127.0.0.1:8001';
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
 const AUDIT_URL = 'http://localhost:8001/api/audit/log';
 
@@ -54,7 +53,7 @@ async function logAuditEvent(event) {
 }
 
 async function loadProducts() {
-  const products = await fetchJSON(`${API_BASE}/products`, { noAuth: true });
+  const products = await fetchJSON('/products', { noAuth: true });
   const list = products.map(p => `
     <div class="col-md-4 mb-3">
       <div class="card h-100 text-center">
@@ -70,7 +69,7 @@ async function loadProducts() {
 
 async function addToCart(id) {
   try {
-    await fetchJSON(`${API_BASE}/cart`, {
+    await fetchJSON('/cart', {
       method: 'POST',
       body: JSON.stringify({ productId: id })
     });
@@ -83,7 +82,7 @@ async function addToCart(id) {
 
 async function viewCart() {
   try {
-    const items = await fetchJSON(`${API_BASE}/cart`);
+    const items = await fetchJSON('/cart');
     const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
     setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
   } catch (e) {
@@ -92,7 +91,7 @@ async function viewCart() {
 }
 
 async function purchase() {
-  await fetchJSON(`${API_BASE}/purchase`, { method: 'POST' });
+  await fetchJSON('/purchase', { method: 'POST' });
   showMessage('Purchase complete');
   updateCartCount();
   loadProducts();
@@ -127,7 +126,7 @@ function showContact() {
 
 async function viewStats() {
   try {
-    const data = await fetchJSON(`${API_BASE}/api-calls`);
+    const data = await fetchJSON('/api-calls');
     const list = Object.entries(data)
       .map(([user, count]) => `<li>${user}: ${count}</li>`)
       .join('');
@@ -153,7 +152,8 @@ function showLogin() {
     username = document.getElementById('username').value;
     const pw = document.getElementById('pw').value;
     try {
-      const data = await fetchJSON(`${API_BASE}/login`, {
+      // Call the demo-shop’s own login endpoint to set the session
+      const data = await fetchJSON('/login', {
         method: 'POST',
         body: JSON.stringify({ username, password: pw }),
         noAuth: true
@@ -187,7 +187,7 @@ function showRegister() {
     const usernameVal = document.getElementById('regUser').value;
     const pw = document.getElementById('regPw').value;
     try {
-      await fetchJSON(`${API_BASE}/register`, {
+      await fetchJSON('/register', {
         method: 'POST',
         body: JSON.stringify({ username: usernameVal, password: pw }),
         noAuth: true
@@ -210,7 +210,7 @@ async function checkSession() {
     return;
   }
   try {
-    const data = await fetchJSON(`${API_BASE}/session`);
+    const data = await fetchJSON('/session');
     if (data.loggedIn) {
       username = data.username;
       document.getElementById('loginBtn').style.display = 'none';
@@ -232,7 +232,7 @@ async function checkSession() {
 
 async function logout() {
   try {
-    await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
+    await fetchJSON('/logout', { method: 'POST', noAuth: true });
   } catch {
     showMessage('Logout failed', true);
     return;
@@ -251,7 +251,7 @@ async function updateCartCount() {
     return;
   }
   try {
-    const items = await fetchJSON(`${API_BASE}/cart`);
+  const items = await fetchJSON('/cart');
     document.getElementById('cartCount').textContent = items.length;
   } catch {
     document.getElementById('cartCount').textContent = 0;
