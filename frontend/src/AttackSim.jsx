@@ -22,7 +22,7 @@ export default function AttackSim({ user, token }) {
   }, [user]);
 
   useEffect(() => {
-    async function ensureUsers() {
+    async function setupDemoUsers() {
       for (const [name, info] of Object.entries(USER_DATA)) {
         try {
           await apiFetch("/register", {
@@ -39,8 +39,39 @@ export default function AttackSim({ user, token }) {
           // ignore errors (likely already registered)
         }
       }
+
+      try {
+        const strict = await apiFetch("/api/policies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            failed_attempts_limit: 3,
+            mfa_required: true,
+            geo_fencing_enabled: true,
+          }),
+        });
+        const lenient = await apiFetch("/api/policies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            failed_attempts_limit: 10,
+            mfa_required: false,
+            geo_fencing_enabled: false,
+          }),
+        });
+        if (strict.ok) {
+          const sData = await strict.json();
+          await apiFetch(`/api/users/ben/policy/${sData.id}`, { method: "POST" });
+        }
+        if (lenient.ok) {
+          const lData = await lenient.json();
+          await apiFetch(`/api/users/alice/policy/${lData.id}`, { method: "POST" });
+        }
+      } catch (err) {
+        console.error("policy setup error", err);
+      }
     }
-    ensureUsers();
+    setupDemoUsers();
   }, []);
 
   const [attemptsInput, setAttemptsInput] = useState(20);
