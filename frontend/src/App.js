@@ -31,9 +31,7 @@ function App() {
     const username = localStorage.getItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
     localStorage.removeItem(AUTH_TOKEN_KEY);
-    if (username) {
-      localStorage.removeItem(USERNAME_KEY);
-    }
+    localStorage.removeItem(USERNAME_KEY);
     setToken(null);
   };
 
