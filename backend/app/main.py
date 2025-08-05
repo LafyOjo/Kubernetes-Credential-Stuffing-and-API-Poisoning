@@ -26,10 +26,14 @@ from app.api.audit import router as audit_router
 app = FastAPI(title="APIShield+")
 
 # Permit requests from local development frontends
-allow_origins = [
-    "http://localhost:8001",  # existing API client
+default_origins = [
+    "http://localhost:8001",  # API client
     "http://localhost:3000",  # React dev server
+    "http://localhost:3005",  # Demo-shop UI (via port-forward)
 ]
+
+# Optionally override via ALLOW_ORIGINS env var (comma-separated)
+allow_origins = [o for o in os.getenv("ALLOW_ORIGINS", "").split(",") if o] or default_origins
 
 app.add_middleware(
     CORSMiddleware,
