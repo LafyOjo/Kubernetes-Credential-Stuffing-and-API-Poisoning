@@ -37,7 +37,7 @@ export default function UserAccounts({ onSelect }) {
 
   return (
     <div className="user-accounts">
-      <div className="user-buttons">
+      <div className="user-selector">
         {Object.keys(USER_DATA).map((u) => (
           <button
             key={u}
@@ -50,10 +50,6 @@ export default function UserAccounts({ onSelect }) {
       </div>
       <div className="user-info">
         <h3>{info.name} Security</h3>
-        <div className="progress">
-          <div style={{ width: `${info.security}%` }} />
-        </div>
-
         <p>{info.security}% safe</p>
         <ul>
           {info.features.map((f) => (
