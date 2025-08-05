@@ -31,6 +31,9 @@ default_origins = [
     "http://127.0.0.1:8001",  # API itself
     "http://127.0.0.1:3000",  # React dashboard
     "http://127.0.0.1:3005",  # Demo-shop UI
+    "http://localhost:8001",  # API itself (localhost)
+    "http://localhost:3000",  # React dashboard (localhost)
+    "http://localhost:3005",  # Demo-shop UI (localhost)
 ]
 
 # Optionally override via ALLOW_ORIGINS env var (comma-separated)
