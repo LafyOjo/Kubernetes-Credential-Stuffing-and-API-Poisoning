@@ -27,7 +27,7 @@ function App() {
     return () => clearInterval(id);
   }, []);
 
-  // Logs the logout event and clears stored credentials without reloading the page
+
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
