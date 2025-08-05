@@ -301,6 +301,7 @@ demonstration purposes and no license or ownership is claimed.
        --from-literal=ALLOW_ORIGINS=http://localhost:8001,http://localhost:3000,http://localhost:3005 \
        -n demo
    ```
+   Ensure `ALLOW_ORIGINS` includes the demo-shop port (`http://localhost:3005`) so the UI can reach the API.
 
    Replace `<random-secret>` with any string you want to use as the secret key.
 4. Build the detector image:
