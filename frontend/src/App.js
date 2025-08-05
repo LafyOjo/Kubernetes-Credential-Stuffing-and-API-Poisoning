@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AUTH_TOKEN_KEY, USERNAME_KEY, logout, logAuditEvent } from "./api";
+import { AUTH_TOKEN_KEY, USERNAME_KEY, logAuditEvent } from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
@@ -58,7 +58,7 @@ function App() {
       {/* Dashboard title and logout */}
       <div className="header">
         <h1 className="dashboard-header">APIShield+ Dashboard</h1>
-        <button className="logout-button" onClick={logout}>Logout</button>
+        <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
       <div className="dashboard-section">
         <UserAccounts onSelect={setSelectedUser} />
