@@ -101,28 +101,32 @@ def attack(
             user = "alice"
 
             token = None
-            if use_jwt:
-                login_resp = session.post(
-                    f"{score_base}/api/token",
-                    data={"username": user, "password": pwd},
-                    timeout=3,
-                )
-                login_ok = login_resp.status_code == 200
-                token = login_resp.json().get("access_token") if login_ok else None
-                if token:
-                    session.get(
-                        f"{score_base}/api/alerts",
-                        headers={"Authorization": f"Bearer {token}"},
+            try:
+                if use_jwt:
+                    login_resp = session.post(
+                        f"{score_base}/api/token",
+                        data={"username": user, "password": pwd},
                         timeout=3,
                     )
-            else:
-                login_resp = session.post(
-                    f"{shop_url}/login",
-                    json={"username": user, "password": pwd},
-                    headers={"X-Forwarded-For": ip},
-                    timeout=3,
-                )
-                login_ok = login_resp.status_code == 200
+                    login_ok = login_resp.status_code == 200
+                    token = login_resp.json().get("access_token") if login_ok else None
+                    if token:
+                        session.get(
+                            f"{score_base}/api/alerts",
+                            headers={"Authorization": f"Bearer {token}"},
+                            timeout=3,
+                        )
+                else:
+                    login_resp = session.post(
+                        f"{shop_url}/login",
+                        json={"username": user, "password": pwd},
+                        headers={"X-Forwarded-For": ip},
+                        timeout=3,
+                    )
+                    login_ok = login_resp.status_code == 200
+            except requests.exceptions.RequestException as exc:
+                print(f"LOGIN ERROR: {exc}")
+                login_ok = False
 
             score_payload = {
                 "client_ip": ip,
@@ -185,9 +189,6 @@ def attack(
                 if first_success_attempt is None:
                     first_success_attempt = i
                     first_success_time = time.time() - start
-
-                time.sleep(1 / rate_per_sec)
-
             time.sleep(1 / rate_per_sec)
     except KeyboardInterrupt:
         print_summary()
