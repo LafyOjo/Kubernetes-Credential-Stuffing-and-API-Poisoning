@@ -3,6 +3,7 @@ export const API_BASE = process.env.REACT_APP_API_BASE || "";
 export const API_KEY = process.env.REACT_APP_API_KEY || "";
 export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
 export const USERNAME_KEY = "apiShieldUsername";
+export const ZERO_TRUST_ENABLED_KEY = "zeroTrustEnabled";
 
 export async function logAuditEvent(event, username) {
   try {
@@ -43,7 +44,8 @@ export async function apiFetch(path, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  if (API_KEY && !headers["X-API-Key"]) {
+  const zeroTrust = localStorage.getItem(ZERO_TRUST_ENABLED_KEY) === "true";
+  if (zeroTrust && API_KEY && !headers["X-API-Key"]) {
     headers["X-API-Key"] = API_KEY;
   }
 
