@@ -27,8 +27,8 @@ kubectl port-forward svc/detector -n demo 8001:8001
 kubectl port-forward svc/front-end -n demo-shop 3005:80
 ```
 
-set `API_PORT=8001` (or `API_BASE=http://localhost:8001`) in the shop's
-environment so its axios client reaches the correct API host. Without these
+Then set `API_PORT=8001` (or `API_BASE=http://localhost:8001`) in the shop's
+environment so its axios client points to the forwarded API. Without these
 variables audit log forwarding will fail silently.
 
 Ensure the detector's `ALLOW_ORIGINS` environment variable includes
