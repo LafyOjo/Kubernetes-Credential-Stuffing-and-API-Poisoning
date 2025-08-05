@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { USER_DATA } from "./UserAccounts";
 import { apiFetch, API_BASE } from "./api";
+import AlertsChart from "./AlertsChart";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
 const DUMMY_PASSWORDS = [
@@ -11,7 +12,7 @@ const DUMMY_PASSWORDS = [
   "letmein",
 ];
 
-export default function AttackSim({ user }) {
+export default function AttackSim({ user, token }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
   useEffect(() => {
@@ -239,12 +240,12 @@ export default function AttackSim({ user }) {
           {results.first_success_attempt && (
             <>
               <p>
-                First Success: attempt {results.first_success_attempt} (in{' '}
+                First Success: attempt {results.first_success_attempt} (in{" "}
                 {results.first_success_time?.toFixed(2)}s)
               </p>
               {results.first_user_info && (
                 <p>
-                  User Info{' '}
+                  User Info{" "}
                   <code>{JSON.stringify(results.first_user_info)}</code>
                 </p>
               )}
@@ -263,6 +264,9 @@ export default function AttackSim({ user }) {
           )}
         </div>
       )}
+      <div className="attack-alerts">
+        <AlertsChart token={token} />
+      </div>
     </div>
   );
 }

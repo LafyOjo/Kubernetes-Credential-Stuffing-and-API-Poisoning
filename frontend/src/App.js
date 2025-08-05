@@ -83,7 +83,7 @@ function App() {
       </div>
       <div className="dashboard-section">
         <div className="attack-section">
-          <AttackSim user={selectedUser} />
+          <AttackSim user={selectedUser} token={token} />
           <div className="security-box">
             <SecurityToggle />
           </div>
