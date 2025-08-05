@@ -28,6 +28,7 @@ export default function AlertsChart() {
 
   const loadStats = async () => {
     try {
+      // apiFetch automatically appends authentication headers
       const resp = await apiFetch("/api/alerts/stats");
       if (!resp.ok) throw new Error(await resp.text());
       setStats(await resp.json());
