@@ -30,9 +30,9 @@ function App() {
 
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
-    await logAuditEvent("user_logout", username);
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
+    await logAuditEvent("user_logout", username);
     setToken(null);
   };
 
