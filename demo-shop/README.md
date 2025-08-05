@@ -31,6 +31,9 @@ set `API_PORT=8001` (or `API_BASE=http://localhost:8001`) in the shop's
 environment so its axios client reaches the correct API host. Without these
 variables audit log forwarding will fail silently.
 
+Ensure the detector's `ALLOW_ORIGINS` environment variable includes
+`http://localhost:3005` so browsers permit API calls from the demo-shop UI.
+
 With the server running you can simply open `http://localhost:3005/` in your
 browser to view the demo shop UI. The static files are served from the
 `shop-ui` directory automatically so no additional web server is required.

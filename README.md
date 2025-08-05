@@ -298,6 +298,7 @@ demonstration purposes and no license or ownership is claimed.
        --from-literal=SECRET_KEY=<random-secret> \
        --from-literal=DATABASE_URL=sqlite:///app.db \
        --from-literal=ZERO_TRUST_API_KEY=demo-key \
+       --from-literal=ALLOW_ORIGINS=http://localhost:8001,http://localhost:3000,http://localhost:3005 \
        -n demo
    ```
 
@@ -335,6 +336,10 @@ demonstration purposes and no license or ownership is claimed.
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
+
+   Ensure the detector's `ALLOW_ORIGINS` environment variable includes
+   `http://localhost:3005` so the demo-shop UI can reach the API without
+   browser CORS errors.
 
    Verify the API is reachable via HTTPS:
 
