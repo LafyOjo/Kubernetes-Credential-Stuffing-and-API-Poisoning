@@ -148,10 +148,13 @@ The next request starts with a clean slate.
 ```bash
 cd frontend
 npm install
-npm start
+REACT_APP_API_BASE=http://127.0.0.1:8001 npm start
 ```
 
-The dashboard uses the `REACT_APP_API_BASE` environment variable to reach the backend API. By default, requests are proxied to `http://localhost:8001`. If your API runs on a different host or port, set `REACT_APP_API_BASE` in `frontend/.env` or when starting the app (e.g., `REACT_APP_API_BASE=https://api.example.com npm start`). Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key` header.
+The dashboard reads the `REACT_APP_API_BASE` environment variable to locate the
+backend API. Setting it as shown above causes `apiFetch('/login')` to expand to
+`http://127.0.0.1:8001/login`. You may also place this value in `frontend/.env`.
+Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key` header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
