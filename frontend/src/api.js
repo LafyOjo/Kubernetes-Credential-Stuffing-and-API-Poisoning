@@ -1,4 +1,4 @@
-// Base URL for the backend API. If unset, requests use relative paths and rely on CRA's proxy.
+// Base URL for the backend API. Reads REACT_APP_API_BASE (e.g., http://127.0.0.1:8001).
 export const API_BASE = process.env.REACT_APP_API_BASE || "";
 export const API_KEY = process.env.REACT_APP_API_KEY || "";
 export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
