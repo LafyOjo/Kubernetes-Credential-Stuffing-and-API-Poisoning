@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { USER_DATA } from "./UserAccounts";
-import { apiFetch, API_BASE } from "./api";
+import { apiFetch, API_BASE, AUTH_TOKEN_KEY } from "./api";
 import AlertsChart from "./AlertsChart";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
@@ -195,11 +195,16 @@ export default function AttackSim({ user, token }) {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await fetch(`${API_BASE}/api/me`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
+              const prevToken = localStorage.getItem(AUTH_TOKEN_KEY);
+              localStorage.setItem(AUTH_TOKEN_KEY, token);
+              const infoResp = await apiFetch("/api/me");
               if (infoResp.ok) {
                 firstInfo = await infoResp.json();
+              }
+              if (prevToken) {
+                localStorage.setItem(AUTH_TOKEN_KEY, prevToken);
+              } else {
+                localStorage.removeItem(AUTH_TOKEN_KEY);
               }
             } catch (err) {
               console.error("Info error", err);
