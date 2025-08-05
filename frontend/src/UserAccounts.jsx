@@ -28,32 +28,32 @@ export const USER_DATA = {
 export default function UserAccounts({ onSelect }) {
   const [active, setActive] = useState("alice");
 
-  const select = (u) => {
-    setActive(u);
-    if (onSelect) onSelect(u);
+  const handleSelect = (username) => {
+    setActive(username);
+    onSelect?.(username);
   };
 
-  const info = USER_DATA[active];
+  const selected = USER_DATA[active];
 
   return (
     <div className="user-accounts">
       <div className="user-selector">
-        {Object.keys(USER_DATA).map((u) => (
+        {Object.keys(USER_DATA).map((username) => (
           <button
-            key={u}
-            onClick={() => select(u)}
-            className={active === u ? "active" : ""}
+            key={username}
+            onClick={() => handleSelect(username)}
+            className={active === username ? "active" : ""}
           >
-            {USER_DATA[u].name}
+            {USER_DATA[username].name}
           </button>
         ))}
       </div>
       <div className="user-info">
-        <h3>{info.name} Security</h3>
-        <p>{info.security}% safe</p>
+        <h3>{selected.name} Security</h3>
+        <p>{selected.security}% safe</p>
         <ul>
-          {info.features.map((f) => (
-            <li key={f}>{f}</li>
+          {selected.features.map((feature) => (
+            <li key={feature}>{feature}</li>
           ))}
         </ul>
       </div>
