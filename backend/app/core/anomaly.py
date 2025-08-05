@@ -1,4 +1,3 @@
-from typing import Any
 import os
 from threading import Lock
 from fastapi import Request, FastAPI
@@ -33,11 +32,14 @@ class _Model:
     def score(self, value: float) -> int:
         return int(self.model.predict([[value]])[0])
 
+
 _model_lock = Lock()
+_model: _Model | None = None
 
 
 def load_model(app: FastAPI) -> _Model | None:
     """Create and store the anomaly model on ``app.state`` if needed."""
+    global _model
     if IsolationForest is None:
         return None
     model = getattr(app.state, "anomaly_model", None)
@@ -48,14 +50,8 @@ def load_model(app: FastAPI) -> _Model | None:
                 algo = os.getenv("ANOMALY_MODEL", "isolation_forest").lower()
                 model = _Model(algo)
                 app.state.anomaly_model = model
+    _model = model
     return model
-
-def get_model() -> _Model | None:
-    global _model
-    if _model is None and IsolationForest is not None:
-        algo = os.getenv("ANOMALY_MODEL", "lof").lower()
-        _model = _Model(algo)
-    return _model
 
 
 def get_model(request: Request) -> _Model | None:
