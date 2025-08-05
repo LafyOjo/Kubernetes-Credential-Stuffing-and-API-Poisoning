@@ -28,13 +28,17 @@ app = FastAPI(title="APIShield+")
 
 # Permit requests from local development frontends
 default_origins = [
-    "http://localhost:8001",
-    "http://localhost:3000",
-    "http://localhost:3005",
+    "http://127.0.0.1:8001",  # API itself
+    "http://127.0.0.1:3000",  # React dashboard
+    "http://127.0.0.1:3005",  # Demo-shop UI
 ]
 
 # Optionally override via ALLOW_ORIGINS env var (comma-separated)
-allow_origins = os.getenv("ALLOW_ORIGINS", "").split(",") or default_origins
+allow_origins_env = os.getenv("ALLOW_ORIGINS")
+if allow_origins_env:
+    allow_origins = [origin.strip() for origin in allow_origins_env.split(",") if origin.strip()]
+else:
+    allow_origins = default_origins
 
 app.add_middleware(
     CORSMiddleware,
