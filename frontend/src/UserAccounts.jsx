@@ -5,7 +5,7 @@ export const USER_DATA = {
     name: "Alice",
     password: "secret",
 
-    security: 30,
+    security: 25,
     features: [
       "Weak password",
       "No MFA",
@@ -37,23 +37,39 @@ export default function UserAccounts({ onSelect }) {
 
   return (
     <div className="user-accounts">
-      <div className="user-selector">
+      <div className="btn-group mb-3">
         {Object.keys(USER_DATA).map((username) => (
           <button
             key={username}
+            type="button"
             onClick={() => handleSelect(username)}
-            className={active === username ? "active" : ""}
+            className={`btn btn-${active === username ? "primary" : "outline-primary"}`}
           >
             {USER_DATA[username].name}
           </button>
         ))}
       </div>
-      <div className="user-info">
-        <h3>{selected.name} Security</h3>
-        <p>{selected.security}% safe</p>
-        <ul>
+      <div className="card">
+        <div className="card-body">
+          <h3 className="card-title">{selected.name} Security</h3>
+          <div className="progress mb-3">
+            <div
+              className="progress-bar"
+              role="progressbar"
+              style={{ width: `${selected.security}%` }}
+              aria-valuenow={selected.security}
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              {selected.security}%
+            </div>
+          </div>
+        </div>
+        <ul className="list-group list-group-flush">
           {selected.features.map((feature) => (
-            <li key={feature}>{feature}</li>
+            <li key={feature} className="list-group-item">
+              {feature}
+            </li>
           ))}
         </ul>
       </div>
