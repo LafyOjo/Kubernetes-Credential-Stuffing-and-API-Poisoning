@@ -20,7 +20,7 @@ export async function logAuditEvent(event, username) {
   }
 }
 
-export function logout() {
+function logout() {
   const username = localStorage.getItem(USERNAME_KEY);
   if (localStorage.getItem(AUTH_TOKEN_KEY)) {
     logAuditEvent("user_logout", username);

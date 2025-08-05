@@ -27,6 +27,7 @@ function App() {
     return () => clearInterval(id);
   }, []);
 
+  // Clear session tokens and log the event without a full reload
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
