@@ -7,12 +7,12 @@ const { spawn } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
-const API_BASE = process.env.API_BASE || 'http://localhost:8001';
+const API_BASE = process.env.API_BASE ||
+  `http://localhost:${process.env.API_PORT || 8001}`;
 const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
-// Disable backend integration entirely by setting FORWARD_API=false
-// Disable integration with the APIShield backend unless explicitly enabled.
-// Most demos run the shop standalone so suppress the noisy API errors by default.
-const FORWARD_API = process.env.FORWARD_API === 'true';
+// Forward shop events to the APIShield backend unless explicitly disabled.
+// Disable backend integration entirely by setting FORWARD_API=false.
+const FORWARD_API = process.env.FORWARD_API !== 'false';
 const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
 
 const api = axios.create({ baseURL: API_BASE, timeout: API_TIMEOUT });
