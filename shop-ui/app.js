@@ -3,9 +3,11 @@ const AUDIT_URL = 'http://localhost:8001/api/audit/log';
 
 let username = null;
 
-function setContent(html) {
+function setContent(html, callback) {
   $('#content').fadeOut(200, function () {
-    $('#content').html(html).fadeIn(200);
+    $('#content').html(html).fadeIn(200, function () {
+      if (typeof callback === 'function') callback();
+    });
   });
 }
 
@@ -146,31 +148,32 @@ function showLogin() {
     </form>
     <p class="small text-muted">Demo credentials: <code>alice</code> / <code>secret</code></p>
     <p>Or <a href="#" id="registerLink">register</a></p>
-  `);
-  document.getElementById('loginForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    username = document.getElementById('username').value;
-    const pw = document.getElementById('pw').value;
-    try {
-      // Call the demo-shop’s own login endpoint to set the session
-      const data = await fetchJSON('/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password: pw }),
-        noAuth: true
-      });
-      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
-      await logAuditEvent('user_login_success');
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
-      updateCartCount();
-      loadProducts();
-    } catch (e) {
-      showMessage('Login failed', true);
-      username = null;
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-    }
+  `, () => {
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      username = document.getElementById('username').value;
+      const pw = document.getElementById('pw').value;
+      try {
+        // Call the demo-shop’s own login endpoint to set the session
+        const data = await fetchJSON('/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password: pw }),
+          noAuth: true
+        });
+        localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+        await logAuditEvent('user_login_success');
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        updateCartCount();
+        loadProducts();
+      } catch (e) {
+        showMessage('Login failed', true);
+        username = null;
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+      }
+    });
+    document.getElementById('registerLink').addEventListener('click', showRegister);
   });
-  document.getElementById('registerLink').addEventListener('click', showRegister);
 }
 
 function showRegister() {
@@ -181,22 +184,23 @@ function showRegister() {
       <input type="password" id="regPw" placeholder="Password" required><br>
       <button type="submit">Register</button>
     </form>
-  `);
-  document.getElementById('regForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const usernameVal = document.getElementById('regUser').value;
-    const pw = document.getElementById('regPw').value;
-    try {
-      await fetchJSON('/register', {
-        method: 'POST',
-        body: JSON.stringify({ username: usernameVal, password: pw }),
-        noAuth: true
-      });
-      showMessage('Registered! Please log in.');
-      showLogin();
-    } catch (e) {
-      showMessage('Registration failed', true);
-    }
+  `, () => {
+    document.getElementById('regForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const usernameVal = document.getElementById('regUser').value;
+      const pw = document.getElementById('regPw').value;
+      try {
+        await fetchJSON('/register', {
+          method: 'POST',
+          body: JSON.stringify({ username: usernameVal, password: pw }),
+          noAuth: true
+        });
+        showMessage('Registered! Please log in.');
+        showLogin();
+      } catch (e) {
+        showMessage('Registration failed', true);
+      }
+    });
   });
 }
 
