@@ -8,8 +8,7 @@ const { spawn } = require('child_process');
 const app = express();
 const PORT = process.env.PORT || 3005;
 // Build the API base URL from API_BASE or API_PORT. Defaults to localhost:8001.
-const API_BASE = process.env.API_BASE ||
-  `http://localhost:${process.env.API_PORT || 8001}`;
+const API_BASE = process.env.API_BASE || `http://localhost:${process.env.API_PORT || 8001}`;
 const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 // Forward shop events to the APIShield backend unless explicitly disabled.
 // Disable backend integration entirely by setting FORWARD_API=false.
