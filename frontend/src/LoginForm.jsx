@@ -19,6 +19,13 @@ export default function LoginForm({ onLogin }) {
       const data = await resp.json();
       localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
       localStorage.setItem(USERNAME_KEY, username);
+
+      await fetch(`${process.env.REACT_APP_SHOP_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, password }),
+      });
       await logAuditEvent("user_login_success", username);
       onLogin(data.access_token);
     } catch (err) {
