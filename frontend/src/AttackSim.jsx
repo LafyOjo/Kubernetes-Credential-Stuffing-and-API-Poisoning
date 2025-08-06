@@ -79,6 +79,7 @@ export default function AttackSim({ user, token }) {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [chainToken, setChainToken] = useState(null);
+  const [demoResults, setDemoResults] = useState(null);
   const chainRef = useRef(null);
 
   const fetchChainToken = async () => {
@@ -244,6 +245,22 @@ export default function AttackSim({ user, token }) {
     setRunning(false);
   };
 
+  const runDemoShopAttack = async () => {
+    try {
+      const resp = await apiFetch("/simulate/demo-shop-attack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempts: 50 }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setDemoResults(data.results);
+      }
+    } catch (err) {
+      // ignore errors
+    }
+  };
+
   return (
     <div className="attack-sim">
       <h2>Credential Stuffing Simulation</h2>
@@ -302,6 +319,16 @@ export default function AttackSim({ user, token }) {
       )}
       <div className="attack-alerts">
         <AlertsChart token={token} />
+      </div>
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={runDemoShopAttack}>
+          Run Credential Stuffing on Demo-Shop
+        </button>
+        {demoResults && (
+          <pre>
+            <code>{JSON.stringify(demoResults, null, 2)}</code>
+          </pre>
+        )}
       </div>
     </div>
   );

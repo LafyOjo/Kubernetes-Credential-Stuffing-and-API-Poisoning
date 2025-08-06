@@ -198,6 +198,13 @@ server starts your default browser opens the shop home page automatically at
    `POST /api/users/{username}/policy/{policy_id}`. This setup shows how
    different policy settings affect the outcome of the demo.
 
+   To generate traffic against the demo shop directly, the API exposes
+   `POST /simulate/demo-shop-attack`. This endpoint tries a small list of common
+   passwords against the shop's `/login` route and returns the HTTP status for
+   each attempt. The dashboard provides a **Run Credential Stuffing on Demo-Shop**
+   button which sends `{ "attempts": 50 }` to this route and displays the
+   results.
+
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack
