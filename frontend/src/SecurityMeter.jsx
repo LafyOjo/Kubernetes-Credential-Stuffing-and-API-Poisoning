@@ -12,6 +12,8 @@ export default function SecurityMeter({ username }) {
         if (resp.ok) {
           const data = await resp.json();
           setEnabled(data.enabled);
+        } else if (resp.status === 401 || resp.status === 403) {
+          setError('Not authorized');
         } else {
           setError(await resp.text());
         }
