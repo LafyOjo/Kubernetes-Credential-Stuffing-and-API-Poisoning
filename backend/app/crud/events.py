@@ -31,16 +31,17 @@ def get_last_logins(db: Session) -> dict[str, datetime]:
 
 
 def get_user_activity(db: Session, username: str, limit: int = 15) -> list[Event]:
-    """Return up to ``limit`` most recent events for a given user.
+    """Return up to ``limit`` most recent login events for ``username``.
 
     The query is ordered by timestamp descending so the newest events are
-    returned first.  A sane default ``limit`` of 15 is applied which satisfies
-    the requirement of returning roughly the 10–15 most recent rows.
+    returned first. A sane default ``limit`` of 15 is applied which satisfies
+    the requirement of returning roughly the 10–15 most recent rows. Both
+    successful and failed login attempts are included.
     """
 
     return (
         db.query(Event)
-        .filter(Event.username == username)
+        .filter(Event.username == username, Event.action == "login")
         .order_by(Event.timestamp.desc())
         .limit(limit)
         .all()
