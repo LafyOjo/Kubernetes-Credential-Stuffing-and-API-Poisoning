@@ -230,6 +230,24 @@ app.post('/purchase', requireAuth, (req, res) => {
   res.json({ status: 'purchased' });
 });
 
+app.get('/activity/:username', requireAuth, async (req, res) => {
+  if (!req.session.apiToken) {
+    return res.status(401).json({ error: 'no api token' });
+  }
+  if (!FORWARD_API) {
+    return res.json([]);
+  }
+  try {
+    const resp = await api.get(`/api/audit/activity/${req.params.username}`, {
+      headers: { Authorization: `Bearer ${req.session.apiToken}` },
+    });
+    res.json(resp.data);
+  } catch (e) {
+    console.error('Activity fetch failed');
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 app.get('/api-calls', requireAuth, async (req, res) => {
   if (!req.session.apiToken) {
     return res.status(401).json({ error: 'no api token' });

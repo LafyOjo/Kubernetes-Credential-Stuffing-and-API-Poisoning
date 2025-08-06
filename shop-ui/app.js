@@ -138,6 +138,18 @@ async function viewStats() {
   }
 }
 
+async function viewActivity() {
+  try {
+    const events = await fetchJSON(`/activity/${username}`);
+    const list = events
+      .map(e => `<li class="list-group-item d-flex justify-content-between"><span>${e.event}</span><span>${new Date(e.timestamp).toLocaleString()}</span></li>`) 
+      .join('');
+    setContent(`<h2>Activity Log</h2><ul class="list-group activity-list">${list}</ul>`);
+  } catch (e) {
+    showMessage('Failed to load activity', true);
+  }
+}
+
 function showLogin() {
   setContent(`
     <h2>Login</h2>
@@ -275,6 +287,7 @@ function init() {
   document.getElementById('loginBtn').addEventListener('click', showLogin);
   document.getElementById('logoutBtn').addEventListener('click', logout);
   document.getElementById('statsBtn').addEventListener('click', viewStats);
+  document.getElementById('activityBtn').addEventListener('click', viewActivity);
   document.getElementById('servicesBtn').addEventListener('click', showServices);
   document.getElementById('contactBtn').addEventListener('click', showContact);
 

@@ -122,6 +122,7 @@ export default function AttackSim({ user, token }) {
     let firstTime = null;
     let firstInfo = null;
     let cart = null;
+    let activity = null;
 
     const start = performance.now();
 
@@ -202,6 +203,10 @@ export default function AttackSim({ user, token }) {
               if (infoResp.ok) {
                 firstInfo = await infoResp.json();
               }
+              const actResp = await apiFetch(`/api/audit/activity/${targetUser}`);
+              if (actResp.ok) {
+                activity = await actResp.json();
+              }
               if (prevToken) {
                 localStorage.setItem(AUTH_TOKEN_KEY, prevToken);
               } else {
@@ -235,6 +240,7 @@ export default function AttackSim({ user, token }) {
         first_success_time: firstTime,
         first_user_info: firstInfo,
         cart,
+        activity,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -302,15 +308,30 @@ export default function AttackSim({ user, token }) {
                   <code>{JSON.stringify(results.first_user_info)}</code>
                 </p>
               )}
+            </>
+          )}
+          {results.activity && (
+            <div>
+              <h3>Compromised Data</h3>
+              <div>
+                <h4>Audit Log</h4>
+                <ul>
+                  {results.activity.map((a) => (
+                    <li key={a.id}>
+                      {a.event} - {a.timestamp}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               {results.cart && (
                 <div>
-                  <p>Cart</p>
+                  <h4>Cart</h4>
                   <pre>
                     <code>{JSON.stringify(results.cart, null, 2)}</code>
                   </pre>
                 </div>
               )}
-            </>
+            </div>
           )}
           {results.total_time && (
             <p>Total Time: {results.total_time.toFixed(2)}s</p>

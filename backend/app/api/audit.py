@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPExce
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
-from app.crud.audit import create_audit_log
-from app.schemas.audit import AuditLogCreate
+from app.crud.audit import create_audit_log, get_all_activity_for_user
+from app.schemas.audit import AuditLogCreate, AuditLogRead
+from app.api.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/audit", tags=["audit"])
 
@@ -42,3 +43,13 @@ async def audit_log(log: AuditLogCreate, db: Session = Depends(get_db)):
     create_audit_log(db, log.username, log.event.value)
     await _broadcast(log.event.value)
     return {"status": "logged"}
+
+
+@router.get("/activity/{username}", response_model=List[AuditLogRead])
+def get_user_activity(
+    username: str,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user),
+):
+    """Return audit events for a given user."""
+    return get_all_activity_for_user(db, username=username)

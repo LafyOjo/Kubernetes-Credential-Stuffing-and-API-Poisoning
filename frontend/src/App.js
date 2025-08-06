@@ -21,7 +21,7 @@ function App() {
   const [selectedUser, setSelectedUser] = useState("alice");
   const [policy, setPolicy] = useState(null);
   const [attackStatus, setAttackStatus] = useState(null);
-  const [cartData, setCartData] = useState(null);
+  const [compromisedData, setCompromisedData] = useState(null);
   const { user, setUser } = useContext(AuthContext);
 
 
@@ -43,7 +43,7 @@ function App() {
     setToken(null);
     setPolicy(null);
     setAttackStatus(null);
-    setCartData(null);
+    setCompromisedData(null);
     setUser(null);
   };
 
@@ -109,7 +109,7 @@ function App() {
 
   const runStuffing = async () => {
     setAttackStatus("Running attack…");
-    setCartData(null);
+    setCompromisedData(null);
     const user = policy === "ZeroTrust" ? "ben" : "alice";
     try {
       const resp = await apiFetch("/simulate/stuffing", {
@@ -123,8 +123,17 @@ function App() {
           data.detail || "Attack Blocked by our automated systems"
         );
       } else {
-        setCartData(data.cart);
-        setAttackStatus("Attack Successful! Compromised Cart:");
+        let activity = [];
+        try {
+          const actResp = await apiFetch(`/api/audit/activity/${user}`);
+          if (actResp.ok) {
+            activity = await actResp.json();
+          }
+        } catch (err) {
+          // ignore
+        }
+        setCompromisedData({ cart: data.cart, activity });
+        setAttackStatus("Attack Successful! Compromised Data:");
       }
     } catch (err) {
       setAttackStatus("Attack failed");
@@ -181,7 +190,25 @@ function App() {
             </div>
           </div>
           {attackStatus && <p>{attackStatus}</p>}
-          {cartData && <pre>{JSON.stringify(cartData, null, 2)}</pre>}
+          {compromisedData && (
+            <div>
+              <h4>Compromised Data</h4>
+              <div>
+                <h5>Audit Log</h5>
+                <ul>
+                  {compromisedData.activity.map((a) => (
+                    <li key={a.id}>
+                      {a.event} - {a.timestamp}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h5>Cart</h5>
+                <pre>{JSON.stringify(compromisedData.cart, null, 2)}</pre>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
