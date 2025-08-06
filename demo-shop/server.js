@@ -15,10 +15,15 @@ const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 // Disable backend integration entirely by setting FORWARD_API=false.
 const FORWARD_API = process.env.FORWARD_API !== 'false';
 const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
+const API_KEY = process.env.API_KEY;
+if (FORWARD_API && !API_KEY) {
+  console.error('Missing API_KEY environment variable. Set your ZERO_TRUST_API_KEY before starting the demo shop.');
+  process.exit(1);
+}
 
 const api = axios.create({ baseURL: API_BASE, timeout: API_TIMEOUT });
-if (process.env.API_KEY) {
-  api.defaults.headers.common['X-API-Key'] = process.env.API_KEY;
+if (API_KEY) {
+  api.defaults.headers.common['X-API-Key'] = API_KEY;
 }
 
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
