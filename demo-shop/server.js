@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
 const { spawn } = require('child_process');
+const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3005;
@@ -20,6 +21,7 @@ if (process.env.API_KEY) {
   api.defaults.headers.common['X-API-Key'] = process.env.API_KEY;
 }
 
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(bodyParser.json());
 app.use(session({
   secret: 'demo-secret',
