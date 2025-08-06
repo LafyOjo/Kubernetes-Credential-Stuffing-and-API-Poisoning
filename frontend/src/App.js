@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { AUTH_TOKEN_KEY, USERNAME_KEY, logAuditEvent, apiFetch } from "./api";
 import ScoreForm from "./ScoreForm";
 import AlertsTable from "./AlertsTable";
 import EventsTable from "./EventsTable";
 import AlertsChart from "./AlertsChart";
 import SecurityToggle from "./SecurityToggle";
+import SecurityMeter from "./SecurityMeter";
 import LoginForm from "./LoginForm";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
+import { AuthContext } from "./AuthContext";
+import jwtDecode from "jwt-decode";
 import "./App.css";
 import "./Dashboard.css";
 
@@ -19,7 +22,7 @@ function App() {
   const [policy, setPolicy] = useState(null);
   const [attackStatus, setAttackStatus] = useState(null);
   const [cartData, setCartData] = useState(null);
-  const [zeroTrustEnabled, setZeroTrustEnabled] = useState(true);
+  const { user, setUser } = useContext(AuthContext);
 
 
   // Poll for token changes across tabs/apps
@@ -41,19 +44,23 @@ function App() {
     setPolicy(null);
     setAttackStatus(null);
     setCartData(null);
-    setZeroTrustEnabled(true);
+    setUser(null);
   };
 
-  // Refresh tables and set zero-trust flag when auth status changes
+  // Refresh tables and decode user info when auth status changes
   useEffect(() => {
     setRefreshKey((k) => k + 1);
-    const username = localStorage.getItem(USERNAME_KEY);
-    if (username === "alice") {
-      setZeroTrustEnabled(false);
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setUser({ username: decoded.sub, role: decoded.role });
+      } catch (err) {
+        setUser(null);
+      }
     } else {
-      setZeroTrustEnabled(true);
+      setUser(null);
     }
-  }, [token]);
+  }, [token, setUser]);
 
   if (!token) {
     return (
@@ -65,15 +72,36 @@ function App() {
               onLogin={(tok, pol) => {
                 setToken(tok);
                 setPolicy(pol);
-                const username = localStorage.getItem(USERNAME_KEY);
-                if (username === "alice") {
-                  setZeroTrustEnabled(false);
-                } else {
-                  setZeroTrustEnabled(true);
-                }
               }}
             />
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "admin") {
+    return (
+      <div className="app-container">
+        <div className="header">
+          <h2 className="dashboard-header">APIShield+ Dashboard</h2>
+          <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+        <div className="dashboard-container">
+          {user && user.username === "alice" && (
+            <div className="dashboard-card">
+              <h2>Alice’s Security Status</h2>
+              <SecurityMeter username="alice" />
+            </div>
+          )}
+          {user && user.username === "ben" && (
+            <div className="dashboard-card">
+              <h2>Ben’s Security Status</h2>
+              <SecurityMeter username="ben" />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -91,7 +119,9 @@ function App() {
       });
       const data = await resp.json();
       if (data.blocked) {
-        setAttackStatus(data.detail || "Attack Blocked by our automated systems");
+        setAttackStatus(
+          data.detail || "Attack Blocked by our automated systems"
+        );
       } else {
         setCartData(data.cart);
         setAttackStatus("Attack Successful! Compromised Cart:");
@@ -131,6 +161,14 @@ function App() {
           <EventsTable token={token} />
         </div>
         <div className="dashboard-card">
+          <h2>Alice’s Security Status</h2>
+          <SecurityMeter username="alice" />
+        </div>
+        <div className="dashboard-card">
+          <h2>Ben’s Security Status</h2>
+          <SecurityMeter username="ben" />
+        </div>
+        <div className="dashboard-card">
           <div className="attack-section">
             {policy === "NoSecurity" && (
               <button onClick={runStuffing}>Attack Demo Shop (Alice)</button>
@@ -139,7 +177,7 @@ function App() {
               <button onClick={runStuffing}>Attack Demo Shop (Ben)</button>
             )}
             <div className="security-box">
-              <SecurityToggle forcedState={zeroTrustEnabled} />
+              <SecurityToggle />
             </div>
           </div>
           {attackStatus && <p>{attackStatus}</p>}
