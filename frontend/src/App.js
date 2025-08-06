@@ -69,7 +69,7 @@ function App() {
       });
       const data = await resp.json();
       if (data.blocked) {
-        setAttackStatus("Attack Blocked by our automated systems");
+        setAttackStatus(data.detail || "Attack Blocked by our automated systems");
       } else {
         setCartData(data.cart);
         setAttackStatus("Attack Successful! Compromised Cart:");
