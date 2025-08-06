@@ -205,6 +205,12 @@ server starts your default browser opens the shop home page automatically at
    button which sends `{ "attempts": 50 }` to this route and displays the
    results.
 
+   An additional admin-only route `POST /simulate/admin-attack` drives the
+   dashboard's attack controls. It accepts a JSON payload like
+   `{ "target": "alice", "attempts": 50 }` and returns a summary along with
+   any `compromisedData` such as the user's audit log and cart contents when
+   the attack succeeds.
+
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack

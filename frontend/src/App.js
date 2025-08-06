@@ -140,6 +140,24 @@ function App() {
     }
   };
 
+  async function runAdminAttack() {
+    const targetUser = document.getElementById('attack-target').value;
+    const res = await fetch('http://localhost:8001/simulate/admin-attack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target: targetUser, attempts: 50 })
+    });
+    const results = await res.json();
+    const resultsDiv = document.getElementById('attack-results');
+    const dataDiv = document.getElementById('compromised-data');
+    resultsDiv.innerText = `Summary: ${results.summary} (Attempts: ${results.attempts})`;
+    if (results.compromisedData) {
+      dataDiv.innerText = JSON.stringify(results.compromisedData, null, 2);
+    } else {
+      dataDiv.innerText = '';
+    }
+  }
+
   return (
     <div className="app-container">
       {/* Dashboard title and logout */}
@@ -209,6 +227,18 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+        <div className="dashboard-card">
+          <div className="attack-controls">
+            <span>Target: </span>
+            <select id="attack-target">
+              <option value="alice">Alice (Weak Policy)</option>
+              <option value="ben">Ben (Strong Policy)</option>
+            </select>
+            <button onClick={runAdminAttack}>Launch Attack</button>
+          </div>
+          <div id="attack-results"></div>
+          <div id="compromised-data"></div>
         </div>
       </div>
     </div>
