@@ -18,6 +18,7 @@ function App() {
   const [policy, setPolicy] = useState(null);
   const [attackStatus, setAttackStatus] = useState(null);
   const [cartData, setCartData] = useState(null);
+  const [zeroTrustEnabled, setZeroTrustEnabled] = useState(true);
 
 
   // Poll for token changes across tabs/apps
@@ -39,11 +40,18 @@ function App() {
     setPolicy(null);
     setAttackStatus(null);
     setCartData(null);
+    setZeroTrustEnabled(true);
   };
 
-  // Refresh tables when auth status changes
+  // Refresh tables and set zero-trust flag when auth status changes
   useEffect(() => {
     setRefreshKey((k) => k + 1);
+    const username = localStorage.getItem(USERNAME_KEY);
+    if (username === "alice") {
+      setZeroTrustEnabled(false);
+    } else {
+      setZeroTrustEnabled(true);
+    }
   }, [token]);
 
   if (!token) {
@@ -51,7 +59,18 @@ function App() {
       <div className="app-container">
         <h1 className="dashboard-header">Please log in</h1>
         <div className="dashboard-section">
-          <LoginForm onLogin={(tok, pol) => { setToken(tok); setPolicy(pol); }} />
+          <LoginForm
+            onLogin={(tok, pol) => {
+              setToken(tok);
+              setPolicy(pol);
+              const username = localStorage.getItem(USERNAME_KEY);
+              if (username === "alice") {
+                setZeroTrustEnabled(false);
+              } else {
+                setZeroTrustEnabled(true);
+              }
+            }}
+          />
         </div>
       </div>
     );
@@ -116,7 +135,7 @@ function App() {
             <button onClick={runStuffing}>Attack Demo Shop (Ben)</button>
           )}
           <div className="security-box">
-            <SecurityToggle />
+            <SecurityToggle forcedState={zeroTrustEnabled} />
           </div>
         </div>
         {attackStatus && <p>{attackStatus}</p>}
