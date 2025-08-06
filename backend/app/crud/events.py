@@ -28,3 +28,20 @@ def get_last_logins(db: Session) -> dict[str, datetime]:
         .all()
     )
     return {u: ts for u, ts in rows if u is not None}
+
+
+def get_user_activity(db: Session, username: str, limit: int = 15) -> list[Event]:
+    """Return up to ``limit`` most recent events for a given user.
+
+    The query is ordered by timestamp descending so the newest events are
+    returned first.  A sane default ``limit`` of 15 is applied which satisfies
+    the requirement of returning roughly the 10–15 most recent rows.
+    """
+
+    return (
+        db.query(Event)
+        .filter(Event.username == username)
+        .order_by(Event.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
