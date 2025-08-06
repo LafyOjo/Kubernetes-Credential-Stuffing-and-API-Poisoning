@@ -3,8 +3,8 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-from .core.db import engine  # Import the engine from your db setup
-from . import models  # Import your models
+from .core.db import engine, Base  # Import the engine and Base
+from . import models  # Import your models to register tables
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
@@ -34,7 +34,7 @@ app = FastAPI(title="APIShield+")
 @app.on_event("startup")
 def create_tables() -> None:
     """Ensure all database tables are created at startup."""
-    models.Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
 # Permit requests from local development frontends
 # Additional origins can be supplied via the ALLOW_ORIGINS env var
