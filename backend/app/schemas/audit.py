@@ -14,7 +14,7 @@ class AuditEventType(str, Enum):
 
 class AuditLogCreate(BaseModel):
     event: AuditEventType
-    username: str
+    username: str  # required
 
 
 class AuditLogRead(AuditLogCreate):
