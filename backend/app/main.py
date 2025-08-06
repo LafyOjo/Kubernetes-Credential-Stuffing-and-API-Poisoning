@@ -25,28 +25,16 @@ from app.api.audit import router as audit_router
 from app.api.policies import router as policies_router
 from app.api.simulate import router as simulate_router
 
-app = FastAPI(title="APIShield+")
+app = FastAPI(title="APIShield+ Detector API")
 
-# Permit requests from local development frontends
-default_origins = [
-    "http://127.0.0.1:8001",  # API itself
-    "http://127.0.0.1:3000",  # React dashboard
-    "http://127.0.0.1:3005",  # Demo-shop UI
-    "http://localhost:8001",  # API itself (localhost)
-    "http://localhost:3000",  # React dashboard (localhost)
-    "http://localhost:3005",  # Demo-shop UI (localhost)
+origins = [
+    "http://localhost:3000",  # React dashboard
+    "http://localhost:3005",  # Demo-shop UI
 ]
-
-# Optionally override via ALLOW_ORIGINS env var (comma-separated)
-allow_origins_env = os.getenv("ALLOW_ORIGINS")
-if allow_origins_env:
-    allow_origins = [origin.strip() for origin in allow_origins_env.split(",") if origin.strip()]
-else:
-    allow_origins = default_origins
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
