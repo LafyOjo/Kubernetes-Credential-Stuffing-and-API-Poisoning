@@ -6,12 +6,14 @@ import EventsTable from "../EventsTable";
 import SecurityMeter from "../SecurityMeter";
 import SecurityProfile from "../components/SecurityProfile";
 import LoginActivity from "../components/LoginActivity";
+import AttackSim from "../AttackSim";
 import { apiFetch, AUTH_TOKEN_KEY } from "../api";
 
 function Dashboard() {
   const [ping, setPing] = useState(null);
   const [refresh, setRefresh] = useState(0);
-  const [activity, setActivity] = useState([]);
+  // Store per-user activity and profile information
+  const [activity, setActivity] = useState({});
   const [securityProfile, setSecurityProfile] = useState({});
   // Retrieve the authentication token for API requests
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -36,15 +38,32 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
+    async function fetchUserData(u) {
+      try {
+        const actRes = await apiFetch(`/users/${u}/activity`);
+        if (actRes.ok) {
+          const actData = await actRes.json();
+          setActivity((prev) => ({ ...prev, [u]: actData }));
+        }
+      } catch (err) {
+        console.error("Activity fetch failed:", err);
+      }
+
+      try {
+        const profRes = await apiFetch(`/users/${u}/security-profile`);
+        if (profRes.ok) {
+          const profData = await profRes.json();
+          setSecurityProfile((prev) => ({ ...prev, [u]: profData }));
+        }
+      } catch (err) {
+        console.error("Profile fetch failed:", err);
+      }
+    }
+
     if (role === "user" && username) {
-      apiFetch(`/users/${username}/activity`)
-        .then((res) => res.json())
-        .then((data) => setActivity(data))
-        .catch((err) => console.error("Activity fetch failed:", err));
-      apiFetch(`/users/${username}/security-profile`)
-        .then((res) => res.json())
-        .then((data) => setSecurityProfile(data))
-        .catch((err) => console.error("Profile fetch failed:", err));
+      fetchUserData(username);
+    } else if (role === "admin") {
+      ["alice", "ben"].forEach(fetchUserData);
     }
   }, [role, username]);
 
@@ -57,8 +76,12 @@ function Dashboard() {
         <p>Backend ping says: {ping ?? "Loading…"} </p>
 
         <SecurityMeter username={username} />
-        <SecurityProfile profile={securityProfile} />
-        <LoginActivity activities={activity} />
+        {securityProfile[username] && (
+          <SecurityProfile profile={securityProfile[username]} />
+        )}
+        {activity[username] && (
+          <LoginActivity activities={activity[username]} />
+        )}
       </div>
     );
   }
@@ -68,12 +91,37 @@ function Dashboard() {
       <h1>APIShield+ Dashboard</h1>
       <p>Backend ping says: {ping ?? "Loading…"} </p>
 
+      {/* Admin overview panel */}
       <ScoreForm token={token} onNewAlert={handleNewAlert} />
 
       <hr style={{ margin: "2rem 0" }} />
 
       <AlertsTable token={token} refresh={refresh} />
       <EventsTable />
+
+      {/* Per-user security statistics */}
+      <div style={{ marginTop: "2rem" }}>
+        <h2>Alice</h2>
+        <SecurityMeter username="alice" />
+        {securityProfile.alice && (
+          <SecurityProfile profile={securityProfile.alice} />
+        )}
+        {activity.alice && <LoginActivity activities={activity.alice} />}
+
+        <h2>Ben</h2>
+        <SecurityMeter username="ben" />
+        {securityProfile.ben && (
+          <SecurityProfile profile={securityProfile.ben} />
+        )}
+        {activity.ben && <LoginActivity activities={activity.ben} />}
+      </div>
+
+      {/* Attack simulation section */}
+      <div
+        style={{ marginTop: "2rem", padding: "1rem", border: "1px solid #ccc" }}
+      >
+        <AttackSim token={token} />
+      </div>
     </div>
   );
 }
