@@ -42,5 +42,7 @@ def assign_policy(
     if not policy:
         raise HTTPException(status_code=404, detail="Policy not found")
     user.policy_id = policy_id
+    # Derive a simple string label so the front-end can display policy state.
+    user.policy = "ZeroTrust" if (policy.mfa_required or policy.geo_fencing_enabled) else "NoSecurity"
     db.commit()
-    return {"username": user.username, "policy_id": policy_id}
+    return {"username": user.username, "policy_id": policy_id, "policy": user.policy}

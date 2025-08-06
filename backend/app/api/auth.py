@@ -25,8 +25,20 @@ from app.api.score import record_attempt, is_rate_limited, DEFAULT_FAIL_LIMIT
 
 
 def is_attack_detected(db: Session, username: str) -> bool:
-    """Placeholder attack detection check."""
-    return False
+    """Determine whether the given user is currently under attack.
+
+    The detection here is intentionally simple: it reuses the existing
+    rate–limiting mechanism to see if the user has exceeded their
+    allowed number of failed attempts.  A real deployment could plug in
+    additional anomaly‑detection signals.
+    """
+
+    user = get_user_by_username(db, username)
+    if not user:
+        return False
+    policy_obj = get_policy_for_user(db, user)
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+    return is_rate_limited(db, user.id, fail_limit)
 
 
 router = APIRouter(tags=["auth"])
@@ -66,8 +78,10 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
+    policy_value = user.policy if user and hasattr(user, "policy") else "NoSecurity"
     policy_obj = get_policy_for_user(db, user) if user else None
     fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+
     if user and is_rate_limited(db, user.id, fail_limit):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -88,7 +102,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    policy_value = user.policy if hasattr(user, "policy") else "NoSecurity"
+
     if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -130,6 +144,14 @@ async def login_for_access_token(
     db: Session = Depends(get_db),
 ):
     user = get_user_by_username(db, form_data.username)
+    policy_value = user.policy if user and hasattr(user, "policy") else "NoSecurity"
+    policy_obj = get_policy_for_user(db, user) if user else None
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
     if not user or not verify_password(form_data.password, user.password_hash):
         log_event(db, form_data.username, "token", False)
         raise HTTPException(
@@ -137,7 +159,6 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    policy_value = user.policy if hasattr(user, "policy") else "NoSecurity"
     if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
