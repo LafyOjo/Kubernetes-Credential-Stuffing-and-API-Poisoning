@@ -5,7 +5,11 @@ It can integrate with the APIShield+ backend for additional telemetry. By defaul
 this forwarding is **enabled** so events reach the API unless explicitly disabled.
 Set the environment variable `FORWARD_API=false` to run the shop standalone without API calls. Requests to the API use a short timeout controlled by `API_TIMEOUT_MS` (default `2000`). Set `REAUTH_PER_REQUEST=true` if you want the shop to require the password on every request.
 Each protected endpoint checks the `X-Reauth-Password` header only when this option is enabled, and it is disabled by default so the shop behaves like a normal session-based app.
-Provide your `ZERO_TRUST_API_KEY` via the `API_KEY` environment variable so API calls include the required authentication.
+Provide your `ZERO_TRUST_API_KEY` via the `API_KEY` environment variable so API calls include the required authentication. Start the server with:
+
+```
+API_KEY=<your ZERO_TRUST_API_KEY> node server.js
+```
 
 The server pre-registers demo accounts so you can log in immediately with
 `alice`/`secret` or `ben`/`ILikeN1G3R!A##?`.
@@ -18,6 +22,7 @@ same authentication state.
 ```
 cd demo-shop
 npm install
+# Provide your ZERO_TRUST_API_KEY when starting the server
 API_KEY=<your ZERO_TRUST_API_KEY> node server.js
 ```
 

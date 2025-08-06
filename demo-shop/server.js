@@ -15,9 +15,12 @@ const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 // Disable backend integration entirely by setting FORWARD_API=false.
 const FORWARD_API = process.env.FORWARD_API !== 'false';
 const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
+// ZERO_TRUST_API_KEY used for authenticating backend requests
 const API_KEY = process.env.API_KEY;
 if (FORWARD_API && !API_KEY) {
-  console.error('Missing API_KEY environment variable. Set your ZERO_TRUST_API_KEY before starting the demo shop.');
+  console.error(
+    'Missing API_KEY environment variable. Start the shop with `API_KEY=<your ZERO_TRUST_API_KEY> node server.js`.'
+  );
   process.exit(1);
 }
 
