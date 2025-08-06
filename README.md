@@ -145,6 +145,11 @@ The next request starts with a clean slate.
 
 ## Running the frontend
 
+Start the FastAPI backend (for example with `uvicorn app.main:app --reload --port 8001`)
+in one terminal before launching the React development server in another.
+If the proxy starts while the backend is offline the console will show
+`Proxy error: ECONNREFUSED` and requests will fail.
+
 ```bash
 cd frontend
 npm install
