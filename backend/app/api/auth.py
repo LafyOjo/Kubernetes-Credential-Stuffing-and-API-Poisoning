@@ -24,6 +24,11 @@ from app.schemas.users import UserCreate, UserRead
 from app.api.score import record_attempt, is_rate_limited, DEFAULT_FAIL_LIMIT
 
 
+def is_attack_detected(db: Session, username: str) -> bool:
+    """Placeholder attack detection check."""
+    return False
+
+
 router = APIRouter(tags=["auth"])
 
 
@@ -61,8 +66,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 @router.post("/login")
 def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
-    policy = get_policy_for_user(db, user) if user else None
-    fail_limit = policy.failed_attempts_limit if policy else DEFAULT_FAIL_LIMIT
+    policy_obj = get_policy_for_user(db, user) if user else None
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
     if user and is_rate_limited(db, user.id, fail_limit):
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -83,6 +88,13 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    policy_value = user.policy if hasattr(user, "policy") else "NoSecurity"
+    if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Attack blocked by our automated systems",
+        )
+
     token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(
@@ -109,7 +121,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         except Exception:
             log_event(db, user.username, "shop_login_error", False)
 
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer", "policy": policy_value}
 
 
 @router.post("/api/token")
@@ -125,6 +137,13 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    policy_value = user.policy if hasattr(user, "policy") else "NoSecurity"
+    if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Attack blocked by our automated systems",
+        )
+
     access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(
@@ -132,7 +151,7 @@ async def login_for_access_token(
         )
     )
     log_event(db, user.username, "token", True)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "policy": policy_value}
 
 
 @router.get("/api/me")
