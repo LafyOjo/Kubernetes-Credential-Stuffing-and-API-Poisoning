@@ -1,0 +1,8 @@
+.security-profile {
+  list-style: none;
+  padding: 0;
+}
+
+.security-profile li {
+  margin-bottom: 4px;
+}
