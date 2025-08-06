@@ -31,25 +31,25 @@ from app.api.users import router as users_router
 app = FastAPI(title="APIShield+")
 
 # Permit requests from local development frontends
-default_origins = [
-    "http://127.0.0.1:8001",  # API itself
-    "http://127.0.0.1:3000",  # React dashboard
-    "http://127.0.0.1:3005",  # Demo-shop UI
-    "http://localhost:8001",  # API itself (localhost)
-    "http://localhost:3000",  # React dashboard (localhost)
-    "http://localhost:3005",  # Demo-shop UI (localhost)
+# Additional origins can be supplied via the ALLOW_ORIGINS env var
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3005",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3005",
 ]
 
-# Optionally override via ALLOW_ORIGINS env var (comma-separated)
 allow_origins_env = os.getenv("ALLOW_ORIGINS")
 if allow_origins_env:
-    allow_origins = [origin.strip() for origin in allow_origins_env.split(",") if origin.strip()]
-else:
-    allow_origins = default_origins
+    origins.extend(
+        origin.strip()
+        for origin in allow_origins_env.split(",")
+        if origin.strip()
+    )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
