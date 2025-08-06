@@ -30,19 +30,23 @@ def get_last_logins(db: Session) -> dict[str, datetime]:
     return {u: ts for u, ts in rows if u is not None}
 
 
-def get_user_activity(db: Session, username: str, limit: int = 15) -> list[Event]:
-    """Return up to ``limit`` most recent login events for ``username``.
+def get_user_activity(
+    db: Session,
+    username: str,
+    limit: int = 15,
+    action: str | None = "login",
+) -> list[Event]:
+    """Return up to ``limit`` most recent events for ``username``.
 
-    The query is ordered by timestamp descending so the newest events are
-    returned first. A sane default ``limit`` of 15 is applied which satisfies
-    the requirement of returning roughly the 10–15 most recent rows. Both
-    successful and failed login attempts are included.
+    By default only ``login`` events are returned. Pass ``action=None`` to
+    include events of all types.
     """
 
+    query = db.query(Event).filter(Event.username == username)
+    if action is not None:
+        query = query.filter(Event.action == action)
     return (
-        db.query(Event)
-        .filter(Event.username == username, Event.action == "login")
-        .order_by(Event.timestamp.desc())
+        query.order_by(Event.timestamp.desc())
         .limit(limit)
         .all()
     )

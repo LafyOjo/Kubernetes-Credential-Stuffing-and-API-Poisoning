@@ -18,7 +18,7 @@ def user_activity(
     db: Session = Depends(get_db),
     _user=Depends(get_current_user),
 ):
-    return get_user_activity(db, username)
+    return get_user_activity(db, username, action=None)
 
 
 class SecurityProfile(BaseModel):
