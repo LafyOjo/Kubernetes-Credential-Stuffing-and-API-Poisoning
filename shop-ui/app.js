@@ -296,8 +296,5 @@ function init() {
   }, 1000);
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+// Ensure UI hooks are attached only after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', init);
