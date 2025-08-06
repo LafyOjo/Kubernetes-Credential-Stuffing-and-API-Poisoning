@@ -70,6 +70,16 @@ function requireAuth(req, res, next) {
   next();
 }
 
+async function sendAuditLog(req, event, usernameOverride) {
+  if (!FORWARD_API) return;
+  const username = usernameOverride || req.session.username || 'unknown';
+  try {
+    await api.post('/api/audit/log', { event, username });
+  } catch (e) {
+    console.error('Audit log failed', e);
+  }
+}
+
 app.post('/register', async (req, res) => {
   // Accept both the legacy `user`/`pass` fields and the
   // newer `username`/`password` pair used by the backend.
@@ -84,14 +94,7 @@ app.post('/register', async (req, res) => {
     } catch (e) {
       console.error('Register API call failed');
     }
-    try {
-      await api.post('/api/audit/log', {
-        event: 'user_register',
-        username: username || 'unknown',
-      });
-    } catch (e) {
-      console.error('Audit log failed');
-    }
+    await sendAuditLog(req, 'user_register', username);
   }
   res.json({ status: 'ok' });
 });
@@ -119,14 +122,7 @@ app.post('/login', async (req, res) => {
       } catch (e) {
         console.error('Score API call failed');
       }
-      try {
-        await api.post('/api/audit/log', {
-          event: 'user_login_failure',
-          username: username || 'unknown',
-        });
-      } catch (e) {
-        console.error('Audit log failed');
-      }
+      await sendAuditLog(req, 'user_login_failure', username);
     }
     return res.status(401).json({ error: 'invalid credentials' });
   }
@@ -148,14 +144,7 @@ app.post('/login', async (req, res) => {
     } catch (e) {
       console.error('Score API call failed');
     }
-    try {
-      await api.post('/api/audit/log', {
-        event: 'user_login_success',
-        username: username || 'unknown',
-      });
-    } catch (e) {
-      console.error('Audit log failed');
-    }
+    await sendAuditLog(req, 'user_login_success', username);
   }
   res.json({ access_token: req.session.apiToken || null });
 });
@@ -171,14 +160,7 @@ app.post('/logout', async (req, res) => {
         console.error('Backend logout failed', e);
       }
     }
-    try {
-      await api.post('/api/audit/log', {
-        event: 'user_logout',
-        username: req.session.username || 'unknown',
-      });
-    } catch (e) {
-      console.error('Audit log failed', e);
-    }
+    await sendAuditLog(req, 'user_logout');
   }
   req.session.apiToken = null;
   req.session.destroy(() => res.json({ status: 'ok' }));
