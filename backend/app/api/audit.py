@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -37,6 +37,8 @@ async def _broadcast(event: str) -> None:
 @router.post("/log")
 async def audit_log(log: AuditLogCreate, db: Session = Depends(get_db)):
     """Record an audit event from a frontend and broadcast to listeners."""
+    if not log.username or not log.username.strip():
+        raise HTTPException(status_code=422, detail="username is required")
     create_audit_log(db, log.username, log.event.value)
     await _broadcast(log.event.value)
     return {"status": "logged"}

@@ -83,7 +83,10 @@ app.post('/register', async (req, res) => {
       console.error('Register API call failed');
     }
     try {
-      await api.post('/api/audit/log', { event: 'user_register', username });
+      await api.post('/api/audit/log', {
+        event: 'user_register',
+        username: username || 'unknown',
+      });
     } catch (e) {
       console.error('Audit log failed');
     }
@@ -115,7 +118,10 @@ app.post('/login', async (req, res) => {
         console.error('Score API call failed');
       }
       try {
-        await api.post('/api/audit/log', { event: 'user_login_failure', username });
+        await api.post('/api/audit/log', {
+          event: 'user_login_failure',
+          username: username || 'unknown',
+        });
       } catch (e) {
         console.error('Audit log failed');
       }
@@ -141,7 +147,10 @@ app.post('/login', async (req, res) => {
       console.error('Score API call failed');
     }
     try {
-      await api.post('/api/audit/log', { event: 'user_login_success', username });
+      await api.post('/api/audit/log', {
+        event: 'user_login_success',
+        username: username || 'unknown',
+      });
     } catch (e) {
       console.error('Audit log failed');
     }
@@ -163,7 +172,7 @@ app.post('/logout', async (req, res) => {
     try {
       await api.post('/api/audit/log', {
         event: 'user_logout',
-        username: req.session.username,
+        username: req.session.username || 'unknown',
       });
     } catch (e) {
       console.error('Audit log failed', e);
