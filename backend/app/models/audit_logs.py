@@ -7,6 +7,6 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, nullable=True, index=True)
+    username = Column(String, nullable=False, index=True)
     event = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
