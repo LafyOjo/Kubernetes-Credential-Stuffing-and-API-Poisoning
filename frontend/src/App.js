@@ -10,7 +10,7 @@ import LoginForm from "./LoginForm";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import { AuthContext } from "./AuthContext";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import "./App.css";
 import "./Dashboard.css";
 
