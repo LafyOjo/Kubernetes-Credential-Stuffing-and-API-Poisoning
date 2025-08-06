@@ -31,3 +31,8 @@ def test_audit_log_persists_event():
 def test_audit_log_rejects_invalid_event():
     resp = client.post('/api/audit/log', json={'event': 'invalid_event', 'username': 'alice'})
     assert resp.status_code == 422
+
+
+def test_audit_log_missing_username():
+    resp = client.post('/api/audit/log', json={'event': 'user_login_success'})
+    assert resp.status_code == 422
