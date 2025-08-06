@@ -9,6 +9,7 @@ import LoginForm from "./LoginForm";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import "./App.css";
+import "./Dashboard.css";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -58,19 +59,21 @@ function App() {
     return (
       <div className="app-container">
         <h1 className="dashboard-header">Please log in</h1>
-        <div className="dashboard-section">
-          <LoginForm
-            onLogin={(tok, pol) => {
-              setToken(tok);
-              setPolicy(pol);
-              const username = localStorage.getItem(USERNAME_KEY);
-              if (username === "alice") {
-                setZeroTrustEnabled(false);
-              } else {
-                setZeroTrustEnabled(true);
-              }
-            }}
-          />
+        <div className="dashboard-container">
+          <div className="dashboard-card">
+            <LoginForm
+              onLogin={(tok, pol) => {
+                setToken(tok);
+                setPolicy(pol);
+                const username = localStorage.getItem(USERNAME_KEY);
+                if (username === "alice") {
+                  setZeroTrustEnabled(false);
+                } else {
+                  setZeroTrustEnabled(true);
+                }
+              }}
+            />
+          </div>
         </div>
       </div>
     );
@@ -105,41 +108,43 @@ function App() {
         <h2 className="dashboard-header">APIShield+ Dashboard</h2>
         <button className="logout-button" onClick={handleLogout}>Logout</button>
       </div>
-      <div className="dashboard-section">
-        <UserAccounts onSelect={setSelectedUser} />
-      </div>
-      <div className="dashboard-section">
-        <LoginStatus token={token} />
-      </div>
-      <div className="dashboard-section">
-        <ScoreForm
-          token={token}
-          onNewAlert={() => setRefreshKey((k) => k + 1)}
-        />
-      </div>
-      <div className="dashboard-section">
-        <AlertsChart token={token} />
-      </div>
-      <div className="dashboard-section">
-        <AlertsTable refresh={refreshKey} token={token} />
-      </div>
-      <div className="dashboard-section">
-        <EventsTable token={token} />
-      </div>
-      <div className="dashboard-section">
-        <div className="attack-section">
-          {policy === "NoSecurity" && (
-            <button onClick={runStuffing}>Attack Demo Shop (Alice)</button>
-          )}
-          {policy === "ZeroTrust" && (
-            <button onClick={runStuffing}>Attack Demo Shop (Ben)</button>
-          )}
-          <div className="security-box">
-            <SecurityToggle forcedState={zeroTrustEnabled} />
-          </div>
+      <div className="dashboard-container">
+        <div className="dashboard-card">
+          <UserAccounts onSelect={setSelectedUser} />
         </div>
-        {attackStatus && <p>{attackStatus}</p>}
-        {cartData && <pre>{JSON.stringify(cartData, null, 2)}</pre>}
+        <div className="dashboard-card">
+          <LoginStatus token={token} />
+        </div>
+        <div className="dashboard-card">
+          <ScoreForm
+            token={token}
+            onNewAlert={() => setRefreshKey((k) => k + 1)}
+          />
+        </div>
+        <div className="dashboard-card">
+          <AlertsChart token={token} />
+        </div>
+        <div className="dashboard-card">
+          <AlertsTable refresh={refreshKey} token={token} />
+        </div>
+        <div className="dashboard-card">
+          <EventsTable token={token} />
+        </div>
+        <div className="dashboard-card">
+          <div className="attack-section">
+            {policy === "NoSecurity" && (
+              <button onClick={runStuffing}>Attack Demo Shop (Alice)</button>
+            )}
+            {policy === "ZeroTrust" && (
+              <button onClick={runStuffing}>Attack Demo Shop (Ben)</button>
+            )}
+            <div className="security-box">
+              <SecurityToggle forcedState={zeroTrustEnabled} />
+            </div>
+          </div>
+          {attackStatus && <p>{attackStatus}</p>}
+          {cartData && <pre>{JSON.stringify(cartData, null, 2)}</pre>}
+        </div>
       </div>
     </div>
   );

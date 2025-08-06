@@ -52,14 +52,12 @@ export default function UserAccounts({ onSelect }) {
       <div className="card">
         <div className="card-body">
           <h3 className="card-title">{selected.name} Security</h3>
-          <div className="progress mb-3">
+          <div className="security-meter mb-3">
             <div
-              className="progress-bar"
-              role="progressbar"
+              className={`security-meter-bar ${
+                selected.security < 50 ? "low-security" : "high-security"
+              }`}
               style={{ width: `${selected.security}%` }}
-              aria-valuenow={selected.security}
-              aria-valuemin="0"
-              aria-valuemax="100"
             >
               {selected.security}%
             </div>
