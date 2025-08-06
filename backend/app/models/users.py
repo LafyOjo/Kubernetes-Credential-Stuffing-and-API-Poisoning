@@ -10,3 +10,4 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     role = Column(String, nullable=False, default="user")
     policy_id = Column(Integer, ForeignKey("policies.id"), nullable=True)
+    policy = Column(String, nullable=False, default="NoSecurity")

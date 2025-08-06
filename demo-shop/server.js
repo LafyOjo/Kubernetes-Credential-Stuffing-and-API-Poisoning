@@ -188,8 +188,27 @@ app.post('/cart', requireAuth, (req, res) => {
   res.json({ status: 'added' });
 });
 
-app.get('/cart', requireAuth, (req, res) => {
-  res.json(users[req.session.username].cart);
+app.get('/cart', async (req, res) => {
+  let token = null;
+  const auth = req.get('Authorization');
+  if (auth && auth.startsWith('Bearer ')) {
+    token = auth.slice(7);
+  } else if (req.session.apiToken) {
+    token = req.session.apiToken;
+  }
+  if (!token) {
+    return res.status(401).send('Unauthorized');
+  }
+  try {
+    const me = await api.get('/api/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const username = me.data.username;
+    const userCart = users[username]?.cart || [];
+    res.json({ items: userCart });
+  } catch (e) {
+    res.status(401).send('Unauthorized');
+  }
 });
 
 app.post('/purchase', requireAuth, (req, res) => {

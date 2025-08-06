@@ -27,7 +27,7 @@ export default function LoginForm({ onLogin }) {
         body: JSON.stringify({ username, password }),
       });
       await logAuditEvent("user_login_success", username);
-      onLogin(data.access_token);
+      onLogin(data.access_token, data.policy);
     } catch (err) {
       await logAuditEvent("user_login_failure", username);
       setError(err.message);
