@@ -255,6 +255,8 @@ async function logout() {
   }
   await logAuditEvent('user_logout');
   username = null;
+  // remove any stored auth token so other apps reflect logout
+  localStorage.removeItem(AUTH_TOKEN_KEY);
   document.getElementById('loginBtn').style.display = 'inline-block';
   document.getElementById('logoutBtn').style.display = 'none';
   updateCartCount();
