@@ -1,0 +1,14 @@
+.login-activity {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.login-activity th,
+.login-activity td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.login-activity th {
+  background-color: #f2f2f2;
+}
