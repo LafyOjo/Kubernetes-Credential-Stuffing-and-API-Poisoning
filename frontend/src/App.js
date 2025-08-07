@@ -22,6 +22,8 @@ function App() {
   const [zeroTrustEnabled, setZeroTrustEnabled] = useState(null);
   const [attackStatus, setAttackStatus] = useState(null);
   const [compromisedData, setCompromisedData] = useState(null);
+  const [adminTarget, setAdminTarget] = useState("alice");
+  const [adminResults, setAdminResults] = useState(null);
   const { user, setUser } = useContext(AuthContext);
 
 
@@ -141,20 +143,17 @@ function App() {
   };
 
   async function runAdminAttack() {
-    const targetUser = document.getElementById('attack-target').value;
-    const res = await fetch('http://localhost:8001/simulate/admin-attack', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ target: targetUser, attempts: 50 })
-    });
-    const results = await res.json();
-    const resultsDiv = document.getElementById('attack-results');
-    const dataDiv = document.getElementById('compromised-data');
-    resultsDiv.innerText = `Summary: ${results.summary} (Attempts: ${results.attempts})`;
-    if (results.compromisedData) {
-      dataDiv.innerText = JSON.stringify(results.compromisedData, null, 2);
-    } else {
-      dataDiv.innerText = '';
+    setAdminResults(null);
+    try {
+      const res = await apiFetch("/simulate/admin-attack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target: adminTarget, attempts: 50 }),
+      });
+      const data = await res.json();
+      setAdminResults(data);
+    } catch (err) {
+      setAdminResults({ summary: "Attack failed" });
     }
   }
 
@@ -231,14 +230,40 @@ function App() {
         <div className="dashboard-card">
           <div className="attack-controls">
             <span>Target: </span>
-            <select id="attack-target">
+            <select
+              value={adminTarget}
+              onChange={(e) => setAdminTarget(e.target.value)}
+            >
               <option value="alice">Alice (Weak Policy)</option>
               <option value="ben">Ben (Strong Policy)</option>
             </select>
             <button onClick={runAdminAttack}>Launch Attack</button>
           </div>
-          <div id="attack-results"></div>
-          <div id="compromised-data"></div>
+          {adminResults && (
+            <div>
+              <div>Summary: {adminResults.summary}</div>
+              {adminResults.compromisedData && (
+                <div>
+                  <div>
+                    <h5>Audit Log</h5>
+                    <ul>
+                      {adminResults.compromisedData.activity.map((a, idx) => (
+                        <li key={idx}>
+                          {a.event} - {a.timestamp}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h5>Cart</h5>
+                    <pre>
+                      {JSON.stringify(adminResults.compromisedData.cart, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
