@@ -26,11 +26,13 @@ export default function LoginForm({ onLogin }) {
         credentials: "include",
         body: JSON.stringify({ username, password }),
       });
-      await logAuditEvent({ event: "user_login_success", username }).catch(() => {});
+      const safeUsername = username || "unknown";
+      await logAuditEvent({ event: "user_login_success", username: safeUsername }).catch(() => {});
       onLogin(data.access_token, data.policy);
     } catch (err) {
       console.error("Login failed:", err.message);
-      await logAuditEvent({ event: "user_login_failure", username }).catch(() => {});
+      const safeUsername = username || "unknown";
+      await logAuditEvent({ event: "user_login_failure", username: safeUsername }).catch(() => {});
       setError(err.message || "An unexpected error occurred.");
     }
   };
