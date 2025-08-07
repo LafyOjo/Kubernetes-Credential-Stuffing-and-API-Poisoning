@@ -107,12 +107,12 @@ function App() {
     );
   }
 
-  const runStuffing = async () => {
+  const runDemoShopAttack = async () => {
     setAttackStatus("Running attack…");
     setCompromisedData(null);
     const user = policy === "ZeroTrust" ? "ben" : "alice";
     try {
-      const resp = await apiFetch("/simulate/stuffing", {
+      const resp = await apiFetch("/simulate/demo-shop-attack", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user }),
@@ -198,10 +198,10 @@ function App() {
         <div className="dashboard-card">
           <div className="attack-section">
             {policy === "NoSecurity" && (
-              <button onClick={runStuffing}>Attack Demo Shop (Alice)</button>
+              <button onClick={runDemoShopAttack}>Attack Demo Shop (Alice)</button>
             )}
             {policy === "ZeroTrust" && (
-              <button onClick={runStuffing}>Attack Demo Shop (Ben)</button>
+              <button onClick={runDemoShopAttack}>Attack Demo Shop (Ben)</button>
             )}
             <div className="security-box">
               <SecurityToggle />

@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, constr
+from pydantic import BaseModel
 
 
 class AuditEventType(str, Enum):
@@ -14,7 +14,7 @@ class AuditEventType(str, Enum):
 
 class AuditLogCreate(BaseModel):
     event: AuditEventType
-    username: constr(min_length=1)
+    username: str
 
 
 class AuditLogRead(AuditLogCreate):
