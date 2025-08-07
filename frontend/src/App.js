@@ -19,7 +19,7 @@ function App() {
 
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
-  const [policy, setPolicy] = useState(null);
+  const [zeroTrustEnabled, setZeroTrustEnabled] = useState(null);
   const [attackStatus, setAttackStatus] = useState(null);
   const [compromisedData, setCompromisedData] = useState(null);
   const { user, setUser } = useContext(AuthContext);
@@ -41,7 +41,7 @@ function App() {
     localStorage.removeItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
     setToken(null);
-    setPolicy(null);
+    setZeroTrustEnabled(null);
     setAttackStatus(null);
     setCompromisedData(null);
     setUser(null);
@@ -71,7 +71,7 @@ function App() {
             <LoginForm
               onLogin={(tok, pol) => {
                 setToken(tok);
-                setPolicy(pol);
+                setZeroTrustEnabled(pol === "ZeroTrust");
               }}
             />
           </div>
@@ -110,7 +110,7 @@ function App() {
   const runDemoShopAttack = async () => {
     setAttackStatus("Running attack…");
     setCompromisedData(null);
-    const user = policy === "ZeroTrust" ? "ben" : "alice";
+    const user = zeroTrustEnabled ? "ben" : "alice";
     try {
       const resp = await apiFetch("/simulate/demo-shop-attack", {
         method: "POST",
@@ -179,13 +179,13 @@ function App() {
           />
         </div>
         <div className="dashboard-card">
-          <AlertsChart token={token} />
+          <AlertsChart />
         </div>
         <div className="dashboard-card">
-          <AlertsTable refresh={refreshKey} token={token} />
+          <AlertsTable refresh={refreshKey} />
         </div>
         <div className="dashboard-card">
-          <EventsTable token={token} />
+          <EventsTable />
         </div>
         <div className="dashboard-card">
           <h2>Alice’s Security Status</h2>
@@ -197,14 +197,14 @@ function App() {
         </div>
         <div className="dashboard-card">
           <div className="attack-section">
-            {policy === "NoSecurity" && (
+            {zeroTrustEnabled === false && (
               <button onClick={runDemoShopAttack}>Attack Demo Shop (Alice)</button>
             )}
-            {policy === "ZeroTrust" && (
+            {zeroTrustEnabled === true && (
               <button onClick={runDemoShopAttack}>Attack Demo Shop (Ben)</button>
             )}
             <div className="security-box">
-              <SecurityToggle />
+              <SecurityToggle forcedState={zeroTrustEnabled} />
             </div>
           </div>
           {attackStatus && <p>{attackStatus}</p>}
