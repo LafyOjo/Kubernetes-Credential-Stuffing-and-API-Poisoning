@@ -90,7 +90,11 @@ function requireAuth(req, res, next) {
 
 async function sendAuditLog(req, event, usernameOverride) {
   if (!FORWARD_API) return;
-  const username = usernameOverride || req.session.username || 'unknown';
+  const username = usernameOverride || req.session.username;
+  if (!username) {
+    console.error('Missing username for audit log');
+    return;
+  }
   try {
     await api.post('/api/audit/log', { event, username });
   } catch (e) {
@@ -258,10 +262,11 @@ app.get('/api-calls', requireAuth, async (req, res) => {
     return res.json({});
   }
   try {
-    const resp = await api.get('/api/user-calls', {
+    const resp = await api.get('/api/user-calls/me', {
       headers: { Authorization: `Bearer ${req.session.apiToken}` },
     });
-    res.json(resp.data);
+    const count = resp.data.count ?? resp.data;
+    res.json({ [req.session.username]: count });
   } catch (e) {
     console.error('User call fetch failed');
     res.status(500).json({ error: 'failed' });
