@@ -43,10 +43,23 @@ export function apiFetch(path, options = {}) {
 }
 
 // Helper function for logging events, which now also uses the authenticated apiFetch.
-export function logAuditEvent(event) {
+const VALID_EVENTS = new Set([
+  'user_login_success',
+  'user_login_failure',
+  'user_logout',
+]);
+
+export function logAuditEvent(payload = {}) {
+  const { event, username } = payload;
+  if (!VALID_EVENTS.has(event)) {
+    return Promise.resolve();
+  }
+  if (typeof username !== 'string' || username.trim() === '') {
+    return Promise.resolve();
+  }
   return apiFetch('/api/audit/log', {
     method: 'POST',
-    body: JSON.stringify(event),
+    body: JSON.stringify({ event, username }),
   });
 }
 

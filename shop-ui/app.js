@@ -36,7 +36,16 @@ async function fetchJSON(url, options = {}) {
   return res.json();
 }
 
+const VALID_EVENTS = new Set([
+  'user_login_success',
+  'user_login_failure',
+  'user_logout',
+]);
+
 async function logAuditEvent(event) {
+  if (!VALID_EVENTS.has(event) || !username) {
+    return;
+  }
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const headers = { 'Content-Type': 'application/json' };
   if (token) {
@@ -173,7 +182,9 @@ function showLogin() {
           noAuth: true
         });
         localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
-        await logAuditEvent('user_login_success');
+        if (username) {
+          await logAuditEvent('user_login_success');
+        }
         document.getElementById('loginBtn').style.display = 'none';
         document.getElementById('logoutBtn').style.display = 'inline-block';
         updateCartCount();
@@ -253,7 +264,9 @@ async function logout() {
     showMessage('Logout failed', true);
     return;
   }
-  await logAuditEvent('user_logout');
+  if (username) {
+    await logAuditEvent('user_logout');
+  }
   username = null;
   // remove any stored auth token so other apps reflect logout
   localStorage.removeItem(AUTH_TOKEN_KEY);
