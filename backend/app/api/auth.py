@@ -94,6 +94,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
             db,
             request.client.host,
             False,
+            username=user_in.username,
             user_id=user.id if user else None,
             fail_limit=fail_limit,
         )
@@ -120,6 +121,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         db,
         request.client.host,
         True,
+        username=user_in.username,
         user_id=user.id,
         fail_limit=fail_limit,
     )
