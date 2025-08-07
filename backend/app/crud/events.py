@@ -28,3 +28,25 @@ def get_last_logins(db: Session) -> dict[str, datetime]:
         .all()
     )
     return {u: ts for u, ts in rows if u is not None}
+
+
+def get_user_activity(
+    db: Session,
+    username: str,
+    limit: int = 15,
+    action: str | None = "login",
+) -> list[Event]:
+    """Return up to ``limit`` most recent events for ``username``.
+
+    By default only ``login`` events are returned. Pass ``action=None`` to
+    include events of all types.
+    """
+
+    query = db.query(Event).filter(Event.username == username)
+    if action is not None:
+        query = query.filter(Event.action == action)
+    return (
+        query.order_by(Event.timestamp.desc())
+        .limit(limit)
+        .all()
+    )

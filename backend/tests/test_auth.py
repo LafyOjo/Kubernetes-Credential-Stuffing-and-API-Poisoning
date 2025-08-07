@@ -1,4 +1,5 @@
 import os
+import logging
 
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
@@ -72,6 +73,23 @@ def test_register_forward(monkeypatch):
     assert resp.status_code == 200
     assert captured['url'] == 'http://shop/register'
     assert captured['payload'] == {'username': 'carol', 'password': 'pw'}
+
+
+def test_register_forward_error_reported(monkeypatch, caplog):
+    def fake_post(url, json, timeout=3):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(auth_module.requests, 'post', fake_post)
+    monkeypatch.setenv('REGISTER_WITH_DEMOSHOP', 'true')
+    monkeypatch.setenv('DEMO_SHOP_URL', 'http://shop')
+
+    with caplog.at_level(logging.ERROR):
+        resp = client.post('/register', json={'username': 'frank', 'password': 'pw'})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data['username'] == 'frank'
+    assert data.get('warning')
+    assert 'Failed registering user' in caplog.text
 
 
 def test_login_forward(monkeypatch):

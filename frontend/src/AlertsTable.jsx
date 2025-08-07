@@ -7,9 +7,8 @@ export default function AlertsTable({ refresh, token }) {
 
   const loadAlerts = async () => {
     try {
-      const resp = await apiFetch("/api/alerts", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch("/api/alerts");
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {
@@ -17,10 +16,12 @@ export default function AlertsTable({ refresh, token }) {
     }
   };
 
-  // reload when component mounts or when `refresh` changes
+  // reload when component mounts or when `refresh` or `token` changes
   useEffect(() => {
-    loadAlerts();
-  }, [refresh]);
+    if (token) {
+      loadAlerts();
+    }
+  }, [refresh, token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (alerts.length === 0) return <p>No alerts yet.</p>;

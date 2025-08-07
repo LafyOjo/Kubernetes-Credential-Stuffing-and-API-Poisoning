@@ -7,9 +7,8 @@ export default function LoginStatus({ token }) {
 
   const load = async () => {
     try {
-      const resp = await apiFetch("/api/last-logins", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch("/api/last-logins");
       if (!resp.ok) throw new Error(await resp.text());
       setLogins(await resp.json());
     } catch (err) {
@@ -18,9 +17,11 @@ export default function LoginStatus({ token }) {
   };
 
   useEffect(() => {
-    load();
+    if (token) {
+      load();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (Object.keys(logins).length === 0) return <p>No login data.</p>;

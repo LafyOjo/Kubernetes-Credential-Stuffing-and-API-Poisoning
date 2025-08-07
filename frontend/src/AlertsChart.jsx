@@ -28,9 +28,8 @@ export default function AlertsChart({ token }) {
 
   const loadStats = async () => {
     try {
-      const resp = await apiFetch("/api/alerts/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch("/api/alerts/stats");
       if (!resp.ok) throw new Error(await resp.text());
       setStats(await resp.json());
     } catch (err) {
@@ -39,9 +38,10 @@ export default function AlertsChart({ token }) {
   };
 
   useEffect(() => {
-    loadStats();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (token) {
+      loadStats();
+    }
+  }, [token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (stats.length === 0) return <p>No data yet.</p>;

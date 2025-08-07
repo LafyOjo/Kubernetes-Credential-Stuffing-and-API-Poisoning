@@ -8,17 +8,12 @@ def get_user_by_username(db: Session, username: str) -> User | None:
 
 def create_user(
     db: Session,
-    *,
     username: str,
     password_hash: str,
-    role: str = "user",
-    security_score: int = 0,
 ) -> User:
     user = User(
         username=username,
         password_hash=password_hash,
-        role=role,
-        security_score=security_score,
     )
     db.add(user)
     db.commit()

@@ -1,9 +1,10 @@
 from datetime import timedelta
 import os
 import requests
+import logging
 
 from app.core.config import settings
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -19,8 +20,7 @@ from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
 from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
-from app.core.account_security import calculate_security_score
-
+from app.api.score import record_attempt, is_rate_limited, DEFAULT_FAIL_LIMIT
 
 router = APIRouter(tags=["auth"])
 
@@ -30,20 +30,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     if get_user_by_username(db, user_in.username):
         raise HTTPException(status_code=400, detail="Username already registered")
     hashed = get_password_hash(user_in.password)
-    role = user_in.role or "user"
-    score = calculate_security_score(
-        user_in.password,
-        two_factor=user_in.two_factor,
-        security_question=user_in.security_question,
-    )
-    user = create_user(
-        db,
-        username=user_in.username,
-        password_hash=hashed,
-        role=role,
-        security_score=score,
-    )
 
+
+    warning: str | None = None
     if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
         try:
@@ -53,21 +42,46 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
                 timeout=3,
             )
         except Exception:
-            pass
+            logging.exception(
+                "Failed registering user %s with Demo Shop at %s",
+                user_in.username,
+                shop_url,
+            )
+            warning = "Demo Shop registration failed"
 
-    return user
+    response = {"id": user.id, "username": user.username}
+    if warning:
+        response["warning"] = warning
+    return response
 
 
 @router.post("/login")
-def login(user_in: UserCreate, db: Session = Depends(get_db)):
+def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
+    fail_limit = DEFAULT_FAIL_LIMIT
+
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
+
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
+        record_attempt(
+            db,
+            request.client.host,
+            False,
+            username=user_in.username,
+            user_id=user.id if user else None,
+            fail_limit=fail_limit,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
     token = create_access_token(
         data={"sub": user.username, "role": user.role},
         expires_delta=timedelta(
@@ -75,6 +89,14 @@ def login(user_in: UserCreate, db: Session = Depends(get_db)):
         ),
     )
     log_event(db, user.username, "login", True)
+    record_attempt(
+        db,
+        request.client.host,
+        True,
+        username=user_in.username,
+        user_id=user.id,
+        fail_limit=fail_limit,
+    )
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
@@ -96,6 +118,12 @@ async def login_for_access_token(
     db: Session = Depends(get_db),
 ):
     user = get_user_by_username(db, form_data.username)
+    fail_limit = DEFAULT_FAIL_LIMIT
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
     if not user or not verify_password(form_data.password, user.password_hash):
         log_event(db, form_data.username, "token", False)
         raise HTTPException(
@@ -114,11 +142,33 @@ async def login_for_access_token(
 
 
 @router.get("/api/me")
-async def read_me(current_user: dict = Depends(get_current_user)):
-    return current_user
+async def read_me(current_user=Depends(get_current_user)):
+    """Return basic information about the authenticated user.
+
+    The credential stuffing simulator expects to see both the username and
+    the password hash of the compromised account.  Returning the SQLAlchemy
+    model directly can result in the password hash being omitted or the
+    object not being JSON serialisable in some environments.  Explicitly
+    constructing the response dictionary ensures these fields are always
+    present.
+    """
+
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "password_hash": current_user.password_hash,
+    }
 
 
 @router.post("/logout")
-async def logout(token: str = Depends(oauth2_scheme)):
-    revoke_token(token)
+async def logout(
+    token: str = Depends(oauth2_scheme),
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        revoke_token(token)
+        log_event(db, current_user.username, "logout", True)
+    except Exception:
+        log_event(db, current_user.username, "logout", False)
     return {"detail": "Logged out"}

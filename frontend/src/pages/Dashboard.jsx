@@ -1,29 +1,45 @@
-// frontend/src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
-import ScoreForm from "../ScoreForm";
-import AlertsTable from "../AlertsTable";
-import { apiFetch } from "../api";
+import jwtDecode  from "jwt-decode";
+import SecurityMeter from "../SecurityMeter";
+import LoginActivity from "../components/LoginActivity";
+import { apiFetch, AUTH_TOKEN_KEY } from "../api";
 
 function Dashboard() {
   const [ping, setPing] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+  let username = null;
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      username = decoded.sub;
+    } catch {
+      // ignore decoding errors
+    }
+  }
 
   useEffect(() => {
     apiFetch("/ping")
       .then((res) => res.json())
       .then((data) => setPing(data.message))
-      .catch((err) => console.error("Ping failed:", err));
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!username) return;
+    apiFetch(`/users/${username}/activity`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setActivity(data))
+      .catch(() => {});
+  }, [username]);
 
   return (
     <div style={{ padding: "1rem" }}>
       <h1>APIShield+ Dashboard</h1>
       <p>Backend ping says: {ping ?? "Loading…"} </p>
-
-      <ScoreForm />
-
-      <hr style={{ margin: "2rem 0" }} />
-
-      <AlertsTable />
+      {username && <SecurityMeter username={username} />}
+      {activity.length > 0 && <LoginActivity activities={activity} />}
     </div>
   );
 }

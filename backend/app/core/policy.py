@@ -9,6 +9,8 @@ from app.models.alerts import Alert
 
 FAIL_LIMIT = int(os.getenv("FAIL_LIMIT", 5))
 FAIL_WINDOW_SECONDS = int(os.getenv("FAIL_WINDOW_SECONDS", 60))
+# Paths that bypass policy engine risk checks
+EXEMPT_PATHS = {"/score", "/register", "/login"}
 
 
 def assess_risk(db: Session, request: Request) -> bool:
@@ -31,7 +33,7 @@ class PolicyEngineMiddleware:
             await self.app(scope, receive, send)
             return
         request = Request(scope, receive=receive)
-        if request.url.path == "/score":
+        if request.url.path in EXEMPT_PATHS:
             await self.app(scope, receive, send)
             return
         # Create DB session lazily to avoid overhead

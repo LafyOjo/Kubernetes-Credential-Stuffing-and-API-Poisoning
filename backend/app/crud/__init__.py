@@ -1,6 +1,7 @@
 from .alerts import get_all_alerts
 from .users import get_user_by_username, create_user
 from .events import create_event, get_events
+from .audit import create_audit_log
 
 __all__ = [
     "get_all_alerts",
@@ -8,4 +9,5 @@ __all__ = [
     "create_user",
     "create_event",
     "get_events",
+    "create_audit_log",
 ]

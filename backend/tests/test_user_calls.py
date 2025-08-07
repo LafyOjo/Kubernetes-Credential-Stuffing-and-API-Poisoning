@@ -24,7 +24,7 @@ def teardown_function(_):
 def test_user_call_counter():
     token = create_access_token({"sub": "alice"})
     with SessionLocal() as db:
-        create_user(db, username='alice', password_hash=get_password_hash('pw'), role='admin')
+        create_user(db, username='alice', password_hash=get_password_hash('pw'))
 
     # call ping twice
     client.get('/ping', headers={'Authorization': f'Bearer {token}'})
@@ -34,3 +34,17 @@ def test_user_call_counter():
     assert resp.status_code == 200
     data = resp.json()
     assert data['alice'] >= 2
+
+
+def test_user_call_counter_me():
+    token = create_access_token({"sub": "alice"})
+    with SessionLocal() as db:
+        create_user(db, username='alice', password_hash=get_password_hash('pw'))
+
+    # call ping once
+    client.get('/ping', headers={'Authorization': f'Bearer {token}'})
+
+    resp = client.get('/api/user-calls/me', headers={'Authorization': f'Bearer {token}'})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data['count'] >= 1

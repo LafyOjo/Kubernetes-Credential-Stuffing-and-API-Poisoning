@@ -9,9 +9,8 @@ export default function EventsTable({ token }) {
   const load = async () => {
     const query = hours ? `?hours=${hours}` : "";
     try {
-      const resp = await apiFetch(`/api/events${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch(`/api/events${query}`);
       if (!resp.ok) throw new Error(await resp.text());
       setEvents(await resp.json());
     } catch (err) {
@@ -20,9 +19,10 @@ export default function EventsTable({ token }) {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hours]);
+    if (token) {
+      load();
+    }
+  }, [hours, token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (events.length === 0) return <p>No events.</p>;

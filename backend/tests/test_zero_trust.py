@@ -23,7 +23,7 @@ def setup_function(_):
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
-        create_user(db, username='admin', password_hash=get_password_hash('pw'), role='admin')
+        create_user(db, username='admin', password_hash=get_password_hash('pw'))
 
 
 def _auth_headers():

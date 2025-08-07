@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { USER_DATA } from "./UserAccounts";
-import { apiFetch, API_BASE } from "./api";
+import { apiFetch, API_BASE, AUTH_TOKEN_KEY } from "./api";
+import AlertsChart from "./AlertsChart";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
 const DUMMY_PASSWORDS = [
@@ -21,7 +22,7 @@ export default function AttackSim({ user }) {
   }, [user]);
 
   useEffect(() => {
-    async function ensureUsers() {
+    async function setupDemoUsers() {
       for (const [name, info] of Object.entries(USER_DATA)) {
         try {
           await apiFetch("/register", {
@@ -38,25 +39,49 @@ export default function AttackSim({ user }) {
           // ignore errors (likely already registered)
         }
       }
+
     }
-    ensureUsers();
+    setupDemoUsers();
   }, []);
 
   const [attemptsInput, setAttemptsInput] = useState(20);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [chainToken, setChainToken] = useState(null);
+  const [demoResults, setDemoResults] = useState(null);
+  const chainRef = useRef(null);
+
+  const fetchChainToken = async () => {
+    try {
+      const resp = await apiFetch("/api/security/chain");
+      if (resp.ok) {
+        const data = await resp.json();
+        setChainToken(data.chain);
+        chainRef.current = data.chain;
+        return data.chain;
+      }
+    } catch (err) {
+      console.error("Chain fetch error", err);
+    }
+    return null;
+  };
 
   const simulateAttack = async () => {
     setRunning(true);
     setResults(null);
     setError(null);
+    setChainToken(null);
+    chainRef.current = null;
     let securityEnabled = false;
     try {
       const secResp = await apiFetch("/api/security");
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
+        if (securityEnabled) {
+          await fetchChainToken();
+        }
       }
     } catch (err) {
       console.error("Security state error", err);
@@ -66,8 +91,8 @@ export default function AttackSim({ user }) {
     let firstAttempt = null;
     let firstTime = null;
     let firstInfo = null;
-    let firstCart = null;
-    let firstOrders = null;
+    let cart = null;
+    let activity = null;
 
     const start = performance.now();
 
@@ -104,9 +129,13 @@ export default function AttackSim({ user }) {
       }
 
       try {
+        const headers = { "Content-Type": "application/json" };
+        if (securityEnabled && chainRef.current) {
+          headers["X-Chain-Password"] = chainRef.current;
+        }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
           body: JSON.stringify({
             client_ip: "10.0.0.1",
             auth_result: loginOk ? "success" : "failure",
@@ -127,6 +156,10 @@ export default function AttackSim({ user }) {
         console.error("Score error", err);
       }
 
+      if (securityEnabled) {
+        await fetchChainToken();
+      }
+
       if (loginOk) {
         successes++;
         if (firstAttempt === null) {
@@ -134,11 +167,20 @@ export default function AttackSim({ user }) {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await apiFetch("/api/me", {
-                headers: { Authorization: `Bearer ${token}` },
-              });
+              const prevToken = localStorage.getItem(AUTH_TOKEN_KEY);
+              localStorage.setItem(AUTH_TOKEN_KEY, token);
+              const infoResp = await apiFetch("/api/me");
               if (infoResp.ok) {
                 firstInfo = await infoResp.json();
+              }
+              const actResp = await apiFetch(`/api/audit/activity/${targetUser}`);
+              if (actResp.ok) {
+                activity = await actResp.json();
+              }
+              if (prevToken) {
+                localStorage.setItem(AUTH_TOKEN_KEY, prevToken);
+              } else {
+                localStorage.removeItem(AUTH_TOKEN_KEY);
               }
             } catch (err) {
               console.error("Info error", err);
@@ -147,17 +189,13 @@ export default function AttackSim({ user }) {
         }
       }
 
-      if (shopOk && firstCart === null) {
+      if (shopOk && cart === null) {
         try {
-          const cartResp = await fetch(`${SHOP_URL}/carts/${targetUser}/items`);
+          const cartResp = await fetch(`${SHOP_URL}/cart`, {
+            credentials: "include",
+          });
           if (cartResp.ok) {
-            firstCart = await cartResp.json();
-          }
-          const orderResp = await fetch(
-            `${SHOP_URL}/orders/search/customerId?custId=${targetUser}`
-          );
-          if (orderResp.ok) {
-            firstOrders = await orderResp.json();
+            cart = await cartResp.json();
           }
         } catch (err) {
           console.error("Fetch shop info", err);
@@ -171,8 +209,8 @@ export default function AttackSim({ user }) {
         first_success_attempt: firstAttempt,
         first_success_time: firstTime,
         first_user_info: firstInfo,
-        first_cart: firstCart,
-        first_orders: firstOrders,
+        cart,
+        activity,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -181,6 +219,22 @@ export default function AttackSim({ user }) {
     const totalTime = (performance.now() - start) / 1000;
     setResults((r) => ({ ...r, total_time: totalTime }));
     setRunning(false);
+  };
+
+  const runDemoShopAttack = async () => {
+    try {
+      const resp = await apiFetch("/simulate/demo-shop-attack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attempts: 50 }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setDemoResults(data.results);
+      }
+    } catch (err) {
+      // ignore errors
+    }
   };
 
   return (
@@ -215,32 +269,58 @@ export default function AttackSim({ user }) {
           {results.first_success_attempt && (
             <>
               <p>
-                First Success: attempt {results.first_success_attempt} (in{' '}
+                First Success: attempt {results.first_success_attempt} (in{" "}
                 {results.first_success_time?.toFixed(2)}s)
               </p>
               {results.first_user_info && (
                 <p>
-                  User Info{' '}
+                  User Info{" "}
                   <code>{JSON.stringify(results.first_user_info)}</code>
                 </p>
               )}
-              {results.first_cart && (
-                <p>
-                  Cart <code>{JSON.stringify(results.first_cart)}</code>
-                </p>
-              )}
-              {results.first_orders && (
-                <p>
-                  Orders <code>{JSON.stringify(results.first_orders)}</code>
-                </p>
-              )}
             </>
+          )}
+          {results.activity && (
+            <div>
+              <h3>Compromised Data</h3>
+              <div>
+                <h4>Audit Log</h4>
+                <ul>
+                  {results.activity.map((a) => (
+                    <li key={a.id}>
+                      {a.event} - {a.timestamp}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {results.cart && (
+                <div>
+                  <h4>Cart</h4>
+                  <pre>
+                    <code>{JSON.stringify(results.cart, null, 2)}</code>
+                  </pre>
+                </div>
+              )}
+            </div>
           )}
           {results.total_time && (
             <p>Total Time: {results.total_time.toFixed(2)}s</p>
           )}
         </div>
       )}
+      <div className="attack-alerts">
+        <AlertsChart token={localStorage.getItem(AUTH_TOKEN_KEY)} />
+      </div>
+      <div style={{ marginTop: "1rem" }}>
+        <button onClick={runDemoShopAttack}>
+          Run Credential Stuffing on Demo-Shop
+        </button>
+        {demoResults && (
+          <pre>
+            <code>{JSON.stringify(demoResults, null, 2)}</code>
+          </pre>
+        )}
+      </div>
     </div>
   );
 }

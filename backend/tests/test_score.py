@@ -15,21 +15,21 @@ from app.core.security import get_password_hash  # noqa: E402
 client = TestClient(app)
 
 
-def _auth_headers():
-    resp = client.post('/login', json={'username': 'admin', 'password': 'pw'})
+def _auth_headers(c):
+    resp = c.post('/login', json={'username': 'admin', 'password': 'pw'})
     token = resp.json()['access_token']
     return {'Authorization': f'Bearer {token}'}
 
 
-def current_chain():
-    return client.get('/api/security/chain', headers=_auth_headers()).json()['chain']
+def current_chain(c=client):
+    return c.get('/api/security/chain', headers=_auth_headers(c)).json()['chain']
 
 
 def setup_function(_):
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
-        create_user(db, username='admin', password_hash=get_password_hash('pw'), role='admin')
+        create_user(db, username='admin', password_hash=get_password_hash('pw'))
 
 
 def teardown_function(_):
