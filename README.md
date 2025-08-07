@@ -145,11 +145,6 @@ The next request starts with a clean slate.
 
 ## Running the frontend
 
-Start the FastAPI backend (for example with `uvicorn app.main:app --reload --port 8001`)
-in one terminal before launching the React development server in another.
-If the proxy starts while the backend is offline the console will show
-`Proxy error: ECONNREFUSED` and requests will fail.
-
 ```bash
 cd frontend
 npm install
@@ -162,6 +157,27 @@ backend API. Setting it as shown above causes `apiFetch('/login')` to expand to
 Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key` header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
+
+## Generating Data for the Dashboard
+
+The admin dashboard is designed to display security alerts, primarily from credential stuffing attacks. After a fresh installation, the dashboard will be empty because no security events have occurred yet.
+
+To populate the dashboard with data, you can simulate an attack using the provided script.
+
+1.  **Ensure the backend is running:**
+    ```bash
+    # From the 'backend' directory
+    uvicorn app.main:app --reload --port 8001
+    ```
+
+2.  **Run the credential stuffing script:** This script will attempt to log in as "alice" using a list of common passwords. These failed attempts will trigger alerts that appear on the dashboard.
+
+    ```bash
+    # From the project's root directory
+    python scripts/stuffing.py --username alice --passwords-file scripts/data/rockyou.txt
+    ```
+
+3.  **Refresh the Admin Dashboard:** Log in as your admin user (`alice_admin`). You should now see alerts and statistics related to the simulated attack.
 
 ## Starting the Demo Shop
 
@@ -203,19 +219,6 @@ server starts your default browser opens the shop home page automatically at
    `POST /api/users/{username}/policy/{policy_id}`. This setup shows how
    different policy settings affect the outcome of the demo.
 
-   To generate traffic against the demo shop directly, the API exposes
-   `POST /simulate/demo-shop-attack`. This endpoint tries a small list of common
-   passwords against the shop's `/login` route and returns the HTTP status for
-   each attempt. The dashboard provides a **Run Credential Stuffing on Demo-Shop**
-   button which sends `{ "attempts": 50 }` to this route and displays the
-   results.
-
-   An additional admin-only route `POST /simulate/admin-attack` drives the
-   dashboard's attack controls. It accepts a JSON payload like
-   `{ "target": "alice", "attempts": 50 }` and returns a summary along with
-   any `compromisedData` such as the user's audit log and cart contents when
-   the attack succeeds.
-
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack
@@ -225,7 +228,8 @@ server starts your default browser opens the shop home page automatically at
 3. To use the command-line to login and create a user that would be used across the services and for the 
    purpose of testing we need to use the terminal, below is an example of how to register a user and login
    
-   ```
+   ``
+   `
   $ curl -X POST http://localhost:8001/register \
     -H "Content-Type: application/json" \
     -d '{"username":"alice","password":"secret"}'
