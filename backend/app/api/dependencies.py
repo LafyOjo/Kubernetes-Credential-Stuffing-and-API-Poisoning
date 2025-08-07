@@ -43,6 +43,11 @@ async def get_current_user(
     return user
 
 
+def get_current_active_user(user=Depends(get_current_user)):
+    """Return the current authenticated user."""
+    return user
+
+
 def require_role(required: str):
     def checker(user=Depends(get_current_user)):
         if user.role != required:
