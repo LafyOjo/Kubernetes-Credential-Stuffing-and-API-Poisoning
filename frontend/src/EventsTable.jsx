@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function EventsTable() {
+export default function EventsTable({ token }) {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
   const [hours, setHours] = useState(24);
@@ -19,9 +19,10 @@ export default function EventsTable() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hours]);
+    if (token) {
+      load();
+    }
+  }, [hours, token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (events.length === 0) return <p>No events.</p>;

@@ -339,7 +339,7 @@ export default function AttackSim({ user }) {
         </div>
       )}
       <div className="attack-alerts">
-        <AlertsChart />
+        <AlertsChart token={localStorage.getItem(AUTH_TOKEN_KEY)} />
       </div>
       <div style={{ marginTop: "1rem" }}>
         <button onClick={runDemoShopAttack}>

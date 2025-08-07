@@ -33,8 +33,6 @@ export default function UserAccounts({ onSelect }) {
     onSelect?.(username);
   };
 
-  const selected = USER_DATA[active];
-
   return (
     <div className="user-accounts">
       <div className="btn-group mb-3">
@@ -49,28 +47,35 @@ export default function UserAccounts({ onSelect }) {
           </button>
         ))}
       </div>
-      <div className="card">
-        <div className="card-body">
-          <h3 className="card-title">{selected.name} Security</h3>
-          <div className="security-meter mb-3">
-            <div
-              className={`security-meter-bar ${
-                selected.security < 50 ? "low-security" : "high-security"
-              }`}
-              style={{ width: `${selected.security}%` }}
-            >
-              {selected.security}%
+      {Object.entries(USER_DATA).map(([username, data]) => (
+        <div
+          key={username}
+          id={`user-card-${username}`}
+          className="card"
+          style={{ display: active === username ? "block" : "none" }}
+        >
+          <div className="card-body">
+            <h3 className="card-title">{data.name} Security</h3>
+            <div className="security-meter mb-3">
+              <div
+                className={`security-meter-bar ${
+                  data.security < 50 ? "low-security" : "high-security"
+                }`}
+                style={{ width: `${data.security}%` }}
+              >
+                {data.security}%
+              </div>
             </div>
           </div>
+          <ul className="list-group list-group-flush">
+            {data.features.map((feature) => (
+              <li key={feature} className="list-group-item">
+                {feature}
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="list-group list-group-flush">
-          {selected.features.map((feature) => (
-            <li key={feature} className="list-group-item">
-              {feature}
-            </li>
-          ))}
-        </ul>
-      </div>
+      ))}
     </div>
   );
 }

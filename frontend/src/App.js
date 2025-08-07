@@ -179,13 +179,13 @@ function App() {
           />
         </div>
         <div className="dashboard-card">
-          <AlertsChart />
+          <AlertsChart token={token} />
         </div>
         <div className="dashboard-card">
-          <AlertsTable refresh={refreshKey} />
+          <AlertsTable refresh={refreshKey} token={token} />
         </div>
         <div className="dashboard-card">
-          <EventsTable />
+          <EventsTable token={token} />
         </div>
         <div className="dashboard-card">
           <h2>Alice’s Security Status</h2>
