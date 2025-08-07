@@ -29,7 +29,17 @@ if (API_KEY) {
   api.defaults.headers.common['X-API-Key'] = API_KEY;
 }
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3005',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3005'
+    ],
+    credentials: true
+  })
+);
 app.use(bodyParser.json());
 app.use(session({
   secret: 'demo-secret',
