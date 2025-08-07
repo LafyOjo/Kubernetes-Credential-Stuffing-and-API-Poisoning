@@ -80,6 +80,8 @@ export default function AttackSim({ user }) {
   const [error, setError] = useState(null);
   const [chainToken, setChainToken] = useState(null);
   const [demoResults, setDemoResults] = useState(null);
+  const [adminTarget, setAdminTarget] = useState("alice");
+  const [adminResults, setAdminResults] = useState(null);
   const chainRef = useRef(null);
 
   const fetchChainToken = async () => {
@@ -267,6 +269,23 @@ export default function AttackSim({ user }) {
     }
   };
 
+  const runAdminAttack = async () => {
+    setAdminResults(null);
+    try {
+      const resp = await apiFetch("/simulate/admin-attack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target: adminTarget, attempts: 50 }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setAdminResults(data);
+      }
+    } catch (err) {
+      setAdminResults({ summary: "Attack failed" });
+    }
+  };
+
   return (
     <div className="attack-sim">
       <h2>Credential Stuffing Simulation</h2>
@@ -349,6 +368,49 @@ export default function AttackSim({ user }) {
           <pre>
             <code>{JSON.stringify(demoResults, null, 2)}</code>
           </pre>
+        )}
+      </div>
+      <div style={{ marginTop: "1rem" }}>
+        <h3>Admin Attack</h3>
+        <div className="attack-controls">
+          <label>
+            Target:
+            <select
+              value={adminTarget}
+              onChange={(e) => setAdminTarget(e.target.value)}
+            >
+              <option value="alice">Alice</option>
+              <option value="ben">Ben</option>
+            </select>
+          </label>
+          <button onClick={runAdminAttack}>Launch Admin Attack</button>
+        </div>
+        {adminResults && (
+          <div>
+            <div>Summary: {adminResults.summary}</div>
+            {adminResults.compromisedData && (
+              <div>
+                <div>
+                  <h4>Audit Log</h4>
+                  <ul>
+                    {adminResults.compromisedData.activity.map((a, idx) => (
+                      <li key={idx}>
+                        {a.event} - {a.timestamp}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4>Cart</h4>
+                  <pre>
+                    <code>
+                      {JSON.stringify(adminResults.compromisedData.cart, null, 2)}
+                    </code>
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
