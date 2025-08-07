@@ -4,7 +4,7 @@ import secrets
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.api.dependencies import require_role
+from app.api.dependencies import require_role, get_current_active_user
 from app.core.db import get_db
 from app.models.security import SecurityState
 
@@ -60,7 +60,7 @@ def is_enabled(db: Session) -> bool:
 
 
 @router.get("/")
-def get_security(_user=Depends(require_role("admin")), db: Session = Depends(get_db)):
+def get_security(_user=Depends(get_current_active_user), db: Session = Depends(get_db)):
     """Return current security enforcement state."""
     return {"enabled": get_state(db).security_enabled}
 
