@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode  from "jwt-decode";
 import SecurityMeter from "../SecurityMeter";
 import LoginActivity from "../components/LoginActivity";
 import { apiFetch, AUTH_TOKEN_KEY } from "../api";
