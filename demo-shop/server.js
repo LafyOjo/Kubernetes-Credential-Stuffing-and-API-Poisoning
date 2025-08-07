@@ -10,7 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 3005;
 // Build the API base URL from API_BASE. Defaults to 127.0.0.1:8001.
 const API_BASE = process.env.API_BASE || 'http://127.0.0.1:8001';
-const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
+const API_TIMEOUT = process.env.API_TIMEOUT_MS
+  ? parseInt(process.env.API_TIMEOUT_MS, 10)
+  : 10000;
 // Forward shop events to the APIShield backend unless explicitly disabled.
 // Disable backend integration entirely by setting FORWARD_API=false.
 const FORWARD_API = process.env.FORWARD_API !== 'false';
@@ -24,10 +26,11 @@ if (FORWARD_API && !API_KEY) {
   process.exit(1);
 }
 
-const api = axios.create({ baseURL: API_BASE, timeout: API_TIMEOUT });
-if (API_KEY) {
-  api.defaults.headers.common['X-API-Key'] = API_KEY;
-}
+const api = axios.create({
+  baseURL: API_BASE,
+  timeout: API_TIMEOUT,
+  headers: { 'X-API-Key': API_KEY },
+});
 
 app.use(
   cors({
@@ -95,10 +98,20 @@ async function sendAuditLog(req, event, usernameOverride) {
     console.error('Missing username for audit log');
     return;
   }
+  const payload = { event, username };
   try {
-    await api.post('/api/audit/log', { event, username });
+    await api.post('/api/audit/log', payload);
   } catch (e) {
-    console.error('Audit log failed', e);
+    if (e.code === 'ECONNABORTED') {
+      console.warn('Audit log timed out, retrying...');
+      try {
+        await api.post('/api/audit/log', payload, { timeout: 5000 });
+      } catch {
+        console.error('Audit log retry failed');
+      }
+    } else {
+      console.error('Audit log failed', e);
+    }
   }
 }
 
