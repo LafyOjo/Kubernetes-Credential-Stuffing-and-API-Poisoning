@@ -15,6 +15,25 @@ const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
 const FORWARD_API = process.env.FORWARD_API === 'true';
 const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
 
+// Allow cross-origin requests from common local hosts so cookies work
+// when accessing the UI via different domains/ports.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ||
+  'http://localhost:3005,http://127.0.0.1:3005').split(',');
+
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  res.header('Access-Control-Allow-Headers', 'Content-Type, X-Reauth-Password');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(bodyParser.json());
 app.use(session({
   secret: 'demo-secret',

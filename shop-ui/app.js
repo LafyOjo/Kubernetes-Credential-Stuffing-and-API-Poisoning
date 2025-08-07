@@ -1,4 +1,5 @@
-const API_BASE = 'http://localhost:3005';
+// Use the current browser origin so the API shares cookies across hosts/ports
+const API_BASE = window.location.origin;
 let username = null;
 
 function setContent(html) {
@@ -9,7 +10,7 @@ function setContent(html) {
 
 async function fetchJSON(url, options = {}) {
   const { noAuth, ...opts } = options;
-  const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts };
+  const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'include', ...opts };
   if (!noAuth) {
     const pw = prompt('Please re-enter your password');
     if (pw === null) throw new Error('Password required');
