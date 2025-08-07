@@ -200,11 +200,12 @@ app.get('/products', (req, res) => {
   res.json(products);
 });
 
-app.post('/cart', requireAuth, (req, res) => {
+app.post('/cart', requireAuth, async (req, res) => {
   const { productId } = req.body;
   const product = products.find(p => p.id === productId);
   if (!product) return res.status(404).json({ error: 'not found' });
   users[req.session.username].cart.push(product);
+  await sendAuditLog(req, 'shop_add_to_cart');
   res.json({ status: 'added' });
 });
 
@@ -231,8 +232,9 @@ app.get('/cart', async (req, res) => {
   }
 });
 
-app.post('/purchase', requireAuth, (req, res) => {
+app.post('/purchase', requireAuth, async (req, res) => {
   users[req.session.username].cart = [];
+  await sendAuditLog(req, 'shop_purchase');
   res.json({ status: 'purchased' });
 });
 
