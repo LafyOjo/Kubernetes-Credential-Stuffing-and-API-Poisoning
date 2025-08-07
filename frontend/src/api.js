@@ -1,5 +1,11 @@
+// Add these exports back at the top of the file
+
+export const USERNAME_KEY = "apiShieldUsername";
+export const ZERO_TRUST_ENABLED_KEY = "zeroTrustEnabled";
+
+// Your existing code follows...
 export const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
-const API_BASE_URL = 'http://127.0.0.1:8001'; // Or use process.env.REACT_APP_API_URL
+const API_BASE_URL = 'http://127.0.0.1:8001';
 
 export function apiFetch(path, options = {}) {
   // 1. Get the token from localStorage on EVERY request.
