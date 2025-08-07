@@ -28,7 +28,8 @@ anomaly detection, and enforcing a zero‑trust API key:
 - `LOGIN_WITH_DEMOSHOP` – set to `true` to also log into Demo Shop when authenticating (default `false`).
 - `DEMO_SHOP_URL` – base URL for Demo Shop when forwarding registrations (default `http://localhost:3005`).
 - `ANOMALY_DETECTION` – set to `true` to enable ML-based request anomaly checks (default `false`).
-- `ANOMALY_MODEL` – algorithm used when anomaly detection is enabled. Choose `isolation_forest` or `lof` (default `isolation_forest`).
+- `ANOMALY_MODEL` – algorithm used when anomaly detection is enabled. Choose
+  `isolation_forest` or `lof` (default `lof`).
 - `REAUTH_PER_REQUEST` – set to `true` to require the user's password on every API call (default `false`).
 - `ZERO_TRUST_API_KEY` – if set, every request must include this value in the
   `X-API-Key` header. Invalid keys are logged via `/score` and show up in
@@ -127,31 +128,38 @@ uvicorn app.main:app --reload --port 8001
 
 Prometheus metrics will be exposed at `http://localhost:8001/metrics`.
 
+### Resetting alerts during testing
+
+The detector blocks clients once they exceed `FAIL_LIMIT` within
+`FAIL_WINDOW_SECONDS`. During local testing you can either raise these values
+in `.env` or wipe existing alert records. Updating the limits requires
+restarting the server so the new environment variables are loaded.
+
+To clear all alerts from the default SQLite database:
+
+```bash
+sqlite3 app.db "DELETE FROM alerts;"
+```
+
+The next request starts with a clean slate.
+
 ## Running the frontend
+
+Start the FastAPI backend (for example with `uvicorn app.main:app --reload --port 8001`)
+in one terminal before launching the React development server in another.
+If the proxy starts while the backend is offline the console will show
+`Proxy error: ECONNREFUSED` and requests will fail.
 
 ```bash
 cd frontend
-npm install 
-
-# if there is an error re-run the command with the below command this is because linux runs commands differently to windows which is why there may be an error
-npm install --save-dev cross-env
-
-# If there is still an error go to the package-lock.json and input this code to hard-code the URL into the react-development server 
-"scripts": 
-{
-"start": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts start",
-"build": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts build",
-"test": "cross-env REACT_APP_API_BASE=http://localhost:8001 react-scripts test",
-  "eject": "react-scripts eject"
-}
-# once this is done then 
-npm start
+npm install
+REACT_APP_API_BASE=http://127.0.0.1:8001 npm start
 ```
 
-The start script sets `REACT_APP_API_BASE` to `http://localhost:8001`. Override
-this variable when building or running the frontend if the API lives at a
-different URL. Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key`
-header.
+The dashboard reads the `REACT_APP_API_BASE` environment variable to locate the
+backend API. Setting it as shown above causes `apiFetch('/login')` to expand to
+`http://127.0.0.1:8001/login`. You may also place this value in `frontend/.env`.
+Set `REACT_APP_API_KEY` if the backend requires an `X-API-Key` header.
 
 The React application will be available at [http://localhost:3000](http://localhost:3000).
 
@@ -186,8 +194,27 @@ server starts your default browser opens the shop home page automatically at
    account displays how secure it is as a progress bar and lists the enabled
    protections. Alice intentionally has reduced security while Ben has all
    security features enabled. When a login succeeds the simulator fetches the
-   user's cart and orders from Demo Shop, demonstrating how Alice's data is
-   exposed while Ben remains safe.
+  user's cart from Demo Shop, demonstrating how Alice's data is exposed while
+  Ben remains safe.
+
+   The attack simulator also provisions example policies through the API. It
+   creates a lenient policy for Alice and a strict one for Ben using
+   `POST /api/policies` and assigns them to each user via
+   `POST /api/users/{username}/policy/{policy_id}`. This setup shows how
+   different policy settings affect the outcome of the demo.
+
+   To generate traffic against the demo shop directly, the API exposes
+   `POST /simulate/demo-shop-attack`. This endpoint tries a small list of common
+   passwords against the shop's `/login` route and returns the HTTP status for
+   each attempt. The dashboard provides a **Run Credential Stuffing on Demo-Shop**
+   button which sends `{ "attempts": 50 }` to this route and displays the
+   results.
+
+   An additional admin-only route `POST /simulate/admin-attack` drives the
+   dashboard's attack controls. It accepts a JSON payload like
+   `{ "target": "alice", "attempts": 50 }` and returns a summary along with
+   any `compromisedData` such as the user's audit log and cart contents when
+   the attack succeeds.
 
 
 2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
@@ -241,7 +268,7 @@ python scripts/reauth_client.py --help
 python scripts/stuffing.py --help
 python scripts/stuffingwithjwt.py --help
 ```
-Both scripts accept `--score-base` and `--shop-url` to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
+Both scripts accept `--score-base`, `--shop-url`, `--api-key`, and `--chain-url` (defaults to `/api/security/chain`) to override the default addresses (`http://localhost:8001` for the detector API and `http://localhost:3005` for the Demo Shop UI).
 
 
 `stuffing.py` performs a basic credential stuffing attack against the insecure
@@ -298,8 +325,10 @@ demonstration purposes and no license or ownership is claimed.
        --from-literal=SECRET_KEY=<random-secret> \
        --from-literal=DATABASE_URL=sqlite:///app.db \
        --from-literal=ZERO_TRUST_API_KEY=demo-key \
+       --from-literal=ALLOW_ORIGINS=http://localhost:8001,http://localhost:3000,http://localhost:3005 \
        -n demo
    ```
+   Ensure `ALLOW_ORIGINS` includes the demo-shop port (`http://localhost:3005`) so the UI can reach the API.
 
    Replace `<random-secret>` with any string you want to use as the secret key.
 4. Build the detector image:
@@ -335,6 +364,10 @@ demonstration purposes and no license or ownership is claimed.
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
+
+   Ensure the detector's `ALLOW_ORIGINS` environment variable includes
+   `http://localhost:3005` so the demo-shop UI can reach the API without
+   browser CORS errors.
 
    Verify the API is reachable via HTTPS:
 

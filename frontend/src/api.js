@@ -1,23 +1,51 @@
-export const API_BASE =
-  process.env.REACT_APP_API_BASE || window.location.origin;
+// Base URL for the backend API. Reads REACT_APP_API_BASE (e.g., http://127.0.0.1:8001).
+export const API_BASE = process.env.REACT_APP_API_BASE || "";
 export const API_KEY = process.env.REACT_APP_API_KEY || "";
+export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
+export const USERNAME_KEY = "apiShieldUsername";
+export const ZERO_TRUST_ENABLED_KEY = "zeroTrustEnabled";
 
-export function logout() {
-  localStorage.removeItem("token");
+export async function logAuditEvent(event, username) {
+  try {
+    const payload = { event };
+    if (username) payload.username = username;
+    await apiFetch("/api/audit/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    // Fail silently; audit logging should not disrupt UX
+    console.error("audit log failed", err);
+  }
+}
+
+function logout() {
+  const username = localStorage.getItem(USERNAME_KEY);
+  if (localStorage.getItem(AUTH_TOKEN_KEY)) {
+    logAuditEvent("user_logout", username);
+  }
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  if (username) {
+    localStorage.removeItem(USERNAME_KEY);
+  }
   window.location.reload();
 }
 
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
   const headers = { ...(options.headers || {}) };
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const skipAuth =
-    url.endsWith("/login") || url.endsWith("/register") || url.endsWith("/api/token");
+    url.endsWith("/login") ||
+    url.endsWith("/register") ||
+    url.endsWith("/api/token");
   if (token && !skipAuth && !headers["Authorization"]) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  if (API_KEY && !headers["X-API-Key"]) {
+  const zeroTrust = localStorage.getItem(ZERO_TRUST_ENABLED_KEY) === "true";
+  if (zeroTrust && API_KEY && !headers["X-API-Key"]) {
     headers["X-API-Key"] = API_KEY;
   }
 

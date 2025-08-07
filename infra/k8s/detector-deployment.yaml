@@ -33,6 +33,11 @@ spec:
             secretKeyRef:
               name: detector-env
               key: ZERO_TRUST_API_KEY
+        - name: ALLOW_ORIGINS
+          valueFrom:
+            secretKeyRef:
+              name: detector-env
+              key: ALLOW_ORIGINS
         args:
           - uvicorn
           - app.main:app

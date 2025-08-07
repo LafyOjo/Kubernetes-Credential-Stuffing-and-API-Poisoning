@@ -1,17 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends
 import hashlib
 import secrets
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.api.dependencies import require_role
+from app.core.db import get_db
+from app.models.security import SecurityState
 
-# Global flag controlling credential stuffing enforcement
-SECURITY_ENABLED = True
 
-# Password chain used when SECURITY_ENABLED is True. Each API call must present
-# the current value which is then rotated. This helps detect replayed or stale
-# requests.
-CURRENT_CHAIN = None
+router = APIRouter(prefix="/api/security", tags=["security"])
 
 
 def _hash(value: str) -> str:
@@ -24,55 +22,66 @@ def _new_chain(prev: str | None = None) -> str:
     return _hash(seed + secrets.token_hex(8))
 
 
-def init_chain() -> None:
-    """Initialise the global chain value."""
-    global CURRENT_CHAIN
-    CURRENT_CHAIN = _new_chain()
+def get_state(db: Session) -> SecurityState:
+    """Fetch the singleton ``SecurityState`` row, creating it if missing."""
+    state = db.query(SecurityState).first()
+    if state is None:
+        state = SecurityState(security_enabled=True, current_chain=_new_chain())
+        db.add(state)
+        db.commit()
+        db.refresh(state)
+    return state
 
 
-def rotate_chain() -> None:
+def init_chain(db: Session) -> None:
+    """Initialise the chain value in the shared store."""
+    state = get_state(db)
+    state.current_chain = _new_chain()
+    db.commit()
+
+
+def rotate_chain(db: Session) -> None:
     """Advance the chain to the next value."""
-    global CURRENT_CHAIN
-    CURRENT_CHAIN = _new_chain(CURRENT_CHAIN)
+    state = get_state(db)
+    state.current_chain = _new_chain(state.current_chain)
+    db.commit()
 
 
-def verify_chain(token: str | None) -> None:
+def verify_chain(token: str | None, db: Session) -> None:
     """Validate ``token`` matches the current chain and rotate."""
-    if token != CURRENT_CHAIN:
+    state = get_state(db)
+    if token != state.current_chain:
         raise HTTPException(status_code=401, detail="Invalid chain token")
-    rotate_chain()
+    rotate_chain(db)
 
 
-# initialise chain on import so it's ready when the app starts
-init_chain()
-
-router = APIRouter(prefix="/api/security", tags=["security"])
+def is_enabled(db: Session) -> bool:
+    return get_state(db).security_enabled
 
 
 @router.get("/")
-def get_security(_user=Depends(require_role("admin"))):
+def get_security(_user=Depends(require_role("admin")), db: Session = Depends(get_db)):
     """Return current security enforcement state."""
-    return {"enabled": SECURITY_ENABLED}
+    return {"enabled": get_state(db).security_enabled}
 
 
 @router.get("/chain")
-def get_chain(_user=Depends(require_role("admin"))):
+def get_chain(_user=Depends(require_role("admin")), db: Session = Depends(get_db)):
     """Retrieve the current chain value."""
-    return {"chain": CURRENT_CHAIN}
+    return {"chain": get_state(db).current_chain}
 
 
 @router.post("/")
-def set_security(payload: dict, _user=Depends(require_role("admin"))):
+def set_security(payload: dict, _user=Depends(require_role("admin")), db: Session = Depends(get_db)):
     """Update security enforcement state."""
     enabled = payload.get("enabled")
     if not isinstance(enabled, bool):
         raise HTTPException(status_code=422, detail="'enabled' boolean required")
-    global SECURITY_ENABLED
-    SECURITY_ENABLED = enabled
+    state = get_state(db)
+    state.security_enabled = enabled
     if enabled:
-        init_chain()
+        state.current_chain = _new_chain()
     else:
-        # Clear chain when security disabled
-        global CURRENT_CHAIN
-        CURRENT_CHAIN = None
-    return {"enabled": SECURITY_ENABLED}
+        state.current_chain = None
+    db.commit()
+    return {"enabled": state.security_enabled}

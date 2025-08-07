@@ -1,6 +1,6 @@
-from typing import Any
 import os
-from fastapi import Request
+from threading import Lock
+from fastapi import Request, FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_403_FORBIDDEN
@@ -33,22 +33,37 @@ class _Model:
         return int(self.model.predict([[value]])[0])
 
 
-_model: Any = None
+_model_lock = Lock()
+_model: _Model | None = None
 
 
-def get_model() -> _Model | None:
+def load_model(app: FastAPI) -> _Model | None:
+    """Create and store the anomaly model on ``app.state`` if needed."""
     global _model
-    if _model is None and IsolationForest is not None:
-        algo = os.getenv("ANOMALY_MODEL", "isolation_forest").lower()
-        _model = _Model(algo)
-    return _model
+    if IsolationForest is None:
+        return None
+    model = getattr(app.state, "anomaly_model", None)
+    if model is None:
+        with _model_lock:
+            model = getattr(app.state, "anomaly_model", None)
+            if model is None:
+                algo = os.getenv("ANOMALY_MODEL", "isolation_forest").lower()
+                model = _Model(algo)
+                app.state.anomaly_model = model
+    _model = model
+    return model
+
+
+def get_model(request: Request) -> _Model | None:
+    """Retrieve the model from ``request.app.state``."""
+    return load_model(request.app)
 
 
 class AnomalyDetectionMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if IsolationForest is None or np is None:
             return await call_next(request)
-        model = get_model()
+        model = get_model(request)
         if model is None:
             return await call_next(request)
         path_len = len(request.url.path)

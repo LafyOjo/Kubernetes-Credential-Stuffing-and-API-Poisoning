@@ -3,11 +3,13 @@ from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from app.core.db import engine, Base
+from app import models  # noqa: F401  # Ensure models are registered
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
 from app.core.access_log import AccessLogMiddleware
-from app.core.anomaly import AnomalyDetectionMiddleware
+from app.core.anomaly import AnomalyDetectionMiddleware, load_model
 from app.core.policy import PolicyEngineMiddleware
 from app.core.metrics import MetricsMiddleware
 from app.core.re_auth import ReAuthMiddleware
@@ -21,19 +23,39 @@ from app.api.user_stats import router as user_stats_router
 from app.api.events import router as events_router
 from app.api.last_logins import router as last_logins_router
 from app.api.access_logs import router as access_logs_router
+from app.api.audit import router as audit_router
+from app.api.policies import router as policies_router
+from app.api.demo_shop_sim import router as demo_shop_sim_router
+from app.api.users import router as users_router
 
 app = FastAPI(title="APIShield+")
 
-# Allow origins can be configured via environment variable
-allow_origins = [
-    origin.strip()
-    for origin in os.getenv("ALLOW_ORIGINS", "*").split(",")
-    if origin.strip()
+
+@app.on_event("startup")
+def create_tables() -> None:
+    """Ensure all database tables are created at startup."""
+    Base.metadata.create_all(bind=engine)
+
+# Permit requests from local development frontends
+# Additional origins can be supplied via the ALLOW_ORIGINS env var
+origins = [
+    "http://localhost:3000",
+    "http://localhost:3005",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3005",
 ]
+
+allow_origins_env = os.getenv("ALLOW_ORIGINS")
+if allow_origins_env:
+    origins.extend(
+        origin.strip()
+        for origin in allow_origins_env.split(",")
+        if origin.strip()
+    )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,6 +76,10 @@ app.add_middleware(PolicyEngineMiddleware)
 if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
     app.add_middleware(AnomalyDetectionMiddleware)
 
+    @app.on_event("startup")
+    async def init_anomaly_model() -> None:
+        load_model(app)
+
 app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
 app.include_router(auth_router)     # /register, /login, /api/token
@@ -63,6 +89,10 @@ app.include_router(user_stats_router)  # /api/user-calls
 app.include_router(events_router)   # /api/events
 app.include_router(last_logins_router)  # /api/last-logins
 app.include_router(access_logs_router)  # /api/access-logs
+app.include_router(audit_router)  # /api/audit/log
+app.include_router(policies_router)  # /api/policies and assignments
+app.include_router(demo_shop_sim_router)
+app.include_router(users_router)  # /api/users
 
 
 @app.get("/ping")

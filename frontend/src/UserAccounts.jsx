@@ -5,7 +5,7 @@ export const USER_DATA = {
     name: "Alice",
     password: "secret",
 
-    security: 30,
+    security: 25,
     features: [
       "Weak password",
       "No MFA",
@@ -28,36 +28,46 @@ export const USER_DATA = {
 export default function UserAccounts({ onSelect }) {
   const [active, setActive] = useState("alice");
 
-  const select = (u) => {
-    setActive(u);
-    if (onSelect) onSelect(u);
+  const handleSelect = (username) => {
+    setActive(username);
+    onSelect?.(username);
   };
 
-  const info = USER_DATA[active];
+  const selected = USER_DATA[active];
 
   return (
     <div className="user-accounts">
-      <div className="user-buttons">
-        {Object.keys(USER_DATA).map((u) => (
+      <div className="btn-group mb-3">
+        {Object.keys(USER_DATA).map((username) => (
           <button
-            key={u}
-            onClick={() => select(u)}
-            className={active === u ? "active" : ""}
+            key={username}
+            type="button"
+            onClick={() => handleSelect(username)}
+            className={`btn btn-${active === username ? "primary" : "outline-primary"}`}
           >
-            {USER_DATA[u].name}
+            {USER_DATA[username].name}
           </button>
         ))}
       </div>
-      <div className="user-info">
-        <h3>{info.name} Security</h3>
-        <div className="progress">
-          <div style={{ width: `${info.security}%` }} />
+      <div className="card">
+        <div className="card-body">
+          <h3 className="card-title">{selected.name} Security</h3>
+          <div className="security-meter mb-3">
+            <div
+              className={`security-meter-bar ${
+                selected.security < 50 ? "low-security" : "high-security"
+              }`}
+              style={{ width: `${selected.security}%` }}
+            >
+              {selected.security}%
+            </div>
+          </div>
         </div>
-
-        <p>{info.security}% safe</p>
-        <ul>
-          {info.features.map((f) => (
-            <li key={f}>{f}</li>
+        <ul className="list-group list-group-flush">
+          {selected.features.map((feature) => (
+            <li key={feature} className="list-group-item">
+              {feature}
+            </li>
           ))}
         </ul>
       </div>

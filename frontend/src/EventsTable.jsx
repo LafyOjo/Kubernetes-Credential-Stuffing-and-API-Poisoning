@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function EventsTable({ token }) {
+export default function EventsTable() {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
   const [hours, setHours] = useState(24);
@@ -9,9 +9,8 @@ export default function EventsTable({ token }) {
   const load = async () => {
     const query = hours ? `?hours=${hours}` : "";
     try {
-      const resp = await apiFetch(`/api/events${query}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch(`/api/events${query}`);
       if (!resp.ok) throw new Error(await resp.text());
       setEvents(await resp.json());
     } catch (err) {

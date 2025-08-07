@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function AlertsTable({ refresh, token }) {
+export default function AlertsTable({ refresh }) {
   const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState(null);
 
   const loadAlerts = async () => {
     try {
-      const resp = await apiFetch("/api/alerts", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch("/api/alerts");
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {

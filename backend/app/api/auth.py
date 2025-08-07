@@ -1,6 +1,7 @@
 from datetime import timedelta
 import os
 import requests
+import logging
 
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -17,9 +18,27 @@ from app.api.dependencies import oauth2_scheme
 from app.core.security import revoke_token
 from app.core.db import get_db
 from app.crud.users import get_user_by_username, create_user
+from app.crud.policies import get_policy_for_user
 from app.core.events import log_event
 from app.schemas.users import UserCreate, UserRead
-from app.api.score import record_attempt
+from app.api.score import record_attempt, is_rate_limited, DEFAULT_FAIL_LIMIT
+
+
+def is_attack_detected(db: Session, username: str) -> bool:
+    """Determine whether the given user is currently under attack.
+
+    The detection here is intentionally simple: it reuses the existing
+    rate–limiting mechanism to see if the user has exceeded their
+    allowed number of failed attempts.  A real deployment could plug in
+    additional anomaly‑detection signals.
+    """
+
+    user = get_user_by_username(db, username)
+    if not user:
+        return False
+    policy_obj = get_policy_for_user(db, user)
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+    return is_rate_limited(db, user.id, fail_limit)
 
 
 router = APIRouter(tags=["auth"])
@@ -33,6 +52,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     role = user_in.role or "user"
     user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
 
+    warning: str | None = None
     if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
         try:
@@ -42,22 +62,53 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
                 timeout=3,
             )
         except Exception:
-            pass
+            logging.exception(
+                "Failed registering user %s with Demo Shop at %s",
+                user_in.username,
+                shop_url,
+            )
+            warning = "Demo Shop registration failed"
 
-    return user
+    response = {"id": user.id, "username": user.username, "role": user.role}
+    if warning:
+        response["warning"] = warning
+    return response
 
 
 @router.post("/login")
 def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     user = get_user_by_username(db, user_in.username)
+    policy_value = user.policy if user and hasattr(user, "policy") else "NoSecurity"
+    policy_obj = get_policy_for_user(db, user) if user else None
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
+
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
-        record_attempt(db, request.client.host, False)
+        record_attempt(
+            db,
+            request.client.host,
+            False,
+            user_id=user.id if user else None,
+            fail_limit=fail_limit,
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Attack blocked by our automated systems",
+        )
+
     token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(
@@ -65,7 +116,13 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         ),
     )
     log_event(db, user.username, "login", True)
-    record_attempt(db, request.client.host, True)
+    record_attempt(
+        db,
+        request.client.host,
+        True,
+        user_id=user.id,
+        fail_limit=fail_limit,
+    )
 
     if os.getenv("LOGIN_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
@@ -78,7 +135,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
         except Exception:
             log_event(db, user.username, "shop_login_error", False)
 
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer", "policy": policy_value}
 
 
 @router.post("/api/token")
@@ -87,6 +144,14 @@ async def login_for_access_token(
     db: Session = Depends(get_db),
 ):
     user = get_user_by_username(db, form_data.username)
+    policy_value = user.policy if user and hasattr(user, "policy") else "NoSecurity"
+    policy_obj = get_policy_for_user(db, user) if user else None
+    fail_limit = policy_obj.failed_attempts_limit if policy_obj else DEFAULT_FAIL_LIMIT
+    if user and is_rate_limited(db, user.id, fail_limit):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many attempts",
+        )
     if not user or not verify_password(form_data.password, user.password_hash):
         log_event(db, form_data.username, "token", False)
         raise HTTPException(
@@ -94,6 +159,12 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    if policy_value == "ZeroTrust" and is_attack_detected(db, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Attack blocked by our automated systems",
+        )
+
     access_token = create_access_token(
         data={"sub": user.username},
         expires_delta=timedelta(
@@ -101,7 +172,7 @@ async def login_for_access_token(
         )
     )
     log_event(db, user.username, "token", True)
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "policy": policy_value}
 
 
 @router.get("/api/me")
@@ -122,6 +193,7 @@ async def read_me(current_user=Depends(get_current_user)):
         "password_hash": current_user.password_hash,
         "role": current_user.role,
     }
+
 
 @router.post("/logout")
 async def logout(

@@ -1,7 +1,7 @@
 # backend/app/api/score.py
 
 from typing import Any, Dict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from prometheus_client import Counter
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.alerts import Alert
 import app.api.security as security
+from app.core.events import log_event
 
 router = APIRouter(
     prefix="",            # no /api prefix for /score
@@ -49,6 +50,17 @@ STUFFING_DETECTIONS = Counter(
     ["ip"],
 )
 
+FAILED_USER_ATTEMPTS: Dict[int, list[datetime]] = {}
+
+
+def is_rate_limited(db: Session, user_id: int, limit: int) -> bool:
+    window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
+    now = datetime.now(timezone.utc)
+    attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
+    attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds)]
+    FAILED_USER_ATTEMPTS[user_id] = attempts
+    return len(attempts) >= limit
+
 
 def record_attempt(
     db: Session,
@@ -57,6 +69,8 @@ def record_attempt(
     *,
     with_jwt: bool = False,
     detail: str | None = None,
+    user_id: int | None = None,
+    fail_limit: int | None = None,
 ) -> Dict[str, Any]:
     """Record a login attempt and return the same structure as ``score``."""
 
@@ -67,11 +81,13 @@ def record_attempt(
         NO_JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
 
     if success:
+        if user_id is not None:
+            FAILED_USER_ATTEMPTS.pop(user_id, None)
         return {"status": "ok", "fails_last_minute": 0}
 
-    fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
+    ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
-    window_start = datetime.utcnow() - timedelta(seconds=window_seconds)
+    window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
     fail_count = (
         db.query(Alert)
         .filter(Alert.ip_address == client_ip)
@@ -79,8 +95,25 @@ def record_attempt(
         .count()
     )
 
-    if security.SECURITY_ENABLED and fail_count >= fail_limit:
+    if user_id is not None:
+        window_seconds_user = int(
+            os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS)
+        )
+        now = datetime.now(timezone.utc)
+        attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
+        attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds_user)]
+        attempts.append(now)
+        if fail_limit is not None and len(attempts) > fail_limit:
+            attempts = attempts[-fail_limit:]
+        FAILED_USER_ATTEMPTS[user_id] = attempts
+
+    # Record the failed attempt for the event log.  The username is unknown at
+    # this stage so ``None`` is stored.
+    log_event(db, None, "stuffing_attempt", False)
+
+    if security.is_enabled(db) and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
+        log_event(db, None, "stuffing_block", True)
         alert = Alert(
             ip_address=client_ip,
             total_fails=fail_count + 1,
@@ -116,8 +149,8 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     time window. The defaults are 5 failures within 60 seconds but can be adjusted
     via the FAIL_LIMIT and FAIL_WINDOW_SECONDS environment variables.
     """
-    if security.SECURITY_ENABLED:
-        security.verify_chain(request.headers.get("X-Chain-Password"))
+    if security.is_enabled(db):
+        security.verify_chain(request.headers.get("X-Chain-Password"), db)
 
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")
