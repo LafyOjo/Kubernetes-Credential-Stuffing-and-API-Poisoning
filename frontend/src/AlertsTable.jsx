@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function AlertsTable({ refresh }) {
+export default function AlertsTable({ refresh, token }) {
   const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState(null);
 
@@ -16,10 +16,12 @@ export default function AlertsTable({ refresh }) {
     }
   };
 
-  // reload when component mounts or when `refresh` changes
+  // reload when component mounts or when `refresh` or `token` changes
   useEffect(() => {
-    loadAlerts();
-  }, [refresh]);
+    if (token) {
+      loadAlerts();
+    }
+  }, [refresh, token]);
 
   if (error) return <p className="error-text">{error}</p>;
   if (alerts.length === 0) return <p>No alerts yet.</p>;
