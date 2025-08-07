@@ -4,7 +4,7 @@ import secrets
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.api.dependencies import require_role, get_current_active_user
+from app.api.dependencies import get_current_active_user
 from app.core.db import get_db
 from app.models.security import SecurityState
 
@@ -66,13 +66,13 @@ def get_security(_user=Depends(get_current_active_user), db: Session = Depends(g
 
 
 @router.get("/chain")
-def get_chain(_user=Depends(require_role("admin")), db: Session = Depends(get_db)):
+def get_chain(_user=Depends(get_current_active_user), db: Session = Depends(get_db)):
     """Retrieve the current chain value."""
     return {"chain": get_state(db).current_chain}
 
 
 @router.post("/")
-def set_security(payload: dict, _user=Depends(require_role("admin")), db: Session = Depends(get_db)):
+def set_security(payload: dict, _user=Depends(get_current_active_user), db: Session = Depends(get_db)):
     """Update security enforcement state."""
     enabled = payload.get("enabled")
     if not isinstance(enabled, bool):

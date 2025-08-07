@@ -17,6 +17,6 @@ def read_access_logs(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    if getattr(current_user, "role", None) != "admin":
+    if username is None:
         username = getattr(current_user, "username", None)
     return get_access_logs(db, username=username, hours=hours)

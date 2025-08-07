@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.core.db import get_db
-from app.crud.users import get_user_by_username
 
 router = APIRouter(prefix="/simulate", tags=["simulate"])
 
@@ -28,11 +27,6 @@ class StuffPayload(BaseModel):
 def simulate_credential_stuffing(payload: StuffPayload, db: Session = Depends(get_db)):
     user = payload.user
 
-    # Policy enforcement: if the target user is protected by a ZeroTrust policy,
-    # short‑circuit the simulation and report the attack as blocked.
-    db_user = get_user_by_username(db, user)
-    if db_user and getattr(db_user, "policy", "NoSecurity") == "ZeroTrust":
-        return {"blocked": True, "detail": "Attack blocked by our automated systems"}
 
     session = requests.Session()
     success_token = None
