@@ -96,7 +96,7 @@ function Dashboard() {
 
       <hr style={{ margin: "2rem 0" }} />
 
-      <AlertsTable token={token} refresh={refresh} />
+      <AlertsTable refresh={refresh} />
       <EventsTable />
 
       {/* Per-user security statistics */}
@@ -120,7 +120,7 @@ function Dashboard() {
       <div
         style={{ marginTop: "2rem", padding: "1rem", border: "1px solid #ccc" }}
       >
-        <AttackSim token={token} />
+        <AttackSim />
       </div>
     </div>
   );

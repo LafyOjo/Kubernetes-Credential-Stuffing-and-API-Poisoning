@@ -12,7 +12,7 @@ const DUMMY_PASSWORDS = [
   "letmein",
 ];
 
-export default function AttackSim({ user, token }) {
+export default function AttackSim({ user }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
   useEffect(() => {
@@ -339,7 +339,7 @@ export default function AttackSim({ user, token }) {
         </div>
       )}
       <div className="attack-alerts">
-        <AlertsChart token={token} />
+        <AlertsChart />
       </div>
       <div style={{ marginTop: "1rem" }}>
         <button onClick={runDemoShopAttack}>
