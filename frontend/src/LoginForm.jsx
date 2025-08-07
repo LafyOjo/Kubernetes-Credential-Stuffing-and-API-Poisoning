@@ -29,8 +29,9 @@ export default function LoginForm({ onLogin }) {
       await logAuditEvent("user_login_success", username);
       onLogin(data.access_token, data.policy);
     } catch (err) {
+      console.error("Login failed:", err.message);
       await logAuditEvent("user_login_failure", username);
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
     }
   };
 
