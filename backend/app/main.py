@@ -53,14 +53,6 @@ if allow_origins_env:
         if origin.strip()
     )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # Log incoming requests and any presented Authorization headers
 app.add_middleware(APILoggingMiddleware)
 app.add_middleware(MetricsMiddleware)
@@ -79,6 +71,15 @@ if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
     @app.on_event("startup")
     async def init_anomaly_model() -> None:
         load_model(app)
+
+# Add CORS middleware last so that pre-flight requests bypass auth checks
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+    allow_credentials=True,
+)
 
 app.include_router(score_router)    # your /score endpoint
 app.include_router(alerts_router)   # your /api/alerts endpoint
