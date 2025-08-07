@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 
 from app.core.metrics import get_user_counts
-from app.api.dependencies import require_role, get_current_user
+from app.api.dependencies import get_current_user, get_current_active_user
 
 router = APIRouter(prefix="/api/user-calls", tags=["stats"])
 
 
-@router.get("/", dependencies=[Depends(require_role("admin"))])
-def read_user_calls():
+@router.get("/")
+def read_user_calls(_user=Depends(get_current_active_user)):
     """Return total API call counts per user."""
     return get_user_counts()
 

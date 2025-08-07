@@ -28,7 +28,7 @@ export default function LoginForm({ onLogin }) {
       });
       const safeUsername = username || "unknown";
       await logAuditEvent({ event: "user_login_success", username: safeUsername }).catch(() => {});
-      onLogin(data.access_token, data.policy);
+      onLogin(data.access_token);
     } catch (err) {
       console.error("Login failed:", err.message);
       const safeUsername = username || "unknown";

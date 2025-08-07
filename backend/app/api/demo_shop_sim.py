@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 from app.core.db import get_db
-from app.crud.users import get_user_by_username
 from app.crud.audit import get_all_activity_for_user
 
 router = APIRouter()
@@ -37,9 +36,6 @@ def admin_attack(payload: AdminAttackPayload, db: Session = Depends(get_db)):
     target = payload.target
     attempts = payload.attempts
 
-    db_user = get_user_by_username(db, target)
-    if db_user and getattr(db_user, "policy", "NoSecurity") == "ZeroTrust":
-        return {"summary": "Attack blocked by policy", "attempts": 0}
 
     session = requests.Session()
     success_token = None
