@@ -118,8 +118,9 @@ async function sendAuditLog(req, event, usernameOverride) {
 app.post('/register', async (req, res) => {
   // Accept both the legacy `user`/`pass` fields and the
   // newer `username`/`password` pair used by the backend.
-  const username = req.body.username || req.body.user;
-  const password = req.body.password || req.body.pass;
+  const { username: bodyUsername, password: bodyPassword, user, pass } = req.body || {};
+  const username = bodyUsername || user;
+  const password = bodyPassword || pass;
   if (!username || !password) return res.status(400).json({ error: 'missing' });
   if (users[username]) return res.status(409).json({ error: 'exists' });
   users[username] = { password, cart: [] };
@@ -136,8 +137,10 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   // Handle both `username`/`password` and legacy `user`/`pass` fields.
-  const username = req.body.username || req.body.user;
-  const password = req.body.password || req.body.pass;
+  const { username: bodyUsername, password: bodyPassword, user, pass } = req.body || {};
+  const username = bodyUsername || user;
+  const password = bodyPassword || pass;
+  if (!username || !password) return res.status(400).json({ error: 'missing' });
   if (!users[username] || users[username].password !== password) {
     if (FORWARD_API) {
       await api
