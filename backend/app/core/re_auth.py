@@ -45,6 +45,7 @@ class ReAuthMiddleware(BaseHTTPMiddleware):
                     client_ip,
                     False,
                     detail="Password required",
+                    username=username,
                 )
                 log_event(db, username, "reauth", False)
             return JSONResponse(
@@ -59,6 +60,7 @@ class ReAuthMiddleware(BaseHTTPMiddleware):
                     request.client.host if request.client else "unknown",
                     False,
                     detail="Invalid credentials",
+                    username=username,
                     with_jwt=True,
                 )
                 log_event(db, username, "reauth", False)

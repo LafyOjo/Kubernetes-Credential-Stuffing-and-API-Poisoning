@@ -69,6 +69,7 @@ def record_attempt(
     *,
     with_jwt: bool = False,
     detail: str | None = None,
+    username: str | None = None,
     user_id: int | None = None,
     fail_limit: int | None = None,
 ) -> Dict[str, Any]:
@@ -107,9 +108,9 @@ def record_attempt(
             attempts = attempts[-fail_limit:]
         FAILED_USER_ATTEMPTS[user_id] = attempts
 
-    # Record the failed attempt for the event log.  The username is unknown at
-    # this stage so ``None`` is stored.
-    log_event(db, None, "stuffing_attempt", False)
+    # Record the failed attempt for the event log.  Include the username when
+    # available so the dashboard can attribute the attack to a specific user.
+    log_event(db, username, "stuffing_attempt", False)
 
     if security.is_enabled(db) and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
