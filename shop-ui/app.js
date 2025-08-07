@@ -46,7 +46,7 @@ async function logAuditEvent(event) {
     await fetch(AUDIT_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ event })
+      body: JSON.stringify({ event, username })
     });
   } catch (e) {
     // ignore logging errors
