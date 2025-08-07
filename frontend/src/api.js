@@ -1,69 +1,46 @@
-// Base URL for the backend API. Reads REACT_APP_API_BASE (e.g., http://127.0.0.1:8001).
-export const API_BASE = process.env.REACT_APP_API_BASE || "";
-export const API_KEY = process.env.REACT_APP_API_KEY || "";
-export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
-export const USERNAME_KEY = "apiShieldUsername";
-export const ZERO_TRUST_ENABLED_KEY = "zeroTrustEnabled";
+export const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
+const API_BASE_URL = 'http://127.0.0.1:8001'; // Or use process.env.REACT_APP_API_URL
 
-export async function logAuditEvent(event, username) {
-  try {
-    const payload = { event };
-    if (username) payload.username = username;
-    await apiFetch("/api/audit/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    // Fail silently; audit logging should not disrupt UX
-    console.error("audit log failed", err);
-  }
-}
-
-function logout() {
-  const username = localStorage.getItem(USERNAME_KEY);
-  if (localStorage.getItem(AUTH_TOKEN_KEY)) {
-    logAuditEvent("user_logout", username);
-  }
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  if (username) {
-    localStorage.removeItem(USERNAME_KEY);
-  }
-  window.location.reload();
-}
-
-export async function apiFetch(path, options = {}) {
-  const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-  const headers = { ...(options.headers || {}) };
+export function apiFetch(path, options = {}) {
+  // 1. Get the token from localStorage on EVERY request.
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
-  const skipAuth =
-    url.endsWith("/login") ||
-    url.endsWith("/register") ||
-    url.endsWith("/api/token");
-  if (token && !skipAuth && !headers["Authorization"]) {
-    headers["Authorization"] = `Bearer ${token}`;
+
+  // 2. Create the headers object, including any custom headers.
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  // 3. If the token exists, add the Authorization header.
+  //    This is the crucial step that was missing.
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const zeroTrust = localStorage.getItem(ZERO_TRUST_ENABLED_KEY) === "true";
-  if (zeroTrust && API_KEY && !headers["X-API-Key"]) {
-    headers["X-API-Key"] = API_KEY;
-  }
+  const finalOptions = {
+    ...options,
+    headers,
+  };
 
-  let resp = await fetch(url, { ...options, headers });
-  if (resp.status !== 401 || skipAuth) {
-    return resp;
-  }
-
-  const pw = window.prompt("Please enter your password:");
-  if (!pw) {
-    logout();
-    return resp;
-  }
-
-  const retryHeaders = { ...headers, "X-Reauth-Password": pw };
-  resp = await fetch(url, { ...options, headers: retryHeaders });
-  if (resp.status === 401) {
-    logout();
-  }
-  return resp;
+  // 4. Make the fetch call with the correct headers.
+  return fetch(`${API_BASE_URL}${path}`, finalOptions)
+    .then(async (res) => {
+      if (!res.ok) {
+        // If the server returns an error, try to parse it and throw a proper error.
+        const errorData = await res.json().catch(() => ({}));
+        const error = new Error(errorData.detail || `Request failed with status ${res.status}`);
+        error.status = res.status;
+        throw error;
+      }
+      return res;
+    });
 }
+
+// Helper function for logging events, which now also uses the authenticated apiFetch.
+export function logAuditEvent(event) {
+  return apiFetch('/api/audit/log', {
+    method: 'POST',
+    body: JSON.stringify(event),
+  });
+}
+
