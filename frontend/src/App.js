@@ -11,6 +11,7 @@ import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
 import { AuthContext } from "./AuthContext";
 import  jwtDecode  from "jwt-decode";
+import AuditFeed from "./AuditFeed";
 import "./App.css";
 import "./Dashboard.css";
 
@@ -187,6 +188,9 @@ function App() {
         </div>
         <div className="dashboard-card">
           <EventsTable token={token} />
+        </div>
+        <div className="dashboard-card">
+          <AuditFeed />
         </div>
         <div className="dashboard-card">
           <h2>Alice’s Security Status</h2>
