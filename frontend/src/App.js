@@ -41,7 +41,7 @@ function App() {
     const username = localStorage.getItem(USERNAME_KEY);
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USERNAME_KEY);
-    await logAuditEvent("user_logout", username);
+    await logAuditEvent({ event: "user_logout", username }).catch(() => {});
     setToken(null);
     setZeroTrustEnabled(null);
     setAttackStatus(null);
