@@ -2,7 +2,7 @@ const API_BASE = 'http://localhost:3005';
 const TOKEN_KEY = 'apiShieldAuthToken';
 
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
-const AUDIT_URL = 'http://localhost:8000/api/audit/log';
+const AUDIT_URL = `${API_BASE.replace('3005', '8001')}/api/audit/log`;
 
 let username = null;
 
