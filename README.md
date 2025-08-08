@@ -173,13 +173,16 @@ server starts your default browser opens the shop home page automatically at
   user's cart from Demo Shop, demonstrating how Alice's data is exposed while
   Ben remains safe.
 
+2. Before running the simulator, add an item to Alice's cart in the Demo Shop.
+   Visit <http://localhost:3005>, log in as Alice (password `secret`), and
+   click **Add to cart** for any product. The simulator will capture these
+   items on the first successful login.
 
-2. Log in and locate the **Credential Stuffing Simulation** section. Choose a
+3. Log in and locate the **Credential Stuffing Simulation** section. Choose a
    target account and click **Start Attack**. When targeting Alice the attack
    will usually succeed quickly. Ben's account requires the correct chain token
    so repeated guesses are blocked.
-
-3. To use the command-line to login and create a user that would be used across the services and for the 
+4. To use the command-line to login and create a user that would be used across the services and for the
    purpose of testing we need to use the terminal, below is an example of how to register a user and login
    
    ```
