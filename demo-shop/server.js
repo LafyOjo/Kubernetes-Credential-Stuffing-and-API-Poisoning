@@ -4,8 +4,10 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
 const { spawn } = require('child_process');
+const cors = require('cors');
 
 const app = express();
+app.use(cors({ origin: ["http://localhost:3000","http://127.0.0.1:3000"], credentials: true }));
 const PORT = process.env.PORT || 3005;
 const API_BASE = process.env.API_BASE || 'http://localhost:8001';
 const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '10000', 10);

@@ -75,10 +75,10 @@ function App() {
         <AlertsChart token={token} />
       </div>
       <div className="dashboard-section">
-        <AlertsTable refresh={refreshKey} token={token} />
+        <AlertsTable refresh={refreshKey} />
       </div>
       <div className="dashboard-section">
-        <EventsTable token={token} />
+        <EventsTable />
       </div>
       <div className="dashboard-section">
         <div className="attack-section">
