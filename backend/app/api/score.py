@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.models.alerts import Alert
 import app.api.security as security
+from app.core.events import log_event
 
 router = APIRouter(
     prefix="",            # no /api prefix for /score
@@ -106,8 +107,13 @@ def record_attempt(
             attempts = attempts[-fail_limit:]
         FAILED_USER_ATTEMPTS[user_id] = attempts
 
+    # Record the failed attempt for the event log.  The username is unknown at
+    # this stage so ``None`` is stored.
+    log_event(db, None, "stuffing_attempt", False)
+
     if security.SECURITY_ENABLED and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
+        log_event(db, None, "stuffing_block", True)
         alert = Alert(
             ip_address=client_ip,
             total_fails=fail_count + 1,
