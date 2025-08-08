@@ -25,7 +25,12 @@ from app.api.audit import router as audit_router
 
 app = FastAPI(title="APIShield+")
 
-allow_origins = ["http://localhost:3000"]
+allow_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3005",
+    "http://127.0.0.1:3005",
+]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
