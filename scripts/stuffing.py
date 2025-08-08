@@ -12,17 +12,11 @@ ROCKYOU_PATH = Path(__file__).with_name("data").joinpath("rockyou.txt")
 REQUEST_TIMEOUT = 3
 
 
-def load_creds(path: Union[Path, str] = ROCKYOU_PATH, limit: Optional[int] = None):
-
-
-REQUEST_TIMEOUT = 3
-
-
 def load_creds(
     path: Union[Path, str, None] = ROCKYOU_PATH, limit: Optional[int] = None
 ):
 
-  """Load credentials from a file with an optional limit.
+    """Load credentials from a file with an optional limit.
 
     *path* may be a :class:`pathlib.Path` or string. By default the bundled
     ``rockyou.txt`` file located in the ``data`` directory alongside this
