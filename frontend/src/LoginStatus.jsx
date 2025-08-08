@@ -9,6 +9,7 @@ export default function LoginStatus({ token }) {
     try {
       const resp = await apiFetch("/api/last-logins", {
         headers: { Authorization: `Bearer ${token}` },
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       setLogins(await resp.json());

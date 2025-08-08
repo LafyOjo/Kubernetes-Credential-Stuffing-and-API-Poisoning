@@ -13,7 +13,8 @@ export default function LoginForm({ onLogin }) {
       const resp = await apiFetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();

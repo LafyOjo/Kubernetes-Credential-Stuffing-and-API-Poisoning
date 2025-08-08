@@ -7,7 +7,7 @@ export default function SecurityToggle() {
 
   const loadState = async () => {
     try {
-      const resp = await apiFetch("/api/security");
+      const resp = await apiFetch("/api/security", { skipReauth: true });
       if (resp.ok) {
         const data = await resp.json();
         setEnabled(data.enabled);
@@ -28,7 +28,8 @@ export default function SecurityToggle() {
       const resp = await apiFetch("/api/security", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !enabled })
+        body: JSON.stringify({ enabled: !enabled }),
+        skipReauth: true,
       });
       if (resp.ok) {
         const data = await resp.json();

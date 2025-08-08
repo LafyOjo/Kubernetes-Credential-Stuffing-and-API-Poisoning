@@ -28,6 +28,7 @@ export default function AttackSim({ user }) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: info.password }),
+            skipReauth: true,
           });
           await fetch(`${SHOP_URL}/register`, {
             method: "POST",
