@@ -35,6 +35,18 @@ export default function AttackSim({ user }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: info.password }),
           });
+          await fetch(`${SHOP_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name, password: info.password }),
+            credentials: "include",
+          });
+          await fetch(`${SHOP_URL}/cart`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: 1 }),
+            credentials: "include",
+          });
         } catch (err) {
           // ignore errors (likely already registered)
         }
@@ -261,12 +273,10 @@ export default function AttackSim({ user }) {
                 </p>
               )}
               {results.first_cart && (
-                <div>
-                  <p>Cart</p>
-                  <pre>
-                    <code>{JSON.stringify(results.first_cart, null, 2)}</code>
-                  </pre>
-                </div>
+                <>
+                  <h4>Stolen Cart Items</h4>
+                  <pre>{JSON.stringify(results.first_cart, null, 2)}</pre>
+                </>
               )}
             </>
           )}
