@@ -6,9 +6,11 @@ const AUDIT_URL = 'http://localhost:8000/api/audit/log';
 
 let username = null;
 
-function setContent(html) {
+function setContent(html, callback) {
   $('#content').fadeOut(200, function () {
-    $('#content').html(html).fadeIn(200);
+    $('#content').html(html).fadeIn(200, function () {
+      if (typeof callback === 'function') callback();
+    });
   });
 }
 
@@ -143,38 +145,45 @@ function showLogin() {
   setContent(`
     <h2>Login</h2>
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required><br>
-      <input type="password" id="pw" placeholder="Password" required><br>
-      <button type="submit">Login</button>
+      <div class="form-group">
+        <label>Username</label>
+        <input id="username" type="text" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="pw" type="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
     </form>
-    <p class="small text-muted">Demo credentials: <code>alice</code> / <code>secret</code></p>
+    <p>Demo credentials: alice / secret</p>
     <p>Or <a href="#" id="registerLink">register</a></p>
-  `);
-  document.getElementById('loginForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    username = document.getElementById('username').value;
-    const pw = document.getElementById('pw').value;
-    try {
-      const data = await fetchJSON(`${API_BASE}/login`, {
-        method: 'POST',
-        body: JSON.stringify({ username, password: pw }),
-        noAuth: true
-      });
-      localStorage.setItem(TOKEN_KEY, data.access_token);
+  `, () => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      username = document.getElementById('username').value;
+      const pw = document.getElementById('pw').value;
+      try {
+        const data = await fetchJSON(`${API_BASE}/login`, {
+          method: 'POST',
+          body: JSON.stringify({ username, password: pw }),
+          noAuth: true
+        });
+        localStorage.setItem(TOKEN_KEY, data.access_token);
 
-      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
-      await logAuditEvent('user_login_success');
-      document.getElementById('loginBtn').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
-      updateCartCount();
-      loadProducts();
-    } catch (e) {
-      showMessage('Login failed', true);
-      username = null;
-      localStorage.removeItem(TOKEN_KEY);
-    }
+        localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+        await logAuditEvent('user_login_success');
+        document.getElementById('loginBtn').style.display = 'none';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+        updateCartCount();
+        loadProducts();
+      } catch (e) {
+        showMessage('Login failed', true);
+        username = null;
+        localStorage.removeItem(TOKEN_KEY);
+      }
+    });
+    document.getElementById('registerLink').addEventListener('click', showRegister);
   });
-  document.getElementById('registerLink').addEventListener('click', showRegister);
 }
 
 function showRegister() {
@@ -185,22 +194,23 @@ function showRegister() {
       <input type="password" id="regPw" placeholder="Password" required><br>
       <button type="submit">Register</button>
     </form>
-  `);
-  document.getElementById('regForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const usernameVal = document.getElementById('regUser').value;
-    const pw = document.getElementById('regPw').value;
-    try {
-      await fetchJSON(`${API_BASE}/register`, {
-        method: 'POST',
-        body: JSON.stringify({ username: usernameVal, password: pw }),
-        noAuth: true
-      });
-      showMessage('Registered! Please log in.');
-      showLogin();
-    } catch (e) {
-      showMessage('Registration failed', true);
-    }
+  `, () => {
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const usernameVal = document.getElementById('regUser').value;
+      const pw = document.getElementById('regPw').value;
+      try {
+        await fetchJSON(`${API_BASE}/register`, {
+          method: 'POST',
+          body: JSON.stringify({ username: usernameVal, password: pw }),
+          noAuth: true
+        });
+        showMessage('Registered! Please log in.');
+        showLogin();
+      } catch (e) {
+        showMessage('Registration failed', true);
+      }
+    });
   });
 }
 
