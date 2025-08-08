@@ -35,8 +35,9 @@ export function logout() {
 }
 
 export async function apiFetch(path, options = {}) {
+  const { skipReauth, ...fetchOptions } = options;
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-  const headers = { ...(options.headers || {}) };
+  const headers = { ...(fetchOptions.headers || {}) };
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const skipAuth =
     url.endsWith("/login") ||
@@ -50,8 +51,8 @@ export async function apiFetch(path, options = {}) {
     headers["X-API-Key"] = API_KEY;
   }
 
-  let resp = await fetch(url, { ...options, headers });
-  if (resp.status !== 401 || skipAuth) {
+  let resp = await fetch(url, { ...fetchOptions, headers });
+  if (resp.status !== 401 || skipAuth || skipReauth) {
     return resp;
   }
 
@@ -62,7 +63,7 @@ export async function apiFetch(path, options = {}) {
   }
 
   const retryHeaders = { ...headers, "X-Reauth-Password": pw };
-  resp = await fetch(url, { ...options, headers: retryHeaders });
+  resp = await fetch(url, { ...fetchOptions, headers: retryHeaders });
   if (resp.status === 401) {
     logout();
   }
