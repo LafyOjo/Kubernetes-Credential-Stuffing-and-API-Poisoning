@@ -4,7 +4,14 @@ const TOKEN_KEY = 'apiShieldAuthToken';
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
 // Allow overriding the audit service base URL via environment variables; otherwise
 // replace any port in API_BASE with :8001 for local development.
-const AUDIT_BASE = process?.env?.AUDIT_URL || API_BASE.replace(/:\d+/, ':8001');
+const envAudit =
+  typeof process !== 'undefined' && process.env
+    ? process.env.REACT_APP_AUDIT_URL
+    : undefined;
+const AUDIT_BASE =
+  window.location.hostname === 'localhost'
+    ? API_BASE.replace(/:\d+/, ':8001')
+    : envAudit || API_BASE.replace(/:\d+/, ':8001');
 const AUDIT_URL = `${AUDIT_BASE}/api/audit/log`;
 
 let username = null;
