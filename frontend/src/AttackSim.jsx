@@ -50,7 +50,11 @@ export default function AttackSim({ user }) {
 
   const fetchChainToken = async () => {
     try {
-      const resp = await apiFetch("/api/security/chain");
+      const resp = await apiFetch("/api/security/chain", { skipReauth: true });
+      if (resp.status === 401) {
+        setError("Unauthorized to fetch chain token");
+        return null;
+      }
       if (resp.ok) {
         const data = await resp.json();
         setChainToken(data.chain);
@@ -70,7 +74,12 @@ export default function AttackSim({ user }) {
     let securityEnabled = false;
     let currentChain = null;
     try {
-      const secResp = await apiFetch("/api/security");
+      const secResp = await apiFetch("/api/security", { skipReauth: true });
+      if (secResp.status === 401) {
+        setError("Unauthorized to check security state");
+        setRunning(false);
+        return;
+      }
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
@@ -134,8 +143,9 @@ export default function AttackSim({ user }) {
             client_ip: "10.0.0.1",
             auth_result: loginOk ? "success" : "failure",
           }),
+          skipReauth: true,
         });
-        if (securityEnabled && scoreResp.status === 401) {
+        if (scoreResp.status === 401) {
           setError("Attack blocked by security");
           setRunning(false);
           return;
@@ -163,8 +173,11 @@ export default function AttackSim({ user }) {
             try {
               const infoResp = await apiFetch("/api/me", {
                 headers: { Authorization: `Bearer ${token}` },
+                skipReauth: true,
               });
-              if (infoResp.ok) {
+              if (infoResp.status === 401) {
+                setError("Failed to fetch user info");
+              } else if (infoResp.ok) {
                 firstInfo = await infoResp.json();
               }
             } catch (err) {
