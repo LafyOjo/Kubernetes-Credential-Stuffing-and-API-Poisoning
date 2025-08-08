@@ -22,15 +22,14 @@ ChartJS.register(
   Legend
 );
 
-export default function AlertsChart({ token }) {
+export default function AlertsChart() {
   const [stats, setStats] = useState([]);
   const [error, setError] = useState(null);
 
   const loadStats = async () => {
     try {
-      const resp = await apiFetch("/api/alerts/stats", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      // apiFetch automatically appends authentication headers
+      const resp = await apiFetch("/api/alerts/stats");
       if (!resp.ok) throw new Error(await resp.text());
       setStats(await resp.json());
     } catch (err) {

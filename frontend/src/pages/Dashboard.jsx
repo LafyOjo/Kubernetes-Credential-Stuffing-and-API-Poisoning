@@ -1,11 +1,13 @@
-// frontend/src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import ScoreForm from "../ScoreForm";
 import AlertsTable from "../AlertsTable";
-import { apiFetch } from "../api";
+import { apiFetch, AUTH_TOKEN_KEY } from "../api";
 
 function Dashboard() {
   const [ping, setPing] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+  // Retrieve the authentication token for API requests
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
   useEffect(() => {
     apiFetch("/ping")
@@ -14,16 +16,18 @@ function Dashboard() {
       .catch((err) => console.error("Ping failed:", err));
   }, []);
 
+  const handleNewAlert = () => setRefresh((r) => r + 1);
+
   return (
     <div style={{ padding: "1rem" }}>
       <h1>APIShield+ Dashboard</h1>
       <p>Backend ping says: {ping ?? "Loading…"} </p>
 
-      <ScoreForm />
+      <ScoreForm token={token} onNewAlert={handleNewAlert} />
 
       <hr style={{ margin: "2rem 0" }} />
 
-      <AlertsTable />
+      <AlertsTable token={token} refresh={refresh} />
     </div>
   );
 }
