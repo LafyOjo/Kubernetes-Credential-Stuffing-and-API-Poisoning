@@ -2,7 +2,10 @@ const API_BASE = 'http://localhost:3005';
 const TOKEN_KEY = 'apiShieldAuthToken';
 
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
-const AUDIT_URL = `${API_BASE.replace('3005', '8001')}/api/audit/log`;
+// Allow overriding the audit service base URL via environment variables; otherwise
+// replace any port in API_BASE with :8001 for local development.
+const AUDIT_BASE = process?.env?.AUDIT_URL || API_BASE.replace(/:\d+/, ':8001');
+const AUDIT_URL = `${AUDIT_BASE}/api/audit/log`;
 
 let username = null;
 
