@@ -9,7 +9,7 @@ export default function AlertsTable({ refresh, token }) {
     try {
       // Only include Authorization header when a token is available
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const resp = await apiFetch("/api/alerts", { headers });
+      const resp = await apiFetch("/api/alerts", { headers, skipReauth: true });
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {

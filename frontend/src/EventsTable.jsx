@@ -11,6 +11,7 @@ export default function EventsTable({ token }) {
     try {
       const resp = await apiFetch(`/api/events${query}`, {
         headers: { Authorization: `Bearer ${token}` },
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       setEvents(await resp.json());

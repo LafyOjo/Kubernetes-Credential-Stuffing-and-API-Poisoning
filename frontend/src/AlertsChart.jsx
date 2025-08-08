@@ -30,6 +30,7 @@ export default function AlertsChart({ token }) {
     try {
       const resp = await apiFetch("/api/alerts/stats", {
         headers: { Authorization: `Bearer ${token}` },
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       setStats(await resp.json());

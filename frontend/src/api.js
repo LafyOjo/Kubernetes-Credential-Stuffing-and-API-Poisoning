@@ -14,6 +14,7 @@ export async function logAuditEvent(event, username) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      skipReauth: true,
     });
   } catch (err) {
     // Fail silently; audit logging should not disrupt UX
