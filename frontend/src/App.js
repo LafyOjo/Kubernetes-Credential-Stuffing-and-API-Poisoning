@@ -41,14 +41,7 @@ function App() {
   }, [token]);
 
   if (!token) {
-    return (
-      <div className="app-container">
-        <h1 className="dashboard-header">Please log in</h1>
-        <div className="dashboard-section">
-          <LoginForm onLogin={setToken} />
-        </div>
-      </div>
-    );
+    return <LoginForm onLogin={setToken} />;
   }
 
   return (
