@@ -11,6 +11,9 @@ body { font-family: var(--font-sans); margin:0; background: var(--bg); color: va
 .navbar { background: linear-gradient(180deg, #0b1020 0%, #12182a 100%) !important; border-bottom: 1px solid var(--border); box-shadow: var(--shadow); }
 .navbar .navbar-brand, .navbar .nav-link, .navbar .navbar-text { color:#fff !important; }
 #content { padding: var(--space-8) var(--space-4); max-width: 1100px; margin-inline:auto; }
+.stack { display:grid; gap: var(--space-6); }
+.brand { display:flex; gap:.6rem; align-items:center; font-weight:800; font-size: var(--font-20); letter-spacing:.3px; }
+.brand-mark { width:28px; height:28px; border-radius:8px; background: var(--brand); box-shadow:0 4px 14px rgba(91,108,255,.45); }
 .card { background: var(--panel); border:1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--space-6); }
 .card-title { font-size: var(--font-20); font-weight: 700; margin-bottom: var(--space-4); }
 .btn-primary { background-color: var(--brand); border-color: var(--brand); box-shadow: 0 2px 8px rgba(91,108,255,.35); }
