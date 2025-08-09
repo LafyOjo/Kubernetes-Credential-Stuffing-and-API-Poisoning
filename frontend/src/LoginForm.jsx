@@ -45,11 +45,11 @@ export default function LoginForm({ onLogin }) {
         </p>
         <form className="form" onSubmit={handleSubmit}>
           <div className="field">
-            <label className="label">Email</label>
+            <label className="label">Username</label>
             <input
               className="input"
-              name="email"
-              type="email"
+              name="text"
+              type="text"
               placeholder="you@company.com"
               required
               value={username}
