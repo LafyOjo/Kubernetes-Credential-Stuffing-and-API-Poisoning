@@ -44,7 +44,7 @@ button { font: inherit; }
 
 /* Dark theme (opt-in + system) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light) {
     --bg: #0b1020;
     --panel: #12182a;
     --brand-ink: #e5e7eb;
@@ -122,7 +122,12 @@ body {
   width: 100%; border-collapse: collapse; border: 1px solid var(--border);
   background: var(--panel); border-radius: var(--radius-lg); overflow: hidden;
 }
-.table th, .table td { padding: .75rem 1rem; text-align: left; }
+.table th, .table td {
+  padding: .85rem 1.15rem;
+  text-align: left;
+  margin: 0.1rem;
+  font-size: calc(var(--font-16) + 1pt);
+}
 .table thead th {
   background: linear-gradient(180deg, color-mix(in oklab, var(--brand) 24%, var(--panel)) 0%, color-mix(in oklab, var(--brand) 12%, var(--panel)) 100%);
   color: #fff; position: sticky; top:0; z-index:1;
