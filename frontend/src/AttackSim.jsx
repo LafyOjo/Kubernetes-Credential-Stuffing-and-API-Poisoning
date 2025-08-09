@@ -11,6 +11,24 @@ const DUMMY_PASSWORDS = [
   "letmein",
 ];
 
+async function recordStuffingAttempt({ user, success }) {
+  try {
+    await apiFetch("/events/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user,
+        action: "stuffing_attempt",
+        success,
+        source: "apishield+",
+      }),
+      skipReauth: true,
+    });
+  } catch (err) {
+    console.error("Record attempt error", err);
+  }
+}
+
 export default function AttackSim({ user }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
@@ -130,6 +148,11 @@ export default function AttackSim({ user }) {
       } catch (err) {
         console.error("Login error", err);
       }
+
+      await recordStuffingAttempt({
+        user: targetUser,
+        success: loginOk,
+      });
 
       let shopOk = false;
       try {
