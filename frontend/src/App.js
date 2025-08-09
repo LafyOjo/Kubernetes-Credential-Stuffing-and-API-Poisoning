@@ -17,6 +17,18 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const pref = localStorage.getItem("theme");
+    if (pref === "dark") root.classList.add("theme-dark");
+  }, []);
+
+  function toggleTheme() {
+    const root = document.documentElement;
+    const dark = root.classList.toggle("theme-dark");
+    localStorage.setItem("theme", dark ? "dark" : "light");
+  }
+
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
@@ -48,6 +60,9 @@ function App() {
     <div className="app-container">
       <div className="header">
         <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+        <button className="btn secondary" onClick={toggleTheme}>
+          Toggle theme
+        </button>
         <button className="logout-button" onClick={handleLogout}>
           Logout
         </button>
