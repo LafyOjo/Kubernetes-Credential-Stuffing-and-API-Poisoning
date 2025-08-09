@@ -1,7 +1,6 @@
 from datetime import timedelta
 import os
 import requests
-import logging
 
 from app.core.config import settings
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -35,7 +34,6 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     role = user_in.role or "user"
     user = create_user(db, username=user_in.username, password_hash=hashed, role=role)
 
-    warning: str | None = None
     if os.getenv("REGISTER_WITH_DEMOSHOP", "false").lower() in {"1", "true", "yes"}:
         shop_url = os.getenv("DEMO_SHOP_URL", "http://localhost:3005").rstrip("/")
         try:
@@ -45,17 +43,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
                 timeout=3,
             )
         except Exception:
-            logging.exception(
-                "Failed registering user %s with Demo Shop at %s",
-                user_in.username,
-                shop_url,
-            )
-            warning = "Demo Shop registration failed"
+            pass
 
-    response = {"id": user.id, "username": user.username, "role": user.role}
-    if warning:
-        response["warning"] = warning
-    return response
+    return user
 
 
 @router.post("/login")
@@ -64,10 +54,7 @@ def login(user_in: UserCreate, request: Request, db: Session = Depends(get_db)):
     policy = get_policy_for_user(db, user) if user else None
     fail_limit = policy.failed_attempts_limit if policy else DEFAULT_FAIL_LIMIT
     if user and is_rate_limited(db, user.id, fail_limit):
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many attempts",
-        )
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Too many attempts")
 
     if not user or not verify_password(user_in.password, user.password_hash):
         log_event(db, user_in.username, "login", False)
@@ -154,16 +141,17 @@ async def read_me(current_user=Depends(get_current_user)):
         "role": current_user.role,
     }
 
-
 @router.post("/logout")
 async def logout(
     token: str = Depends(oauth2_scheme),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    success = False
     try:
         revoke_token(token)
-        log_event(db, current_user.username, "logout", True)
+        success = True
     except Exception:
-        log_event(db, current_user.username, "logout", False)
+        pass
+    log_event(db, current_user.username, "logout", success)
     return {"detail": "Logged out"}

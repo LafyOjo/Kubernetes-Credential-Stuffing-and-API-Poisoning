@@ -1,9 +1,10 @@
-// Base URL for the backend API. Reads REACT_APP_API_BASE (e.g., http://127.0.0.1:8001).
+// Base URL for the backend API. If unset, requests use relative paths and rely on CRA's proxy.
 export const API_BASE = process.env.REACT_APP_API_BASE || "";
 export const API_KEY = process.env.REACT_APP_API_KEY || "";
 export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
+// Maintain legacy name for compatibility
+export const TOKEN_KEY = AUTH_TOKEN_KEY;
 export const USERNAME_KEY = "apiShieldUsername";
-export const ZERO_TRUST_ENABLED_KEY = "zeroTrustEnabled";
 
 export async function logAuditEvent(event, username) {
   try {
@@ -13,6 +14,7 @@ export async function logAuditEvent(event, username) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      skipReauth: true,
     });
   } catch (err) {
     // Fail silently; audit logging should not disrupt UX
@@ -20,9 +22,10 @@ export async function logAuditEvent(event, username) {
   }
 }
 
-function logout() {
+export function logout() {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const username = localStorage.getItem(USERNAME_KEY);
-  if (localStorage.getItem(AUTH_TOKEN_KEY)) {
+  if (token) {
     logAuditEvent("user_logout", username);
   }
   localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -33,8 +36,9 @@ function logout() {
 }
 
 export async function apiFetch(path, options = {}) {
+  const { skipReauth, ...fetchOptions } = options;
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
-  const headers = { ...(options.headers || {}) };
+  const headers = { ...(fetchOptions.headers || {}) };
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
   const skipAuth =
     url.endsWith("/login") ||
@@ -44,13 +48,12 @@ export async function apiFetch(path, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const zeroTrust = localStorage.getItem(ZERO_TRUST_ENABLED_KEY) === "true";
-  if (zeroTrust && API_KEY && !headers["X-API-Key"]) {
+  if (API_KEY && !headers["X-API-Key"]) {
     headers["X-API-Key"] = API_KEY;
   }
 
-  let resp = await fetch(url, { ...options, headers });
-  if (resp.status !== 401 || skipAuth) {
+  let resp = await fetch(url, { ...fetchOptions, headers });
+  if (resp.status !== 401 || skipAuth || skipReauth) {
     return resp;
   }
 
@@ -61,7 +64,7 @@ export async function apiFetch(path, options = {}) {
   }
 
   const retryHeaders = { ...headers, "X-Reauth-Password": pw };
-  resp = await fetch(url, { ...options, headers: retryHeaders });
+  resp = await fetch(url, { ...fetchOptions, headers: retryHeaders });
   if (resp.status === 401) {
     logout();
   }

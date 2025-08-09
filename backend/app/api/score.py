@@ -111,7 +111,7 @@ def record_attempt(
     # this stage so ``None`` is stored.
     log_event(db, None, "stuffing_attempt", False)
 
-    if security.is_enabled(db) and fail_count >= ip_fail_limit:
+    if security.SECURITY_ENABLED and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
         log_event(db, None, "stuffing_block", True)
         alert = Alert(
@@ -149,8 +149,8 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     time window. The defaults are 5 failures within 60 seconds but can be adjusted
     via the FAIL_LIMIT and FAIL_WINDOW_SECONDS environment variables.
     """
-    if security.is_enabled(db):
-        security.verify_chain(request.headers.get("X-Chain-Password"), db)
+    if security.SECURITY_ENABLED:
+        security.verify_chain(request.headers.get("X-Chain-Password"))
 
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")

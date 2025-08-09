@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiFetch, ZERO_TRUST_ENABLED_KEY } from "./api";
+import { apiFetch } from "./api";
 
 export default function SecurityToggle() {
   const [enabled, setEnabled] = useState(true);
@@ -7,14 +7,10 @@ export default function SecurityToggle() {
 
   const loadState = async () => {
     try {
-      const resp = await apiFetch("/api/security");
+      const resp = await apiFetch("/api/security", { skipReauth: true });
       if (resp.ok) {
         const data = await resp.json();
         setEnabled(data.enabled);
-        localStorage.setItem(
-          ZERO_TRUST_ENABLED_KEY,
-          data.enabled ? "true" : "false"
-        );
       } else {
         throw new Error(await resp.text());
       }
@@ -32,15 +28,12 @@ export default function SecurityToggle() {
       const resp = await apiFetch("/api/security", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !enabled })
+        body: JSON.stringify({ enabled: !enabled }),
+        skipReauth: true,
       });
       if (resp.ok) {
         const data = await resp.json();
         setEnabled(data.enabled);
-        localStorage.setItem(
-          ZERO_TRUST_ENABLED_KEY,
-          data.enabled ? "true" : "false"
-        );
       } else {
         throw new Error(await resp.text());
       }
@@ -52,7 +45,7 @@ export default function SecurityToggle() {
   return (
     <div className="security-toggle">
       <label>
-        <input type="checkbox" checked={enabled} onChange={toggle} /> Zero Trust
+        <input type="checkbox" checked={enabled} onChange={toggle} /> Security
         Enabled
       </label>
       {error && <p className="error-text">{error}</p>}

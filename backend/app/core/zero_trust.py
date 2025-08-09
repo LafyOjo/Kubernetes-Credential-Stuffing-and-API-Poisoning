@@ -17,6 +17,8 @@ class ZeroTrustMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         if request.url.path in {"/ping", "/login", "/register", "/api/token"}:
             return await call_next(request)
+        if request.method == "OPTIONS" or request.url.path == "/api/audit/log":
+            return await call_next(request)
         header = request.headers.get("X-API-Key")
         if header != API_KEY:
             client_ip = request.client.host if request.client else "unknown"

@@ -15,6 +15,7 @@ REQUEST_TIMEOUT = 3
 def load_creds(
     path: Union[Path, str, None] = ROCKYOU_PATH, limit: Optional[int] = None
 ):
+
     """Load credentials from a file with an optional limit.
 
     *path* may be a :class:`pathlib.Path` or string. By default the bundled
@@ -190,6 +191,7 @@ def attack(
 
             time.sleep(1 / rate_per_sec)
     except KeyboardInterrupt:
+        print("Interrupted by user, printing summary...")
         print_summary()
         return
 

@@ -5,7 +5,7 @@ export const USER_DATA = {
     name: "Alice",
     password: "secret",
 
-    security: 25,
+    security: 30,
     features: [
       "Weak password",
       "No MFA",
@@ -28,48 +28,36 @@ export const USER_DATA = {
 export default function UserAccounts({ onSelect }) {
   const [active, setActive] = useState("alice");
 
-  const handleSelect = (username) => {
-    setActive(username);
-    onSelect?.(username);
+  const select = (u) => {
+    setActive(u);
+    if (onSelect) onSelect(u);
   };
 
-  const selected = USER_DATA[active];
+  const info = USER_DATA[active];
 
   return (
     <div className="user-accounts">
-      <div className="btn-group mb-3">
-        {Object.keys(USER_DATA).map((username) => (
+      <div className="user-buttons">
+        {Object.keys(USER_DATA).map((u) => (
           <button
-            key={username}
-            type="button"
-            onClick={() => handleSelect(username)}
-            className={`btn btn-${active === username ? "primary" : "outline-primary"}`}
+            key={u}
+            onClick={() => select(u)}
+            className={active === u ? "active" : ""}
           >
-            {USER_DATA[username].name}
+            {USER_DATA[u].name}
           </button>
         ))}
       </div>
-      <div className="card">
-        <div className="card-body">
-          <h3 className="card-title">{selected.name} Security</h3>
-          <div className="progress mb-3">
-            <div
-              className="progress-bar"
-              role="progressbar"
-              style={{ width: `${selected.security}%` }}
-              aria-valuenow={selected.security}
-              aria-valuemin="0"
-              aria-valuemax="100"
-            >
-              {selected.security}%
-            </div>
-          </div>
+      <div className="user-info">
+        <h3>{info.name} Security</h3>
+        <div className="progress">
+          <div style={{ width: `${info.security}%` }} />
         </div>
-        <ul className="list-group list-group-flush">
-          {selected.features.map((feature) => (
-            <li key={feature} className="list-group-item">
-              {feature}
-            </li>
+
+        <p>{info.security}% safe</p>
+        <ul>
+          {info.features.map((f) => (
+            <li key={f}>{f}</li>
           ))}
         </ul>
       </div>

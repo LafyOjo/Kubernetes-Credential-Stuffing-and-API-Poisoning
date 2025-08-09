@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
-import { apiFetch, API_BASE, AUTH_TOKEN_KEY } from "./api";
-import AlertsChart from "./AlertsChart";
+import { apiFetch, API_BASE } from "./api";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
 const DUMMY_PASSWORDS = [
@@ -12,7 +11,7 @@ const DUMMY_PASSWORDS = [
   "letmein",
 ];
 
-export default function AttackSim({ user, token }) {
+export default function AttackSim({ user }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
   useEffect(() => {
@@ -22,56 +21,38 @@ export default function AttackSim({ user, token }) {
   }, [user]);
 
   useEffect(() => {
-    async function setupDemoUsers() {
+    async function ensureUsers() {
       for (const [name, info] of Object.entries(USER_DATA)) {
         try {
           await apiFetch("/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: info.password }),
+            skipReauth: true,
           });
           await fetch(`${SHOP_URL}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: name, password: info.password }),
           });
+          await fetch(`${SHOP_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: name, password: info.password }),
+            credentials: "include",
+          });
+          await fetch(`${SHOP_URL}/cart`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ productId: 1 }),
+            credentials: "include",
+          });
         } catch (err) {
           // ignore errors (likely already registered)
         }
       }
-
-      try {
-        const strict = await apiFetch("/api/policies", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            failed_attempts_limit: 3,
-            mfa_required: true,
-            geo_fencing_enabled: true,
-          }),
-        });
-        const lenient = await apiFetch("/api/policies", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            failed_attempts_limit: 10,
-            mfa_required: false,
-            geo_fencing_enabled: false,
-          }),
-        });
-        if (strict.ok) {
-          const sData = await strict.json();
-          await apiFetch(`/api/users/ben/policy/${sData.id}`, { method: "POST" });
-        }
-        if (lenient.ok) {
-          const lData = await lenient.json();
-          await apiFetch(`/api/users/alice/policy/${lData.id}`, { method: "POST" });
-        }
-      } catch (err) {
-        console.error("policy setup error", err);
-      }
     }
-    setupDemoUsers();
+    ensureUsers();
   }, []);
 
   const [attemptsInput, setAttemptsInput] = useState(20);
@@ -79,15 +60,17 @@ export default function AttackSim({ user, token }) {
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [chainToken, setChainToken] = useState(null);
-  const chainRef = useRef(null);
 
   const fetchChainToken = async () => {
     try {
-      const resp = await apiFetch("/api/security/chain");
+      const resp = await apiFetch("/api/security/chain", { skipReauth: true });
+      if (resp.status === 401) {
+        setError("Unauthorized to fetch chain token");
+        return null;
+      }
       if (resp.ok) {
         const data = await resp.json();
         setChainToken(data.chain);
-        chainRef.current = data.chain;
         return data.chain;
       }
     } catch (err) {
@@ -101,15 +84,20 @@ export default function AttackSim({ user, token }) {
     setResults(null);
     setError(null);
     setChainToken(null);
-    chainRef.current = null;
     let securityEnabled = false;
+    let currentChain = null;
     try {
-      const secResp = await apiFetch("/api/security");
+      const secResp = await apiFetch("/api/security", { skipReauth: true });
+      if (secResp.status === 401) {
+        setError("Unauthorized to check security state");
+        setRunning(false);
+        return;
+      }
       if (secResp.ok) {
         const data = await secResp.json();
         securityEnabled = data.enabled;
         if (securityEnabled) {
-          await fetchChainToken();
+          currentChain = await fetchChainToken();
         }
       }
     } catch (err) {
@@ -120,7 +108,7 @@ export default function AttackSim({ user, token }) {
     let firstAttempt = null;
     let firstTime = null;
     let firstInfo = null;
-    let cart = null;
+    let firstCart = null;
 
     const start = performance.now();
 
@@ -158,8 +146,8 @@ export default function AttackSim({ user, token }) {
 
       try {
         const headers = { "Content-Type": "application/json" };
-        if (securityEnabled && chainRef.current) {
-          headers["X-Chain-Password"] = chainRef.current;
+        if (securityEnabled && currentChain) {
+          headers["X-Chain-Password"] = currentChain;
         }
         const scoreResp = await apiFetch("/score", {
           method: "POST",
@@ -168,8 +156,9 @@ export default function AttackSim({ user, token }) {
             client_ip: "10.0.0.1",
             auth_result: loginOk ? "success" : "failure",
           }),
+          skipReauth: true,
         });
-        if (securityEnabled && scoreResp.status === 401) {
+        if (scoreResp.status === 401) {
           setError("Attack blocked by security");
           setRunning(false);
           return;
@@ -185,7 +174,7 @@ export default function AttackSim({ user, token }) {
       }
 
       if (securityEnabled) {
-        await fetchChainToken();
+        currentChain = await fetchChainToken();
       }
 
       if (loginOk) {
@@ -195,16 +184,14 @@ export default function AttackSim({ user, token }) {
           firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const prevToken = localStorage.getItem(AUTH_TOKEN_KEY);
-              localStorage.setItem(AUTH_TOKEN_KEY, token);
-              const infoResp = await apiFetch("/api/me");
-              if (infoResp.ok) {
+              const infoResp = await apiFetch("/api/me", {
+                headers: { Authorization: `Bearer ${token}` },
+                skipReauth: true,
+              });
+              if (infoResp.status === 401) {
+                setError("Failed to fetch user info");
+              } else if (infoResp.ok) {
                 firstInfo = await infoResp.json();
-              }
-              if (prevToken) {
-                localStorage.setItem(AUTH_TOKEN_KEY, prevToken);
-              } else {
-                localStorage.removeItem(AUTH_TOKEN_KEY);
               }
             } catch (err) {
               console.error("Info error", err);
@@ -213,13 +200,13 @@ export default function AttackSim({ user, token }) {
         }
       }
 
-      if (shopOk && cart === null) {
+      if (shopOk && firstCart === null) {
         try {
           const cartResp = await fetch(`${SHOP_URL}/cart`, {
             credentials: "include",
           });
           if (cartResp.ok) {
-            cart = await cartResp.json();
+            firstCart = await cartResp.json();
           }
         } catch (err) {
           console.error("Fetch shop info", err);
@@ -233,7 +220,7 @@ export default function AttackSim({ user, token }) {
         first_success_attempt: firstAttempt,
         first_success_time: firstTime,
         first_user_info: firstInfo,
-        cart,
+        first_cart: firstCart,
       });
 
       await new Promise((res) => setTimeout(res, 100));
@@ -276,22 +263,20 @@ export default function AttackSim({ user, token }) {
           {results.first_success_attempt && (
             <>
               <p>
-                First Success: attempt {results.first_success_attempt} (in{" "}
+                First Success: attempt {results.first_success_attempt} (in{' '}
                 {results.first_success_time?.toFixed(2)}s)
               </p>
               {results.first_user_info && (
                 <p>
-                  User Info{" "}
+                  User Info{' '}
                   <code>{JSON.stringify(results.first_user_info)}</code>
                 </p>
               )}
-              {results.cart && (
-                <div>
-                  <p>Cart</p>
-                  <pre>
-                    <code>{JSON.stringify(results.cart, null, 2)}</code>
-                  </pre>
-                </div>
+              {results.first_cart && (
+                <>
+                  <h4>Stolen Cart Items</h4>
+                  <pre>{JSON.stringify(results.first_cart, null, 2)}</pre>
+                </>
               )}
             </>
           )}
@@ -300,9 +285,6 @@ export default function AttackSim({ user, token }) {
           )}
         </div>
       )}
-      <div className="attack-alerts">
-        <AlertsChart token={token} />
-      </div>
     </div>
   );
 }

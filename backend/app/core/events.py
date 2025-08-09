@@ -1,13 +1,12 @@
 """Utility for recording notable actions in the event log.
-
 Only a small subset of actions are considered "major" and therefore stored in
 the database.  This helps keep the dashboard focused by ignoring the many
 minor interactions that previously produced excessive rows.
 """
 
 from sqlalchemy.orm import Session
-
 from app.crud.events import create_event
+
 
 # Actions that should result in a persisted event. Anything else passed to
 # ``log_event`` will be quietly ignored.

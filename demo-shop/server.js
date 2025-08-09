@@ -4,21 +4,23 @@ const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
 const { spawn } = require('child_process');
+const cors = require('cors');
 
 const app = express();
+app.use(cors({ origin: ["http://localhost:3000","http://127.0.0.1:3000"], credentials: true }));
 const PORT = process.env.PORT || 3005;
-// Build the API base URL from API_BASE. Defaults to 127.0.0.1:8001.
-const API_BASE = process.env.API_BASE || 'http://127.0.0.1:8001';
-const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '2000', 10);
-// Forward shop events to the APIShield backend unless explicitly disabled.
-// Disable backend integration entirely by setting FORWARD_API=false.
-const FORWARD_API = process.env.FORWARD_API !== 'false';
-const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
-
-const api = axios.create({ baseURL: API_BASE, timeout: API_TIMEOUT });
-if (process.env.API_KEY) {
-  api.defaults.headers.common['X-API-Key'] = process.env.API_KEY;
+const API_BASE = process.env.API_BASE || 'http://localhost:8001';
+const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '10000', 10);
+const API_KEY = process.env.API_KEY || '';
+axios.defaults.timeout = API_TIMEOUT;
+if (API_KEY) {
+  axios.defaults.headers.common['X-API-Key'] = API_KEY;
 }
+// Disable backend integration entirely by setting FORWARD_API=false
+// Disable integration with the APIShield backend unless explicitly enabled.
+// Most demos run the shop standalone so suppress the noisy API errors by default.
+const FORWARD_API = process.env.FORWARD_API === 'true';
+const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
 
 app.use(bodyParser.json());
 app.use(session({
@@ -48,11 +50,9 @@ const products = [
   { id: 15, name: 'Performance Cap', price: 22 }
 ];
 
-// Pre‑register demo users so the credentials alice/secret and
-// ben/ILikeN1G3R!A##? work out of the box
+// Pre‑register a demo user so the credentials alice/secret work out of the box
 const users = {
-  alice: { password: 'secret', cart: [] },
-  ben: { password: 'ILikeN1G3R!A##?', cart: [] }
+  alice: { password: 'secret', cart: [] }
 };
 
 function requireAuth(req, res, next) {
@@ -75,12 +75,20 @@ app.post('/register', async (req, res) => {
   users[username] = { password, cart: [] };
   if (FORWARD_API) {
     try {
-      await api.post('/register', { username, password });
+            await axios.post(
+        `${API_BASE}/register`,
+        { username, password },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Register API call failed');
     }
     try {
-      await api.post('/api/audit/log', { event: 'user_register', username });
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_register', username },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Audit log failed');
     }
@@ -92,25 +100,37 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!users[username] || users[username].password !== password) {
     if (FORWARD_API) {
-      await api
-        .post('/login', { username, password })
-        .catch((e) => {
-          // Ignore expected 401 but surface other errors
-          if (e.response?.status !== 401) {
-            console.error('Login API call failed', e);
-          }
-        });
       try {
-        await api.post('/score', {
-          client_ip: req.ip,
-          auth_result: 'failure',
-          with_jwt: false,
-        });
+        await axios.post(
+          `${API_BASE}/login`,
+          { username, password },
+          { timeout: API_TIMEOUT }
+        );
+      } catch (e) {
+        // Ignore expected 401 but surface other errors
+        if (e.response?.status !== 401) {
+          console.error('Login API call failed');
+        }
+      }
+      try {
+        await axios.post(
+          `${API_BASE}/score`,
+          {
+            client_ip: req.ip,
+            auth_result: 'failure',
+            with_jwt: false
+          },
+          { timeout: API_TIMEOUT }
+        );
       } catch (e) {
         console.error('Score API call failed');
       }
       try {
-        await api.post('/api/audit/log', { event: 'user_login_failure', username });
+        await axios.post(
+          `${API_BASE}/api/audit/log`,
+          { event: 'user_login_failure', username },
+          { timeout: API_TIMEOUT }
+        );
       } catch (e) {
         console.error('Audit log failed');
       }
@@ -121,45 +141,61 @@ app.post('/login', async (req, res) => {
   req.session.password = password;
   if (FORWARD_API) {
     try {
-      const apiResp = await api.post('/login', { username, password });
-      req.session.apiToken = apiResp.data.access_token;
+const apiResp = await axios.post(
+        `${API_BASE}/login`,
+        { username, password },
+        { timeout: API_TIMEOUT }
+      );      req.session.apiToken = apiResp.data.access_token;
     } catch (e) {
       console.error('Backend login failed');
     }
     try {
-      await api.post('/score', {
-        client_ip: req.ip,
-        auth_result: 'success',
-        with_jwt: false,
-      });
+      await axios.post(       `${API_BASE}/score`,
+        {
+          client_ip: req.ip,
+          auth_result: 'success',
+          with_jwt: false
+        },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Score API call failed');
     }
     try {
-      await api.post('/api/audit/log', { event: 'user_login_success', username });
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_login_success', username },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Audit log failed');
     }
   }
-  res.json({ access_token: req.session.apiToken || null });
+  res.json({ status: 'ok' });
 });
 
 app.post('/logout', async (req, res) => {
-  if (FORWARD_API) {
-    if (req.session.apiToken) {
-      try {
-        await api.post('/logout', null, {
-          headers: { Authorization: `Bearer ${req.session.apiToken}` },
-        });
-      } catch (e) {
-        console.error('Backend logout failed', e);
-      }
-    }
+  if (FORWARD_API && req.session.apiToken) {
     try {
-      await api.post('/api/audit/log', {
-        event: 'user_logout',
-        username: req.session.username,
-      });
+      await axios.post(
+        `${API_BASE}/logout`,
+        null,
+        {
+          headers: { Authorization: `Bearer ${req.session.apiToken}` },
+          timeout: API_TIMEOUT,
+        }
+      );
+    } catch (e) {
+      console.error('Backend logout failed', e);
+    }
+  }
+  if (FORWARD_API) {
+    try {
+      await axios.post(
+        `${API_BASE}/api/audit/log`,
+        { event: 'user_logout', username: req.session.username },
+        { timeout: API_TIMEOUT }
+      );
     } catch (e) {
       console.error('Audit log failed', e);
     }
@@ -205,9 +241,13 @@ app.get('/api-calls', requireAuth, async (req, res) => {
     return res.json({});
   }
   try {
-    const resp = await api.get('/api/user-calls', {
-      headers: { Authorization: `Bearer ${req.session.apiToken}` },
-    });
+    const resp = await axios.get(
+      `${API_BASE}/api/user-calls`,
+      {
+        headers: { Authorization: `Bearer ${req.session.apiToken}` },
+        timeout: API_TIMEOUT,
+      }
+    );
     res.json(resp.data);
   } catch (e) {
     console.error('User call fetch failed');

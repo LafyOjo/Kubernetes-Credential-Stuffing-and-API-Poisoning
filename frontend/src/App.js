@@ -17,24 +17,23 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
 
-
-  // Poll for token changes across tabs/apps
-  useEffect(() => {
-    const id = setInterval(() => {
-      const stored = localStorage.getItem(AUTH_TOKEN_KEY);
-      setToken((prev) => (prev !== stored ? stored : prev));
-    }, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-
   const handleLogout = async () => {
     const username = localStorage.getItem(USERNAME_KEY);
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(USERNAME_KEY);
     await logAuditEvent("user_logout", username);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (username) {
+      localStorage.removeItem(USERNAME_KEY);
+    }
     setToken(null);
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const current = localStorage.getItem(AUTH_TOKEN_KEY);
+      setToken((prev) => (prev === current ? prev : current));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Refresh tables when auth status changes
   useEffect(() => {
@@ -54,10 +53,11 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Dashboard title and logout */}
       <div className="header">
-        <h2 className="dashboard-header">APIShield+ Dashboard</h2>
-        <button className="logout-button" onClick={handleLogout}>Logout</button>
+        <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          Logout
+        </button>
       </div>
       <div className="dashboard-section">
         <UserAccounts onSelect={setSelectedUser} />
@@ -75,14 +75,14 @@ function App() {
         <AlertsChart token={token} />
       </div>
       <div className="dashboard-section">
-        <AlertsTable refresh={refreshKey} token={token} />
+        <AlertsTable refresh={refreshKey} />
       </div>
       <div className="dashboard-section">
-        <EventsTable token={token} />
+        <EventsTable />
       </div>
       <div className="dashboard-section">
         <div className="attack-section">
-          <AttackSim user={selectedUser} token={token} />
+          <AttackSim user={selectedUser} />
           <div className="security-box">
             <SecurityToggle />
           </div>

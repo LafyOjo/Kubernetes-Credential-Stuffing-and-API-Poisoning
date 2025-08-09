@@ -1,5 +1,18 @@
+const API_BASE = 'http://localhost:3005';
+const TOKEN_KEY = 'apiShieldAuthToken';
+
 const AUTH_TOKEN_KEY = 'apiShieldAuthToken';
-const AUDIT_URL = 'http://localhost:8001/api/audit/log';
+// Allow overriding the audit service base URL via environment variables; otherwise
+// replace any port in API_BASE with :8001 for local development.
+const envAudit =
+  typeof process !== 'undefined' && process.env
+    ? process.env.REACT_APP_AUDIT_URL
+    : undefined;
+const AUDIT_BASE =
+  window.location.hostname === 'localhost'
+    ? API_BASE.replace(/:\d+/, ':8001')
+    : envAudit || API_BASE.replace(/:\d+/, ':8001');
+const AUDIT_URL = `${AUDIT_BASE}/api/audit/log`;
 
 let username = null;
 
@@ -55,7 +68,7 @@ async function logAuditEvent(event) {
 }
 
 async function loadProducts() {
-  const products = await fetchJSON('/products', { noAuth: true });
+  const products = await fetchJSON(`${API_BASE}/products`, { noAuth: true });
   const list = products.map(p => `
     <div class="col-md-4 mb-3">
       <div class="card h-100 text-center">
@@ -71,7 +84,7 @@ async function loadProducts() {
 
 async function addToCart(id) {
   try {
-    await fetchJSON('/cart', {
+    await fetchJSON(`${API_BASE}/cart`, {
       method: 'POST',
       body: JSON.stringify({ productId: id })
     });
@@ -84,7 +97,7 @@ async function addToCart(id) {
 
 async function viewCart() {
   try {
-    const items = await fetchJSON('/cart');
+    const items = await fetchJSON(`${API_BASE}/cart`);
     const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
     setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
   } catch (e) {
@@ -93,7 +106,7 @@ async function viewCart() {
 }
 
 async function purchase() {
-  await fetchJSON('/purchase', { method: 'POST' });
+  await fetchJSON(`${API_BASE}/purchase`, { method: 'POST' });
   showMessage('Purchase complete');
   updateCartCount();
   loadProducts();
@@ -128,7 +141,7 @@ function showContact() {
 
 async function viewStats() {
   try {
-    const data = await fetchJSON('/api-calls');
+    const data = await fetchJSON(`${API_BASE}/api-calls`);
     const list = Object.entries(data)
       .map(([user, count]) => `<li>${user}: ${count}</li>`)
       .join('');
@@ -142,24 +155,31 @@ function showLogin() {
   setContent(`
     <h2>Login</h2>
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required><br>
-      <input type="password" id="pw" placeholder="Password" required><br>
-      <button type="submit">Login</button>
+      <div class="form-group">
+        <label>Username</label>
+        <input id="username" type="text" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="pw" type="password" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
     </form>
-    <p class="small text-muted">Demo credentials: <code>alice</code> / <code>secret</code></p>
+    <p>Demo credentials: alice / secret</p>
     <p>Or <a href="#" id="registerLink">register</a></p>
   `, () => {
-    document.getElementById('loginForm').addEventListener('submit', async e => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       username = document.getElementById('username').value;
       const pw = document.getElementById('pw').value;
       try {
-        // Call the demo-shop’s own login endpoint to set the session
-        const data = await fetchJSON('/login', {
+        const data = await fetchJSON(`${API_BASE}/login`, {
           method: 'POST',
           body: JSON.stringify({ username, password: pw }),
           noAuth: true
         });
+        localStorage.setItem(TOKEN_KEY, data.access_token);
+
         localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
         await logAuditEvent('user_login_success');
         document.getElementById('loginBtn').style.display = 'none';
@@ -169,7 +189,7 @@ function showLogin() {
       } catch (e) {
         showMessage('Login failed', true);
         username = null;
-        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
       }
     });
     document.getElementById('registerLink').addEventListener('click', showRegister);
@@ -185,12 +205,12 @@ function showRegister() {
       <button type="submit">Register</button>
     </form>
   `, () => {
-    document.getElementById('regForm').addEventListener('submit', async e => {
+    document.getElementById('regForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const usernameVal = document.getElementById('regUser').value;
       const pw = document.getElementById('regPw').value;
       try {
-        await fetchJSON('/register', {
+        await fetchJSON(`${API_BASE}/register`, {
           method: 'POST',
           body: JSON.stringify({ username: usernameVal, password: pw }),
           noAuth: true
@@ -206,7 +226,7 @@ function showRegister() {
 
 // Determine whether the user already has an active session
 async function checkSession() {
-  if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+  if (!localStorage.getItem(TOKEN_KEY)) {
     username = null;
     document.getElementById('loginBtn').style.display = 'inline-block';
     document.getElementById('logoutBtn').style.display = 'none';
@@ -214,19 +234,19 @@ async function checkSession() {
     return;
   }
   try {
-    const data = await fetchJSON('/session');
+    const data = await fetchJSON(`${API_BASE}/session`);
     if (data.loggedIn) {
       username = data.username;
       document.getElementById('loginBtn').style.display = 'none';
       document.getElementById('logoutBtn').style.display = 'inline-block';
     } else {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(TOKEN_KEY);
       username = null;
       document.getElementById('loginBtn').style.display = 'inline-block';
       document.getElementById('logoutBtn').style.display = 'none';
     }
   } catch {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
     username = null;
     document.getElementById('loginBtn').style.display = 'inline-block';
     document.getElementById('logoutBtn').style.display = 'none';
@@ -236,7 +256,7 @@ async function checkSession() {
 
 async function logout() {
   try {
-    await fetchJSON('/logout', { method: 'POST', noAuth: true });
+    await fetchJSON(`${API_BASE}/logout`, { method: 'POST', noAuth: true });
   } catch {
     showMessage('Logout failed', true);
     return;
@@ -255,7 +275,7 @@ async function updateCartCount() {
     return;
   }
   try {
-  const items = await fetchJSON('/cart');
+    const items = await fetchJSON(`${API_BASE}/cart`);
     document.getElementById('cartCount').textContent = items.length;
   } catch {
     document.getElementById('cartCount').textContent = 0;
@@ -281,17 +301,13 @@ function init() {
   loadProducts();
   checkSession();
 
-  // Poll for token changes across tabs/apps and refresh UI
+  // Poll for token changes across tabs/apps
   let lastToken = localStorage.getItem(AUTH_TOKEN_KEY);
   setInterval(() => {
     const current = localStorage.getItem(AUTH_TOKEN_KEY);
     if (current !== lastToken) {
       lastToken = current;
       checkSession();
-      // If the stats view is active, refresh it
-      if (document.querySelector('.stats-list')) {
-        viewStats();
-      }
     }
   }, 1000);
 }

@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 
 from app.core.db import get_db
-from app.core.time_buckets import bucket_time
 from app.crud.alerts import get_all_alerts
 from app.schemas.alerts import AlertRead, AlertStat
 from app.api.dependencies import get_current_user
@@ -27,10 +26,9 @@ def read_alert_stats(
     _user: dict = Depends(get_current_user),
 ):
     """Aggregate alert counts per minute."""
-    time_expr = bucket_time(Alert.timestamp, db.get_bind().dialect.name)
     rows = (
         db.query(
-            time_expr.label("time"),
+            func.strftime("%Y-%m-%d %H:%M:00", Alert.timestamp).label("time"),
             func.sum(
                 case((Alert.detail == "Blocked: too many failures", 1), else_=0)
             ).label("blocked"),
@@ -38,8 +36,8 @@ def read_alert_stats(
                 case((Alert.detail != "Blocked: too many failures", 1), else_=0)
             ).label("invalid"),
         )
-        .group_by(time_expr)
-        .order_by(time_expr)
+        .group_by("time")
+        .order_by("time")
         .all()
     )
     return [
