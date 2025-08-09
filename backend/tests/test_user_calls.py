@@ -5,20 +5,13 @@ os.environ['SECRET_KEY'] = 'test-secret'
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app.main import app  # noqa: E402
-from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.db import SessionLocal  # noqa: E402
 from app.core.security import create_access_token, get_password_hash  # noqa: E402
 from app.crud.users import create_user  # noqa: E402
 
 client = TestClient(app)
 
 
-def setup_function(_):
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-
-
-def teardown_function(_):
-    SessionLocal().close()
 
 
 def test_user_call_counter():
