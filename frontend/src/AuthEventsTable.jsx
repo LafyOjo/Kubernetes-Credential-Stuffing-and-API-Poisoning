@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function AuthEventsTable({ refresh, limit = 50 }) {
+export default function AuthEventsTable({ refresh, limit = 50, tableClassName = "table" }) {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -35,7 +35,7 @@ export default function AuthEventsTable({ refresh, limit = 50 }) {
       ) : events.length === 0 ? (
         <p>No events yet.</p>
       ) : (
-        <table className="alerts-table">
+        <table className={tableClassName}>
           <thead>
             <tr>
               <th>ID</th>
