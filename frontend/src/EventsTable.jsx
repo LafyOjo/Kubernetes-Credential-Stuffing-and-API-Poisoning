@@ -32,28 +32,30 @@ export default function EventsTable() {
         <button onClick={() => setHours(1)} className={hours === 1 ? "active" : ""}>1h</button>
         <button onClick={() => setHours(24)} className={hours === 24 ? "active" : ""}>24h</button>
       </div>
-      <table className="alerts-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Success</th>
-            <th>Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {events.map((e) => (
-            <tr key={e.id}>
-              <td>{e.id}</td>
-              <td>{e.username}</td>
-              <td>{e.action}</td>
-              <td>{e.success ? "yes" : "no"}</td>
-              <td>{new Date(e.timestamp).toLocaleString()}</td>
+      <div style={{ overflowX: "auto" }}>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Success</th>
+              <th>Timestamp</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {events.map((e) => (
+              <tr key={e.id}>
+                <td>{e.id}</td>
+                <td>{e.username}</td>
+                <td>{e.action}</td>
+                <td>{e.success ? "yes" : "no"}</td>
+                <td>{new Date(e.timestamp).toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -16,14 +16,18 @@ function App() {
 
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
-  const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") === "dark");
+  const [isDark, setIsDark] = useState(
+    () => localStorage.getItem("theme") === "dark"
+  );
 
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
       root.classList.add("theme-dark");
+      root.classList.remove("theme-light");
     } else {
       root.classList.remove("theme-dark");
+      root.classList.add("theme-light");
     }
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
