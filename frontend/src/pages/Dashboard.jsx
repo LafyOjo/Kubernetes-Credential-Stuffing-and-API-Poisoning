@@ -20,16 +20,33 @@ function Dashboard() {
   const handleNewAlert = () => setRefresh((r) => r + 1);
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <h1>APIShield+ Dashboard</h1>
-      <p>Backend ping says: {ping ?? "Loading…"} </p>
+    <div className="container stack">
+      <header className="dashboard-header">
+        <h1>APIShield+ Dashboard</h1>
+        <p className="subtle">Backend ping says: {ping ?? "Loading…"} </p>
+      </header>
 
-      <ScoreForm token={token} onNewAlert={handleNewAlert} />
+      <section className="card">
+        <div className="card-header">
+          <div className="card-title">Risk Scoring</div>
+        </div>
+        <ScoreForm token={token} onNewAlert={handleNewAlert} />
+      </section>
 
-      <hr style={{ margin: "2rem 0" }} />
+      <section className="card">
+        <div className="card-header">
+          <div className="card-title">Alerts</div>
+        </div>
+        <AlertsTable token={token} refresh={refresh} tableClassName="table" />
+      </section>
 
-      <AlertsTable token={token} refresh={refresh} />
-      <AuthEventsTable refresh={refresh} />
+      {/* If you added AuthEventsTable previously */}
+      <section className="card">
+        <div className="card-header">
+          <div className="card-title">Recent Auth Activity</div>
+        </div>
+        <AuthEventsTable refresh={refresh} />
+      </section>
     </div>
   );
 }

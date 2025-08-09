@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "./api";
 
-export default function AlertsTable({ refresh }) {
+export default function AlertsTable({ refresh, tableClassName = "table" }) {
   const [alerts, setAlerts] = useState([]);
   const [error, setError] = useState(null);
 
@@ -24,7 +24,7 @@ export default function AlertsTable({ refresh }) {
   if (alerts.length === 0) return <p>No alerts yet.</p>;
 
   return (
-    <table className="alerts-table">
+    <table className={tableClassName}>
       <thead>
         <tr>
           <th>ID</th>
