@@ -83,6 +83,7 @@ def record_attempt(
     if success:
         if user_id is not None:
             FAILED_USER_ATTEMPTS.pop(user_id, None)
+        log_event(db, None, "stuffing_attempt", True)
         return {"status": "ok", "fails_last_minute": 0}
 
     ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
