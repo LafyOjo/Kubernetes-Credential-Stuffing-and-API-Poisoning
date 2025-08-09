@@ -114,9 +114,10 @@ app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const ok = !!users[username] && users[username].password === password;
 
+  // Notify APIShield+ about each login attempt
   sendAuthEvent({
     user: username || null,
-    action: 'login',
+    action: 'demo-shop',
     success: !!ok,
     source: 'demo-shop',
   });
