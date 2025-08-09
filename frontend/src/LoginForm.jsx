@@ -48,9 +48,9 @@ export default function LoginForm({ onLogin }) {
             <label className="label">Username</label>
             <input
               className="input"
-              name="text"
+              name="username"
               type="text"
-              placeholder="you@company.com"
+              placeholder="alice"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}

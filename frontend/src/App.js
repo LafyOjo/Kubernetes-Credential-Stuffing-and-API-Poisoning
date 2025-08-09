@@ -16,17 +16,20 @@ function App() {
 
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
+  const [isDark, setIsDark] = useState(() => localStorage.getItem("theme") === "dark");
 
   useEffect(() => {
     const root = document.documentElement;
-    const pref = localStorage.getItem("theme");
-    if (pref === "dark") root.classList.add("theme-dark");
-  }, []);
+    if (isDark) {
+      root.classList.add("theme-dark");
+    } else {
+      root.classList.remove("theme-dark");
+    }
+    localStorage.setItem("theme", isDark ? "dark" : "light");
+  }, [isDark]);
 
   function toggleTheme() {
-    const root = document.documentElement;
-    const dark = root.classList.toggle("theme-dark");
-    localStorage.setItem("theme", dark ? "dark" : "light");
+    setIsDark((d) => !d);
   }
 
   const handleLogout = async () => {
@@ -57,45 +60,54 @@ function App() {
   }
 
   return (
-    <div className="app-container">
-      <div className="header">
-        <h1 className="dashboard-header">APIShield+ Dashboard</h1>
-        <button className="btn secondary" onClick={toggleTheme}>
-          Toggle theme
-        </button>
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-      <div className="dashboard-section">
+    <div className="app-container stack">
+      <header className="dashboard-header">
+        <h1>APIShield+ Dashboard</h1>
+        <div className="row">
+          <button className="btn secondary" onClick={toggleTheme}>
+            {isDark ? "Light mode" : "Dark mode"}
+          </button>
+          <button className="btn secondary" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+      </header>
+
+      <section className="card">
         <UserAccounts onSelect={setSelectedUser} />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <LoginStatus token={token} />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <ScoreForm
           token={token}
           onNewAlert={() => setRefreshKey((k) => k + 1)}
         />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <AlertsChart token={token} />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <AlertsTable refresh={refreshKey} />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <EventsTable />
-      </div>
-      <div className="dashboard-section">
+      </section>
+
+      <section className="card">
         <div className="attack-section">
           <AttackSim user={selectedUser} />
           <div className="security-box">
             <SecurityToggle />
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
