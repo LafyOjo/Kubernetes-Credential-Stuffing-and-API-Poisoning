@@ -226,8 +226,21 @@ app.post('/logout', async (req, res) => {
       console.error('Audit log failed', e);
     }
   }
+  const username = req.session.username;
   req.session.apiToken = null;
-  req.session.destroy(() => res.json({ status: 'ok' }));
+  req.session.destroy(err => {
+    sendAuthEvent({
+      user: username || null,
+      action: 'demo-shop',
+      success: !err,
+      source: 'demo-shop',
+    });
+    if (err) {
+      console.error('Session destruction failed', err);
+      return res.status(500).json({ status: 'error' });
+    }
+    res.json({ status: 'ok' });
+  });
 });
 
 // Report whether the current session is authenticated
