@@ -1,12 +1,15 @@
 import os
 
+import importlib  # noqa: E402
+import os
+
 os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
 os.environ['SECRET_KEY'] = 'test-secret'
+
 from fastapi.testclient import TestClient  # noqa: E402
-import importlib  # noqa: E402
 import app.core.zero_trust as zero_trust  # noqa: E402
 import app.main as main_module  # noqa: E402
-from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.db import SessionLocal  # noqa: E402
 from app.crud.users import create_user  # noqa: E402
 from app.core.security import get_password_hash  # noqa: E402
 
@@ -20,8 +23,6 @@ def setup_function(_):
     importlib.reload(main_module)
     global client
     client = TestClient(main_module.app)
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         create_user(db, username='admin', password_hash=get_password_hash('pw'), role='admin')
 
@@ -33,7 +34,6 @@ def _auth_headers():
 
 
 def teardown_function(_):
-    SessionLocal().close()
     os.environ.pop('ZERO_TRUST_API_KEY', None)
     importlib.reload(zero_trust)
     importlib.reload(main_module)

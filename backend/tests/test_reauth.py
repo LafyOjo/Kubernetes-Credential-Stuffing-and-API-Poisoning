@@ -1,7 +1,11 @@
 import importlib
+import os
+
+os.environ['DATABASE_URL'] = 'sqlite:///./test.db'
+os.environ['SECRET_KEY'] = 'test-secret'
 
 from fastapi.testclient import TestClient  # noqa: E402
-from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.db import SessionLocal  # noqa: E402
 from app.core.security import get_password_hash  # noqa: E402
 from app.crud.users import create_user  # noqa: E402
 
@@ -15,14 +19,8 @@ def _reload_app():
 
 
 def setup_function(_):
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         create_user(db, username="alice", password_hash=get_password_hash("pw"))
-
-
-def teardown_function(_):
-    SessionLocal().close()
 
 
 def test_missing_password_header(monkeypatch):

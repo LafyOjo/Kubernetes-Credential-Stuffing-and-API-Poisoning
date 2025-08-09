@@ -5,7 +5,7 @@ os.environ['SECRET_KEY'] = 'test-secret'
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app.main import app  # noqa: E402
-from app.core.db import Base, engine, SessionLocal  # noqa: E402
+from app.core.db import SessionLocal  # noqa: E402
 from app.crud.users import create_user  # noqa: E402
 from app.crud.policies import create_policy  # noqa: E402
 from app.core.security import get_password_hash  # noqa: E402
@@ -14,8 +14,6 @@ client = TestClient(app)
 
 
 def setup_function(_):
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         strict = create_policy(db, failed_attempts_limit=1)
         lenient = create_policy(db, failed_attempts_limit=3)
@@ -31,10 +29,6 @@ def setup_function(_):
             password_hash=get_password_hash('pw'),
             policy_id=lenient.id,
         )
-
-
-def teardown_function(_):
-    SessionLocal().close()
 
 
 def test_policy_enforcement():
