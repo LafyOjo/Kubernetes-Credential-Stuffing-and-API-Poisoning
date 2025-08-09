@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import ScoreForm from "../ScoreForm";
 import AlertsTable from "../AlertsTable";
+import AuthEventsTable from "../AuthEventsTable";
 import { apiFetch, AUTH_TOKEN_KEY } from "../api";
 
 function Dashboard() {
@@ -28,6 +29,7 @@ function Dashboard() {
       <hr style={{ margin: "2rem 0" }} />
 
       <AlertsTable token={token} refresh={refresh} />
+      <AuthEventsTable refresh={refresh} />
     </div>
   );
 }
