@@ -35,32 +35,40 @@ export default function AuthEventsTable({ refresh, limit = 50, tableClassName = 
       ) : events.length === 0 ? (
         <p>No events yet.</p>
       ) : (
-        <table className={tableClassName}>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>User</th>
-              <th>Action</th>
-              <th>Success</th>
-              <th>Source</th>
-              <th>Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((e) => (
-              <tr key={e.id}>
-                <td>{e.id}</td>
-                <td>{e.user ?? ""}</td>
-                <td>{e.action}</td>
-                <td>{e.success ? "yes" : "no"}</td>
-                <td>{e.source}</td>
-                <td>
-                  {new Date(e.created_at).toLocaleString("en-GB", { hour12: false })}
-                </td>
+        <div style={{ overflowX: "auto" }}>
+          <table className={tableClassName}>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Success</th>
+                <th>Source</th>
+                <th>Timestamp</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {events.map((e) => (
+                <tr key={e.id}>
+                  <td>{e.id}</td>
+                  <td>{e.user ?? ""}</td>
+                  <td>{e.action}</td>
+                  <td>
+                    {e.success ? (
+                      <span className="badge success">yes</span>
+                    ) : (
+                      <span className="badge danger">no</span>
+                    )}
+                  </td>
+                  <td>{e.source}</td>
+                  <td>
+                    {new Date(e.created_at).toLocaleString("en-GB", { hour12: false })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

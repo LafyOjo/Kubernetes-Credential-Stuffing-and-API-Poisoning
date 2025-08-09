@@ -24,27 +24,29 @@ export default function AlertsTable({ refresh, tableClassName = "table" }) {
   if (alerts.length === 0) return <p>No alerts yet.</p>;
 
   return (
-    <table className={tableClassName}>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>IP Address</th>
-          <th>Total Fails</th>
-          <th>Detail</th>
-          <th>Timestamp</th>
-        </tr>
-      </thead>
-      <tbody>
-        {alerts.map(a => (
-          <tr key={a.id}>
-            <td>{a.id}</td>
-            <td>{a.ip_address}</td>
-            <td>{a.total_fails}</td>
-            <td>{a.detail}</td>
-            <td>{new Date(a.timestamp).toLocaleString()}</td>
+    <div style={{ overflowX: "auto" }}>
+      <table className={tableClassName}>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>IP Address</th>
+            <th>Total Fails</th>
+            <th>Detail</th>
+            <th>Timestamp</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {alerts.map(a => (
+            <tr key={a.id}>
+              <td>{a.id}</td>
+              <td>{a.ip_address}</td>
+              <td>{a.total_fails}</td>
+              <td>{a.detail}</td>
+              <td>{new Date(a.timestamp).toLocaleString()}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
