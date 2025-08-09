@@ -45,12 +45,12 @@ export default function LoginForm({ onLogin }) {
         </p>
         <form className="form" onSubmit={handleSubmit}>
           <div className="field">
-            <label className="label">Email</label>
+            <label className="label">Username</label>
             <input
               className="input"
-              name="email"
-              type="email"
-              placeholder="you@company.com"
+              name="username"
+              type="text"
+              placeholder="alice"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
