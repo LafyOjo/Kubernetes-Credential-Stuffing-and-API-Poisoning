@@ -5,6 +5,7 @@ const axios = require('axios');
 const path = require('path');
 const { spawn } = require('child_process');
 const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
 app.use(cors({ origin: ["http://localhost:3000","http://127.0.0.1:3000"], credentials: true }));
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 3005;
 const API_BASE = process.env.API_BASE || 'http://localhost:8001';
 const API_TIMEOUT = parseInt(process.env.API_TIMEOUT_MS || '10000', 10);
 const API_KEY = process.env.API_KEY || '';
+const APISHIELD_URL = process.env.APISHIELD_URL || 'http://localhost:8001';
 axios.defaults.timeout = API_TIMEOUT;
 if (API_KEY) {
   axios.defaults.headers.common['X-API-Key'] = API_KEY;
@@ -21,6 +23,18 @@ if (API_KEY) {
 // Most demos run the shop standalone so suppress the noisy API errors by default.
 const FORWARD_API = process.env.FORWARD_API === 'true';
 const REAUTH_PER_REQUEST = process.env.REAUTH_PER_REQUEST === 'true';
+
+async function sendAuthEvent({ user, action, success, source }) {
+  try {
+    await fetch(`${APISHIELD_URL}/events/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user, action, success, source })
+    });
+  } catch (e) {
+    console.error('Failed to send auth event:', e.message);
+  }
+}
 
 app.use(bodyParser.json());
 app.use(session({
@@ -98,7 +112,16 @@ app.post('/register', async (req, res) => {
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-  if (!users[username] || users[username].password !== password) {
+  const ok = !!users[username] && users[username].password === password;
+
+  sendAuthEvent({
+    user: username || null,
+    action: 'login',
+    success: !!ok,
+    source: 'demo-shop',
+  });
+
+  if (!ok) {
     if (FORWARD_API) {
       try {
         await axios.post(
@@ -141,16 +164,18 @@ app.post('/login', async (req, res) => {
   req.session.password = password;
   if (FORWARD_API) {
     try {
-const apiResp = await axios.post(
+      const apiResp = await axios.post(
         `${API_BASE}/login`,
         { username, password },
         { timeout: API_TIMEOUT }
-      );      req.session.apiToken = apiResp.data.access_token;
+      );
+      req.session.apiToken = apiResp.data.access_token;
     } catch (e) {
       console.error('Backend login failed');
     }
     try {
-      await axios.post(       `${API_BASE}/score`,
+      await axios.post(
+        `${API_BASE}/score`,
         {
           client_ip: req.ip,
           auth_result: 'success',
