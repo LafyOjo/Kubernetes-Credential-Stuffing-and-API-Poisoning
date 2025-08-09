@@ -14,7 +14,7 @@ export default function ScoreForm({ token, onNewAlert }) {
 
   const fetchChain = async () => {
     try {
-      const resp = await apiFetch("/api/security/chain");
+      const resp = await apiFetch("/api/security/chain", { skipReauth: true });
       if (resp.status === 401 || resp.status === 403) {
         setWarning("Admin token required to fetch security chain");
         return;
@@ -35,7 +35,7 @@ export default function ScoreForm({ token, onNewAlert }) {
         return;
       }
       try {
-        const resp = await apiFetch("/api/me");
+        const resp = await apiFetch("/api/me", { skipReauth: true });
         if (!resp.ok) {
           if (resp.status === 401 || resp.status === 403) {
             setWarning("Admin token required to fetch settings");
@@ -57,7 +57,7 @@ export default function ScoreForm({ token, onNewAlert }) {
 
     const fetchConfig = async () => {
       try {
-        const resp = await apiFetch("/config");
+        const resp = await apiFetch("/config", { skipReauth: true });
         if (resp.status === 401 || resp.status === 403) {
           setWarning("Admin token required to fetch config");
           return;
@@ -89,7 +89,8 @@ export default function ScoreForm({ token, onNewAlert }) {
       const resp = await apiFetch("/score", {
         method: "POST",
         headers,
-        body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) })
+        body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) }),
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();

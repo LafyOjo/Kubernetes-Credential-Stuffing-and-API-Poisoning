@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiFetch, AUTH_TOKEN_KEY, USERNAME_KEY, logAuditEvent } from "./api";
+import { apiFetch, TOKEN_KEY, USERNAME_KEY, logAuditEvent } from "./api";
 
 export default function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -14,19 +14,13 @@ export default function LoginForm({ onLogin }) {
       const resp = await apiFetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
+        skipReauth: true,
       });
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
-      localStorage.setItem(AUTH_TOKEN_KEY, data.access_token);
+      localStorage.setItem(TOKEN_KEY, data.access_token);
       localStorage.setItem(USERNAME_KEY, username);
-
-      await fetch(`${process.env.REACT_APP_SHOP_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
-      });
       await logAuditEvent("user_login_success", username);
       onLogin(data.access_token);
     } catch (err) {

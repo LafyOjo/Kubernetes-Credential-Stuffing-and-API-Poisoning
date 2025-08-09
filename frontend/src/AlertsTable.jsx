@@ -7,8 +7,7 @@ export default function AlertsTable({ refresh }) {
 
   const loadAlerts = async () => {
     try {
-      // apiFetch automatically appends authentication headers
-      const resp = await apiFetch("/api/alerts");
+      const resp = await apiFetch("/api/alerts", { skipReauth: true });
       if (!resp.ok) throw new Error(await resp.text());
       setAlerts(await resp.json());
     } catch (err) {

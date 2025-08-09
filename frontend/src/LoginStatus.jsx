@@ -7,8 +7,7 @@ export default function LoginStatus({ token }) {
 
   const load = async () => {
     try {
-      // apiFetch automatically appends authentication headers
-      const resp = await apiFetch("/api/last-logins");
+      const resp = await apiFetch("/api/last-logins", { skipReauth: true });
       if (!resp.ok) throw new Error(await resp.text());
       setLogins(await resp.json());
     } catch (err) {
