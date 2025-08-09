@@ -79,7 +79,7 @@ async function loadProducts() {
         </div>
       </div>
     </div>`).join('');
-  setContent(`<h2 class="mb-4">Products</h2><div class="row">${list}</div>`);
+  setContent(`<div class="card"><h2 class="mb-4">Products</h2><div class="row">${list}</div></div>`);
 }
 
 async function addToCart(id) {
@@ -98,8 +98,17 @@ async function addToCart(id) {
 async function viewCart() {
   try {
     const items = await fetchJSON(`${API_BASE}/cart`);
-    const list = items.map(i => `<li class="list-group-item d-flex justify-content-between align-items-center">${i.name} <span>$${i.price}</span></li>`).join('');
-    setContent(`<h2>Your Cart</h2><ul id="cartItems" class="list-group mb-3">${list}</ul><button class="btn btn-primary" onclick="purchase()">Purchase</button>`);
+    const rows = items.map(i => `<tr><td>${i.name}</td><td class="text-end">$${i.price}</td></tr>`).join('');
+    setContent(`
+      <div class="card">
+        <h2>Your Cart</h2>
+        <table class="table mb-3" id="cartItems">
+          <thead><tr><th>Product</th><th class="text-end">Price</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <button class="btn btn-primary" onclick="purchase()">Purchase</button>
+      </div>
+    `);
   } catch (e) {
     showMessage('You must be logged in', true);
   }
@@ -114,28 +123,34 @@ async function purchase() {
 
 function showServices() {
   setContent(`
-    <h2>Our Services</h2>
-    <ul class="list-group mb-3">
-      <li class="list-group-item">Gift wrapping</li>
-      <li class="list-group-item">Premium support</li>
-      <li class="list-group-item">Express shipping</li>
-    </ul>
+    <div class="card">
+      <h2>Our Services</h2>
+      <ul class="list-group mb-3">
+        <li class="list-group-item">Gift wrapping</li>
+        <li class="list-group-item">Premium support</li>
+        <li class="list-group-item">Express shipping</li>
+      </ul>
+    </div>
   `);
 }
 
 function showAbout() {
   setContent(`
-    <h2>About Us</h2>
-    <p class="lead">Demo Shop is a tiny storefront used to showcase API security features.</p>
-    <p>All purchases are simulated and no real payments are processed.</p>
+    <div class="card">
+      <h2>About Us</h2>
+      <p class="lead">Demo Shop is a tiny storefront used to showcase API security features.</p>
+      <p>All purchases are simulated and no real payments are processed.</p>
+    </div>
   `);
 }
 
 function showContact() {
   setContent(`
-    <h2>Contact Us</h2>
-    <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
-    <p>Phone: 555-1234</p>
+    <div class="card">
+      <h2>Contact Us</h2>
+      <p>Email: <a href="mailto:support@example.com">support@example.com</a></p>
+      <p>Phone: 555-1234</p>
+    </div>
   `);
 }
 
@@ -145,7 +160,7 @@ async function viewStats() {
     const list = Object.entries(data)
       .map(([user, count]) => `<li>${user}: ${count}</li>`)
       .join('');
-    setContent(`<h2>API Calls</h2><ul class="stats-list">${list}</ul>`);
+    setContent(`<div class="card"><h2>API Calls</h2><ul class="stats-list">${list}</ul></div>`);
   } catch (e) {
     showMessage('Failed to load stats', true);
   }
@@ -153,20 +168,22 @@ async function viewStats() {
 
 function showLogin() {
   setContent(`
-    <h2>Login</h2>
-    <form id="loginForm">
-      <div class="form-group">
-        <label>Username</label>
-        <input id="username" type="text" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input id="pw" type="password" class="form-control" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-    <p>Demo credentials: alice / secret</p>
-    <p>Or <a href="#" id="registerLink">register</a></p>
+    <div class="card">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input id="username" type="text" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input id="pw" type="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+      <p>Demo credentials: alice / secret</p>
+      <p>Or <a href="#" id="registerLink">register</a></p>
+    </div>
   `, () => {
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -198,12 +215,14 @@ function showLogin() {
 
 function showRegister() {
   setContent(`
-    <h2>Register</h2>
-    <form id="regForm">
-      <input type="text" id="regUser" placeholder="Username" required><br>
-      <input type="password" id="regPw" placeholder="Password" required><br>
-      <button type="submit">Register</button>
-    </form>
+    <div class="card">
+      <h2>Register</h2>
+      <form id="regForm">
+        <input type="text" id="regUser" placeholder="Username" required><br>
+        <input type="password" id="regPw" placeholder="Password" required><br>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+    </div>
   `, () => {
     document.getElementById('regForm').addEventListener('submit', async (e) => {
       e.preventDefault();
