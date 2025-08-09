@@ -11,9 +11,8 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import SQLAlchemy models so Alembic can detect them
-from app.core.db import Base
-from app.models.alerts import Alert
-from app.models.users import User
+from app.core.db import Base  # noqa: E402
+from app.models import *  # noqa: F401,F403,E402
 
 # Metadata for 'autogenerate' support
 target_metadata = Base.metadata
