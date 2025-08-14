@@ -49,7 +49,7 @@ export default function AlertsChart({ token }) {
 
   const labels = stats.map((s) => new Date(s.time).toLocaleTimeString());
   const invalidData = stats.map((s) => s.invalid);
-  const blockedData = stats.map((s) => s.blocked);
+  const forbiddenData = stats.map((s) => s.blocked);
 
   const data = {
     labels,
@@ -61,10 +61,10 @@ export default function AlertsChart({ token }) {
         backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
       {
-        label: "Blocked attempts",
-        data: blockedData,
-        borderColor: "rgb(54, 162, 235)",
-        backgroundColor: "rgba(54, 162, 235, 0.5)",
+        label: "403 Forbidden errors",
+        data: forbiddenData,
+        borderColor: "rgb(0, 128, 0)",
+        backgroundColor: "rgba(0, 128, 0, 0.5)",
       },
     ],
   };
