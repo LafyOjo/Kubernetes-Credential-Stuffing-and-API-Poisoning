@@ -23,6 +23,11 @@ export default function SecurityToggle() {
     loadState();
   }, []);
 
+  useEffect(() => {
+    const id = setInterval(loadState, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   const toggle = async () => {
     try {
       const resp = await apiFetch("/api/security", {
