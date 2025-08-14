@@ -25,6 +25,13 @@ USER_REQUEST_COUNT = Counter(
     ["user"],
 )
 
+# Counter: total stuffing attempts, labeled by username
+credential_stuffing_attempts = Counter(
+    "credential_stuffing_attempts_total",
+    "Number of credential stuffing attempts detected",
+    ["username"],
+)
+
 _user_counts: defaultdict[str, int] = defaultdict(int)
 
 
@@ -35,6 +42,12 @@ def increment_user(user: str) -> None:
 
 def get_user_counts() -> dict[str, int]:
     return dict(_user_counts)
+
+
+def record_stuffing_attempt(username: str) -> None:
+    if not username:
+        username = "unknown"
+    credential_stuffing_attempts.labels(username=username).inc()
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
