@@ -9,6 +9,6 @@ spec:
   selector:
     app: detector
   ports:
-  - name: http-metrics
+  - name: http
     port: 8001
     targetPort: 8001

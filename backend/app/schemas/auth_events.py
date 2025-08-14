@@ -5,10 +5,13 @@ from pydantic import BaseModel
 
 
 class AuthEventCreate(BaseModel):
-    user: Optional[str] = None
-    action: str
+    username: Optional[str] = None
     success: bool
-    source: str
+    is_credential_stuffing: bool = False
+    blocked: bool = False
+    block_rule: Optional[str] = None
+    action: str = "login"
+    source: str = "api"
 
 
 class AuthEventOut(BaseModel):

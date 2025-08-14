@@ -5,6 +5,30 @@ from prometheus_client import Counter, Histogram
 from collections import defaultdict
 from app.core.security import decode_access_token
 
+login_attempts_total = Counter(
+    "login_attempts_total",
+    "Login attempts grouped by outcome and user",
+    ["username", "outcome"],   # outcome: success|fail
+)
+
+credential_stuffing_attempts_total = Counter(
+    "credential_stuffing_attempts_total",
+    "Detected credential stuffing attempts",
+    ["username"],
+)
+
+events_blocked_total = Counter(
+    "events_blocked_total",
+    "Security events blocked by policy/rule",
+    ["rule", "username", "ip"],
+)
+
+login_request_duration_seconds = Histogram(
+    "login_request_duration_seconds",
+    "Login request duration",
+    buckets=[0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10],
+)
+
 REQUEST_LATENCY = Histogram(
     "api_request_latency_seconds",
     "Latency of API requests in seconds",
@@ -44,10 +68,22 @@ def get_user_counts() -> dict[str, int]:
     return dict(_user_counts)
 
 
-def record_stuffing_attempt(username: str) -> None:
-    if not username:
-        username = "unknown"
-    credential_stuffing_attempts.labels(username=username).inc()
+def record_login_attempt(username: str, success: bool) -> None:
+    u = (username or "unknown").lower()
+    login_attempts_total.labels(username=u, outcome=("success" if success else "fail")).inc()
+
+
+def record_credential_stuffing(username: str) -> None:
+    u = (username or "unknown").lower()
+    credential_stuffing_attempts_total.labels(username=u).inc()
+
+
+def record_block(rule: str, username: str, ip: str) -> None:
+    events_blocked_total.labels(
+        rule=(rule or "unknown"),
+        username=(username or "unknown").lower(),
+        ip=(ip or "unknown"),
+    ).inc()
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
