@@ -25,8 +25,8 @@ DEFAULT_FAIL_WINDOW_SECONDS = int(os.getenv("FAIL_WINDOW_SECONDS", "60"))
 
 # Prometheus counter for total login attempts, labeled by IP
 LOGIN_ATTEMPTS = Counter(
-    "login_attempts_total",
-    "Total login attempts",
+    "login_attempts_ip_total",
+    "Total login attempts by IP",
     ["ip"],
 )
 
