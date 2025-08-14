@@ -2,7 +2,7 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
@@ -25,6 +25,11 @@ from app.api.audit import router as audit_router
 from app.api.auth_events import router as auth_events_router
 
 app = FastAPI(title="APIShield+")
+
+
+@app.get("/metrics", include_in_schema=False)
+def metrics() -> Response:
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 allow_origins = [
     "http://localhost:3000",
@@ -73,8 +78,3 @@ def ping():
     return {"message": "pong"}
 
 
-@app.get("/metrics")
-def metrics() -> Response:
-    """Expose Prometheus metrics."""
-    data = generate_latest()
-    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
