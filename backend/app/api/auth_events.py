@@ -6,13 +6,17 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 from app.schemas.auth_events import AuthEventCreate, AuthEventOut
 from app.crud.auth_events import create_auth_event, get_auth_events
+from app.core.metrics import record_stuffing_attempt
 
 router = APIRouter(prefix="/events", tags=["auth-events"])
 
 
 @router.post("/auth", response_model=AuthEventOut)
 def log_auth_event(payload: AuthEventCreate, db: Session = Depends(get_db)) -> AuthEventOut:
-    return create_auth_event(db, payload.user, payload.action, payload.success, payload.source)
+    event = create_auth_event(db, payload.user, payload.action, payload.success, payload.source)
+    if not payload.success:
+        record_stuffing_attempt(username=payload.user)
+    return event
 
 
 @router.get("/auth", response_model=List[AuthEventOut])
