@@ -14,6 +14,7 @@ from app.core.metrics import (
     login_request_duration_seconds,
 )
 
+
 router = APIRouter(prefix="/events", tags=["auth-events"])
 
 
@@ -39,7 +40,6 @@ def log_auth_event(
         return create_auth_event(db, username, payload.action, success, payload.source)
     finally:
         login_request_duration_seconds.observe(time.perf_counter() - t0)
-
 
 @router.get("/auth", response_model=List[AuthEventOut])
 def read_auth_events(

@@ -1,6 +1,7 @@
 # app/main.py
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 import os
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -29,6 +30,8 @@ app = FastAPI(title="APIShield+")
 
 @app.get("/metrics", include_in_schema=False)
 def metrics() -> Response:
+
+    """Expose Prometheus metrics."""
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 allow_origins = [
@@ -76,5 +79,4 @@ app.include_router(auth_events_router)  # /events/auth
 @app.get("/ping")
 def ping():
     return {"message": "pong"}
-
 

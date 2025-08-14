@@ -11,6 +11,10 @@ strictly prohibited. The RockYou‑derived password list included under
 
 ## Configuration
 
+It is recommended you have 7 terminals up-and running all on administrator mode
+so we can run all 7 services independantly without any issues. The terminals should
+be on GIT BASH, as this would load all data correctly.
+
 The backend reads environment variables from a `.env` file on startup. The
 `SECRET_KEY` must be set; otherwise `backend/app/core/security.py` raises an
 error during import. Several optional variables control features such as
