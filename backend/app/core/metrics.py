@@ -49,13 +49,6 @@ USER_REQUEST_COUNT = Counter(
     ["user"],
 )
 
-# Counter: total stuffing attempts, labeled by username
-credential_stuffing_attempts = Counter(
-    "credential_stuffing_attempts_total",
-    "Number of credential stuffing attempts detected",
-    ["username"],
-)
-
 _user_counts: defaultdict[str, int] = defaultdict(int)
 
 
