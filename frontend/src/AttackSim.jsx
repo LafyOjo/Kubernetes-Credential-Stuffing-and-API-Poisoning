@@ -181,15 +181,15 @@ export default function AttackSim({ user }) {
           }),
           skipReauth: true,
         });
-        if (scoreResp.status === 401) {
-          setError("Attack blocked by security");
-          setRunning(false);
-          return;
-        }
         if (scoreResp.ok) {
           const data = await scoreResp.json();
           if (data.status === "blocked") {
             blocked++;
+          }
+        } else {
+          blocked++;
+          if (scoreResp.status === 401) {
+            setError("Attack blocked by security");
           }
         }
       } catch (err) {

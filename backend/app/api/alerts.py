@@ -30,10 +30,10 @@ def read_alert_stats(
         db.query(
             func.strftime("%Y-%m-%d %H:%M:00", Alert.timestamp).label("time"),
             func.sum(
-                case((Alert.detail == "Blocked: too many failures", 1), else_=0)
+                case((Alert.detail.like("Blocked:%"), 1), else_=0)
             ).label("blocked"),
             func.sum(
-                case((Alert.detail != "Blocked: too many failures", 1), else_=0)
+                case((Alert.detail.like("Blocked:%"), 0), else_=1)
             ).label("invalid"),
         )
         .group_by("time")

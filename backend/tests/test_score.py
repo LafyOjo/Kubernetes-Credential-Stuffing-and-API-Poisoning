@@ -120,3 +120,18 @@ def test_custom_window(monkeypatch):
     assert resp.status_code == 200
     body = resp.json()
     assert body['status'] == 'blocked'
+
+
+def test_invalid_chain_token_creates_alert():
+    with SessionLocal() as db:
+        start = db.query(Alert).count()
+    resp = client.post(
+        '/score',
+        json={'client_ip': '6.6.6.6', 'auth_result': 'failure', 'with_jwt': False},
+        headers={'X-Chain-Password': 'wrong'},
+    )
+    assert resp.status_code == 401
+    with SessionLocal() as db:
+        assert db.query(Alert).count() == start + 1
+        last = db.query(Alert).order_by(Alert.id.desc()).first()
+        assert last.detail == 'Blocked: invalid chain token'

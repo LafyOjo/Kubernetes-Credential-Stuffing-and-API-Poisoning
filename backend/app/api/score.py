@@ -151,7 +151,20 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     via the FAIL_LIMIT and FAIL_WINDOW_SECONDS environment variables.
     """
     if security.SECURITY_ENABLED:
-        security.verify_chain(request.headers.get("X-Chain-Password"))
+        try:
+            security.verify_chain(request.headers.get("X-Chain-Password"))
+        except HTTPException as exc:
+            STUFFING_DETECTIONS.labels(ip=request.client.host).inc()
+            log_event(db, None, "stuffing_block", True)
+            alert = Alert(
+                ip_address=request.client.host,
+                total_fails=0,
+                detail="Blocked: invalid chain token",
+            )
+            db.add(alert)
+            db.commit()
+            db.refresh(alert)
+            raise exc
 
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")
