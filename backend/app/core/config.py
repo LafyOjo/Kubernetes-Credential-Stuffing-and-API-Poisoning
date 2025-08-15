@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     ANOMALY_MODEL: str = "lof"
     REAUTH_PER_REQUEST: bool = False
     ZERO_TRUST_API_KEY: str = "demo-key"
+    PROMETHEUS_URL: str = "http://kube-prom-kube-prometheus-prometheus.monitoring.svc:9090"
 
     class Config:
         # automatically load a “.env” file from your project root
