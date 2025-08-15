@@ -15,6 +15,7 @@ const AUDIT_BASE =
 const AUDIT_URL = `${AUDIT_BASE}/api/audit/log`;
 
 let username = null;
+let reauthRequired = false;
 
 function setContent(html, callback) {
   $('#content').fadeOut(200, function () {
@@ -32,6 +33,14 @@ async function fetchJSON(url, options = {}) {
     if (token) {
       fetchOpts.headers['Authorization'] = `Bearer ${token}`;
     }
+    if (reauthRequired) {
+      const pw = window.prompt('Please enter your password:');
+      if (!pw) {
+        try { await logout(); } catch {}
+        throw new Error('Unauthorized');
+      }
+      fetchOpts.headers['X-Reauth-Password'] = pw;
+    }
   }
   let res;
   try {
@@ -39,10 +48,23 @@ async function fetchJSON(url, options = {}) {
   } catch {
     throw new Error('Network error');
   }
-  if (res.status === 401) {
-    try {
-      await logout();
-    } catch {}
+  if (res.status === 401 && !noAuth) {
+    const pw = window.prompt('Please enter your password:');
+    if (!pw) {
+      try { await logout(); } catch {}
+      throw new Error('Unauthorized');
+    }
+    const retryOpts = {
+      ...fetchOpts,
+      headers: { ...fetchOpts.headers, 'X-Reauth-Password': pw }
+    };
+    res = await fetch(url, retryOpts);
+    if (res.status === 401) {
+      try { await logout(); } catch {}
+      throw new Error('Unauthorized');
+    }
+    reauthRequired = true;
+  } else if (res.status === 401) {
     throw new Error('Unauthorized');
   }
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);

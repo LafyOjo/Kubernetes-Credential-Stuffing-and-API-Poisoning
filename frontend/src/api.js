@@ -6,6 +6,8 @@ export const AUTH_TOKEN_KEY = "apiShieldAuthToken";
 export const TOKEN_KEY = AUTH_TOKEN_KEY;
 export const USERNAME_KEY = "apiShieldUsername";
 
+let reauthRequired = false;
+
 export async function logAuditEvent(event, username) {
   try {
     const payload = { event };
@@ -52,6 +54,15 @@ export async function apiFetch(path, options = {}) {
     headers["X-API-Key"] = API_KEY;
   }
 
+  if (reauthRequired && !skipAuth && !skipReauth) {
+    const pw = window.prompt("Please enter your password:");
+    if (!pw) {
+      logout();
+      return new Response(null, { status: 401 });
+    }
+    headers["X-Reauth-Password"] = pw;
+  }
+
   let resp = await fetch(url, { ...fetchOptions, headers });
   if (resp.status !== 401 || skipAuth || skipReauth) {
     return resp;
@@ -67,6 +78,8 @@ export async function apiFetch(path, options = {}) {
   resp = await fetch(url, { ...fetchOptions, headers: retryHeaders });
   if (resp.status === 401) {
     logout();
+  } else {
+    reauthRequired = true;
   }
   return resp;
 }
