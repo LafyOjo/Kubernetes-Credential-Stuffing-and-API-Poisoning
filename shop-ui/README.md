@@ -10,4 +10,4 @@ npm install
 node server.js
 ```
 
-The UI communicates with the API on `http://localhost:3005`. You can browse products, register and log in, add items to your cart, and simulate a purchase. Each protected action includes the password in the `X-Reauth-Password` header so the backend can validate the session on every request. If a protected call is denied (HTTP 401), the UI now logs you out automatically so the login button becomes available again.
+The UI communicates with the API on `http://localhost:3005`. You can browse products, register and log in, add items to your cart, and simulate a purchase. When the backend enforces per-request re-authentication, protected actions prompt for your password and send it in the `X-Reauth-Password` header. If you cancel or enter it incorrectly, the UI logs you out so the login button becomes available again.
