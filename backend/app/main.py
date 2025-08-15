@@ -36,13 +36,6 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="APIShield+")
 
-# Note: The duplicate app.add_middleware(PolicyEngineMiddleware) that was here has been removed.
-
-@app.get("/metrics", include_in_schema=False)
-def metrics() -> Response:
-    """Expose Prometheus metrics."""
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
 allow_origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -83,6 +76,15 @@ app.add_middleware(PolicyEngineMiddleware)
 # Optional ML-driven anomaly detection
 if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
     app.add_middleware(AnomalyDetectionMiddleware)
+
+# Note: The duplicate app.add_middleware(PolicyEngineMiddleware) that was here has been removed.
+
+@app.get("/metrics", include_in_schema=False)
+def metrics() -> Response:
+    """Expose Prometheus metrics."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 
 app.include_router(score_router)      # your /score endpoint
 app.include_router(alerts_router)     # your /api/alerts endpoint

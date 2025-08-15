@@ -93,6 +93,23 @@ REAUTH_PER_REQUEST=false
 ZERO_TRUST_API_KEY=demo-key
 ```
 
+# 1) Login and capture token
+TOKEN=$(curl -s -X POST http://127.0.0.1:8001/login \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: demo-key" \
+  -d '{"username":"alice","password":"secret"}' | jq -r .access_token)
+
+# 2) Call a protected endpoint WITHOUT reauth header → should be 401
+curl -i http://127.0.0.1:8001/api/access-logs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "X-API-Key: demo-key"
+
+# 3) Call WITH X-Reauth-Password → should be 200
+curl -i http://127.0.0.1:8001/api/access-logs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "X-API-Key: demo-key" \
+  -H "X-Reauth-Password: secret"
+
 ## Running the backend
 
 1. Create and activate a virtual environment and install the requirements:
@@ -211,6 +228,10 @@ server starts your default browser opens the shop home page automatically at
   curl -X POST http://localhost:3005/register \
     -H "Content-Type: application/json" \
     -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
+
+   curl -X POST http://localhost:3005/register \
+    -H "Content-Type: application/json" \
+    -d '{"username": "your_admin_username", "password": "your_password", "role": "admin"}'
    ```
   and to login we would either login from the react-native application or we would enter in the command below
 
