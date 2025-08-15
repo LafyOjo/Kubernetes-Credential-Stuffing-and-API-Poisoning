@@ -45,6 +45,7 @@ def attack(
     shop_url="http://localhost:3005",
     api_key=None,
     chain_url="/api/security/chain",
+    user="alice",
 ):
     """Send repeated login attempts and report detection results.
 
@@ -98,7 +99,6 @@ def attack(
             attempted = i
             pwd = next(pool)
             ip = "10.0.0.1"
-            user = "alice"
 
             token = None
             if use_jwt:
@@ -128,6 +128,7 @@ def attack(
                 "client_ip": ip,
                 "auth_result": "success" if login_ok else "failure",
                 "with_jwt": use_jwt,
+                "username": user,
             }
 
             try:
@@ -142,6 +143,27 @@ def attack(
                 )
                 if score_resp.json().get("status") == "blocked":
                     blocked += 1
+                
+                # New: Log event for dashboard metrics
+                event_payload = {
+                    "username": user,
+                    "action": "login",
+                    "success": login_ok,
+                    "source": "stuffing_script",
+                    "is_credential_stuffing": True,
+                    "blocked": score_resp.json().get("status") == "blocked",
+                    "block_rule": "ip_rate_limit" if score_resp.json().get("status") == "blocked" else ""
+                }
+                try:
+                    session.post(
+                        f"{score_base}/events/auth",
+                        json=event_payload,
+                        headers=base_headers,
+                        timeout=REQUEST_TIMEOUT,
+                    )
+                except requests.exceptions.RequestException as exc:
+                    print(f"EVENT LOG ERROR contacting {score_base}/events/auth: {exc}")
+
                 if chain_endpoint:
                     try:
                         resp = session.get(
@@ -202,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--jwt", action="store_true", help="Use JWT login endpoint")
     parser.add_argument("--rate", type=float, default=5, help="Attempts per second")
     parser.add_argument("--attempts", type=int, default=50, help="Number of attempts to send")
+    parser.add_argument("--user", default="alice", help="User to target")
     parser.add_argument(
         "--score-base",
         default="http://localhost:8001",
@@ -223,4 +246,5 @@ if __name__ == "__main__":
         shop_url=args.shop_url,
         api_key=args.api_key,
         chain_url=args.chain_url,
+        user=args.user,
     )

@@ -1,54 +1,51 @@
-// frontend/src/pages/Dashboard.jsx
-import React, { useEffect, useState } from "react";
-import ScoreForm from "../ScoreForm";
-import AlertsTable from "../AlertsTable";
-import AuthEventsTable from "../AuthEventsTable";
-import { apiFetch, AUTH_TOKEN_KEY } from "../api";
+import React, { useState, useEffect } from 'react';
+import AlertsChart from '../AlertsChart';
+import AlertsTable from '../AlertsTable';
+import AuthEventsTable from '../AuthEventsTable';
+import LoginForm from '../LoginForm';
+import LoginStatus from '../LoginStatus';
+import SecurityToggle from '../SecurityToggle';
+import AttackSim from '../AttackSim';
+import CredentialStuffingChart from '../credentialStuffingChart';
+import { api } from '../api';
 
-function Dashboard() {
-  const [ping, setPing] = useState(null);
-  const [refresh, setRefresh] = useState(0);
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
-  useEffect(() => {
-    apiFetch("/ping", { skipReauth: true })
-      .then((res) => res.json())
-      .then((data) => setPing(data.message))
-      .catch((err) => console.error("Ping failed:", err));
-  }, []);
+const Dashboard = () => {
+    const [token, setToken] = useState(localStorage.getItem('token'));
 
-  const handleNewAlert = () => setRefresh((r) => r + 1);
+    const handleLogin = (newToken) => {
+        setToken(newToken);
+    };
 
-  return (
-    <div className="container stack">
-      <header className="dashboard-header">
-        <h1>APIShield+ Dashboard</h1>
-        <p className="subtle">Backend ping says: {ping ?? "Loading…"} </p>
-      </header>
+    return (
+        <div className="p-6 bg-gray-100 min-h-screen">
+            <h1 className="text-3xl font-bold mb-6">API Security Dashboard</h1>
 
-      <section className="card">
-        <div className="card-header">
-          <div className="card-title">Risk Scoring</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <LoginForm onLogin={handleLogin} />
+                <LoginStatus token={token} />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                <div className="lg:col-span-2">
+                    <AlertsChart />
+                </div>
+                <div className="lg:col-span-1">
+                    <SecurityToggle />
+                    <AttackSim />
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <CredentialStuffingChart />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <AlertsTable />
+                <AuthEventsTable />
+            </div>
         </div>
-        <ScoreForm token={token} onNewAlert={handleNewAlert} />
-      </section>
-
-      <section className="card">
-        <div className="card-header">
-          <div className="card-title">Alerts</div>
-        </div>
-        <AlertsTable token={token} refresh={refresh} tableClassName="table" />
-      </section>
-
-      {/* If you added AuthEventsTable previously */}
-      <section className="card">
-        <div className="card-header">
-          <div className="card-title">Recent Auth Activity</div>
-        </div>
-        <AuthEventsTable refresh={refresh} />
-      </section>
-    </div>
-  );
-}
+    );
+};
 
 export default Dashboard;
