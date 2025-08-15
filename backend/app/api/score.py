@@ -71,6 +71,7 @@ def record_attempt(
     detail: str | None = None,
     user_id: int | None = None,
     fail_limit: int | None = None,
+    username: str | None = None,
 ) -> Dict[str, Any]:
     """Record a login attempt and return the same structure as ``score``."""
 
@@ -83,7 +84,7 @@ def record_attempt(
     if success:
         if user_id is not None:
             FAILED_USER_ATTEMPTS.pop(user_id, None)
-        log_event(db, None, "stuffing_attempt", True)
+        log_event(db, username, "stuffing_attempt", True)
         return {"status": "ok", "fails_last_minute": 0}
 
     ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
@@ -110,7 +111,7 @@ def record_attempt(
 
     # Record the failed attempt for the event log.  The username is unknown at
     # this stage so ``None`` is stored.
-    log_event(db, None, "stuffing_attempt", False)
+    log_event(db, username, "stuffing_attempt", False)
 
     if security.SECURITY_ENABLED and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
@@ -143,7 +144,8 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
         {
             "client_ip": "10.0.0.1",
             "auth_result": "failure" | "success",
-            "with_jwt": true | false   # optional flag to indicate a JWT was used
+            "with_jwt": true | false,   # optional flag to indicate a JWT was used
+            "username": "alice",        # optional: the user being targeted
         }
     Always increment the Prometheus counter. If "failure", record a row in the alerts
     table and possibly block if there are too many failures within the configured
@@ -169,6 +171,7 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
     client_ip = payload.get("client_ip")
     auth_result = payload.get("auth_result")
     with_jwt = bool(payload.get("with_jwt"))
+    username = payload.get("username")
 
     if client_ip is None or auth_result not in ("success", "failure"):
         raise HTTPException(status_code=422, detail="Invalid payload")
@@ -178,4 +181,5 @@ def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_d
         client_ip,
         auth_result == "success",
         with_jwt=with_jwt,
+        username=username,
     )
