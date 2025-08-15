@@ -1,9 +1,10 @@
 # app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 import os
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from app.services.prom_client import stuffing_summary
 
 from app.core.zero_trust import ZeroTrustMiddleware
 from app.core.logging import APILoggingMiddleware
@@ -74,6 +75,14 @@ app.include_router(last_logins_router)  # /api/last-logins
 app.include_router(access_logs_router)  # /api/access-logs
 app.include_router(audit_router)  # /api/audit/log
 app.include_router(auth_events_router)  # /events/auth
+
+
+@app.get("/api/metrics/credential-stuffing-summary")
+def api_stuffing_summary(range: str = Query("6h", alias="range"),
+                         users: str = Query("alice,ben")):
+    # users comma-separated
+    user_list = [u.strip() for u in users.split(",") if u.strip()]
+    return {"range": range, "series": stuffing_summary(user_list, range)}
 
 
 @app.get("/ping")

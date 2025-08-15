@@ -33,6 +33,8 @@ spec:
             secretKeyRef:
               name: detector-env
               key: ZERO_TRUST_API_KEY
+        - name: PROMETHEUS_URL
+          value: "http://kube-prom-kube-prometheus-prometheus.monitoring.svc:9090"
         args:
           - uvicorn
           - app.main:app

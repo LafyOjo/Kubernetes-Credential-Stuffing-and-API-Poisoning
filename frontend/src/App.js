@@ -9,6 +9,7 @@ import LoginForm from "./LoginForm";
 import AttackSim from "./AttackSim";
 import UserAccounts from "./UserAccounts";
 import LoginStatus from "./LoginStatus";
+import CredentialStuffingBar from "./components/CredentialStuffingBar";
 import "./App.css";
 
 function App() {
@@ -111,6 +112,10 @@ function App() {
             <SecurityToggle />
           </div>
         </div>
+      </section>
+
+      <section className="card">
+        <CredentialStuffingBar />
       </section>
     </div>
   );
