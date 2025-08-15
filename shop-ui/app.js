@@ -26,7 +26,7 @@ function setContent(html, callback) {
 
 async function fetchJSON(url, options = {}) {
   const { noAuth, ...opts } = options;
-  const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', ...opts };
+  const fetchOpts = { headers: { 'Content-Type': 'application/json' }, credentials: 'include', ...opts };
   if (!noAuth) {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (token) {
