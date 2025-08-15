@@ -49,6 +49,12 @@ The backend will expose metrics and API routes on port `8001`.
 
 Open a new terminal on the Pi, then install the frontend dependencies and start the React development server:
 
+# Download and run the NodeSource setup script for Node.js v20.x
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+
+# Install Node.js (which includes npm)
+sudo apt-get install -y nodejs
+
 ```bash
 cd frontend
 npm install
@@ -56,6 +62,8 @@ HOST=0.0.0.0 REACT_APP_API_BASE=http://<pi-ip>:8001 npm start
 ```
 
 The dashboard will be available at [http://<pi-ip>:3000](http://<pi-ip>:3000). Replace `<pi-ip>` with the Pi's address on your LAN. If the backend runs on another host, adjust the `REACT_APP_API_BASE` variable accordingly.
+
+Which can be done by typing in on the terminal `hostname -I`
 
 ## 4. Launch both services together (optional)
 
