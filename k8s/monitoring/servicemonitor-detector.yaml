@@ -15,8 +15,6 @@ spec:
     - port: http
       path: /metrics
       interval: 15s
-
-      # If your API serves HTTPS inside the pod, uncomment:
-      # scheme: https
-      # tlsConfig:
-      #   insecureSkipVerify: true
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: true
