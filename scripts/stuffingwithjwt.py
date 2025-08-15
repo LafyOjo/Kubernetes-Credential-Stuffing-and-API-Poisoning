@@ -12,6 +12,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--attempts", type=int, default=50, help="Number of attempts to send"
     )
+    parser.add_argument("--user", default="alice", help="User to target")
     parser.add_argument(
         "--score-base", default="http://localhost:8001", help="Detector API base URL"
     )
@@ -34,5 +35,6 @@ if __name__ == "__main__":
         shop_url=args.shop_url,
         api_key=args.api_key,
         chain_url=args.chain_url,
+        user=args.user,
     )
 
