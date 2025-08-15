@@ -197,6 +197,10 @@ server starts your default browser opens the shop home page automatically at
   $ curl -X POST http://localhost:8001/register \
     -H "Content-Type: application/json" \
     -d '{"username":"ben","password":"ILikeN1G3R!A##?"}'
+
+  $ curl -X POST http://localhost:8001/register \
+    -H "Content-Type: application/json" \
+    -d '{"username": "your_admin_username", "password": "your_password", "role": "admin"}'
   ```
    After registering with the detector service, send the same credentials to
    Demo Shop so both backends share the account:

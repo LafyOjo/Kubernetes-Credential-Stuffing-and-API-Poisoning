@@ -55,7 +55,7 @@ export async function apiFetch(path, options = {}) {
   }
 
   if (reauthRequired && !skipAuth && !skipReauth) {
-    const pw = window.prompt("Please enter your password:");
+    const pw = window.prompt("Please re-enter your password:");
     if (!pw) {
       logout();
       return new Response(null, { status: 401 });
@@ -68,7 +68,7 @@ export async function apiFetch(path, options = {}) {
     return resp;
   }
 
-  const pw = window.prompt("Please enter your password:");
+  const pw = window.prompt("Please re-enter your password:");
   if (!pw) {
     logout();
     return resp;
