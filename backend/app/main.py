@@ -53,7 +53,12 @@ allow_origins = [
     "http://localhost:8001",
     "http://127.0.0.1:8001",
     "http://localhost:8000",
-    "http://127.0.0.1:8000",    
+    "http://127.0.0.1:8000",
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "http://raspberrypi:3000", 
+    "http://raspberrypi.local:3000",
+    "http://<PI_IP>:3000",
 ]
 
 app.add_middleware(

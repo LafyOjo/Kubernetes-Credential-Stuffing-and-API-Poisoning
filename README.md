@@ -72,8 +72,6 @@ Canceling the prompt or entering the wrong password logs you out and
 returns to the login screen. Set `REAUTH_PER_REQUEST=false` in `.env` if
 you prefer to disable this extra check.
 
-
-
 Example `.env`:
 
 ```env
@@ -325,7 +323,7 @@ demonstration purposes and no license or ownership is claimed.
 7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n demo-shop 3005:80   -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
+   kubectl port-forward svc/front-end -n demo-shop 3005:80 `or you can use npm start whilst in the frontend directory` -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
    kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
    kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
    kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
