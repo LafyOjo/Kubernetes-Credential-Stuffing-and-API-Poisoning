@@ -1,40 +1,64 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Shop</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo Shop</title>
+  <link rel="stylesheet" href="/style.css" />
+  <!-- Expose APIShield key to JS for audit logging to /api/audit/log (demo only) -->
+  <meta name="apishield-key" content="demo-key" />
 </head>
 <body>
-    <header class="mb-4">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand brand" href="/">
-                  <span class="brand-mark"></span> Demo Shop
-                </a>
-                <div class="d-flex">
-                    <button class="btn btn-light me-2" id="homeBtn">Home</button>
-                    <button class="btn btn-light me-2" id="aboutBtn">About</button>
-                    <button class="btn btn-light me-2" id="servicesBtn">Services</button>
-                    <button class="btn btn-light me-2" id="contactBtn">Contact</button>
-                    <button class="btn btn-light me-2" id="cartBtn">Cart (<span id="cartCount">0</span>)</button>
-                    <button class="btn btn-light me-2" id="statsBtn">API Calls</button>
-                    <span id="authSection">
-                        <button class="btn btn-success me-2" id="loginBtn">Login</button>
-                        <button class="btn btn-danger me-2" id="logoutBtn" style="display:none">Logout</button>
-                    </span>
-                </div>
-            </div>
-        </nav>
-    </header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">Demo<span>Shop</span></div>
+      <nav class="nav">
+        <button id="homeBtn" class="link">Home</button>
+        <button id="menBtn" class="link">Men</button>
+        <button id="womenBtn" class="link">Women</button>
+        <button id="accessBtn" class="link">Accessories</button>
+        <button id="servicesBtn" class="link">Services</button>
+        <button id="contactBtn" class="link">Contact</button>
+      </nav>
+      <div class="actions">
+        <button id="statsBtn" class="icon" title="API Calls">📈</button>
+        <button id="cartBtn" class="icon" title="Cart">🛒 <span id="cartCount" class="badge">0</span></button>
+        <button id="profileBtn" class="link">Profile</button>
+        <button id="loginBtn" class="btn">Login</button>
+        <button id="logoutBtn" class="btn ghost" style="display:none">Logout</button>
+      </div>
+    </div>
+  </header>
 
-    <main class="container stack" id="content"></main>
-    <div id="message" class="alert alert-success position-fixed top-0 end-0 p-2 m-2" style="display:none; z-index:1000"></div>
+  <!-- hero -->
+  <section id="hero" class="hero">
+    <video id="heroVideo" autoplay muted loop playsinline poster="/images/hero-poster.jpg">
+      <source src="/media/hero.mp4" type="video/mp4" />
+    </video>
+    <div class="hero-overlay">
+      <p class="eyebrow">THE NEW TREE RUNNER NZ AND CRUISER</p>
+      <h1>New shoes, (even) more comfort.</h1>
+      <div class="row">
+        <button id="shopMenBtn" class="btn">Shop Men</button>
+        <button id="shopWomenBtn" class="btn ghost">Shop Women</button>
+      </div>
+    </div>
+  </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <script src="app.js"></script>
+  <main class="container">
+    <div id="message" class="alert" style="display:none"></div>
+    <div id="content" class="stack"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="muted">© Demo Shop • Built for APIShield+ demos</p>
+    </div>
+  </footer>
+
+  <script>
+    window.APISHIELD_KEY = document.querySelector('meta[name="apishield-key"]').content || 'demo-key';
+  </script>
+  <script src="/app.js"></script>
 </body>
 </html>
