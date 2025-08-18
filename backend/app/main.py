@@ -1,11 +1,8 @@
-# backend/app/main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
 import os
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
-# Import the database engine and Base from your db module
 from app.core.db import Base, engine
 
 from app.core.zero_trust import ZeroTrustMiddleware
@@ -28,77 +25,66 @@ from app.api.access_logs import router as access_logs_router
 from app.api.audit import router as audit_router
 from app.api.auth_events import router as auth_events_router
 
-# --- FIX START ---
-# Create the database tables on startup BEFORE adding middleware or routes.
-# This ensures that any middleware that accesses the database will find the tables it needs.
+# Create DB tables before any middlewares/routes might touch the DB
 Base.metadata.create_all(bind=engine)
-# --- FIX END ---
 
 app = FastAPI(title="APIShield+")
 
-allow_origins = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3005",
-    "http://127.0.0.1:3005",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-    "http://localhost:8001",
-    "http://127.0.0.1:8001",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "http://localhost:3000", 
-    "http://127.0.0.1:3000",
-    "http://raspberrypi:3000", 
-    "http://raspberrypi.local:3000",
-    "http://<PI_IP>:3000",
-]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allow_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Log incoming requests and any presented Authorization headers
+# Observability/logging
 app.add_middleware(APILoggingMiddleware)
 app.add_middleware(MetricsMiddleware)
 app.add_middleware(AccessLogMiddleware)
 
-# Enforce Zero Trust API key if configured
-app.add_middleware(ZeroTrustMiddleware)
-app.add_middleware(ReAuthMiddleware)
-# Apply risk-based policy engine
+# Security layers
+app.add_middleware(ZeroTrustMiddleware)   # requires X-API-Key when configured
+app.add_middleware(ReAuthMiddleware)      # per-request password guard
 app.add_middleware(PolicyEngineMiddleware)
 
-# Optional ML-driven anomaly detection
+# Optional anomaly detection
 if os.getenv("ANOMALY_DETECTION", "false").lower() == "true":
     app.add_middleware(AnomalyDetectionMiddleware)
 
-# Note: The duplicate app.add_middleware(PolicyEngineMiddleware) that was here has been removed.
+# Routers
+app.include_router(score_router)            # /score
+app.include_router(alerts_router)           # /api/alerts
+app.include_router(auth_router)             # /register, /login, /api/token
+app.include_router(config_router)           # /config
+app.include_router(security_router)         # /api/security
+app.include_router(user_stats_router)       # /api/user-calls
+app.include_router(events_router)           # /api/events
+app.include_router(last_logins_router)      # /api/last-logins
+app.include_router(access_logs_router)      # /api/access-logs
+app.include_router(audit_router)            # /api/audit/log
+app.include_router(auth_events_router)      # /events/auth
+
+# If your repo has credential_stuffing router, include it (safe optional import)
+try:
+    from app.api.credential_stuffing import router as credential_stuffing_router
+    app.include_router(credential_stuffing_router)   # /api/credential-stuffing-stats
+except Exception:
+    pass
 
 @app.get("/metrics", include_in_schema=False)
 def metrics() -> Response:
-    """Expose Prometheus metrics."""
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-
-
-app.include_router(score_router)      # your /score endpoint
-app.include_router(alerts_router)     # your /api/alerts endpoint
-app.include_router(auth_router)       # /register, /login, /api/token
-app.include_router(config_router)     # /config
-app.include_router(security_router)   # /api/security
-app.include_router(user_stats_router) # /api/user-calls
-app.include_router(events_router)     # /api/events
-app.include_router(last_logins_router)  # /api/last-logins
-app.include_router(access_logs_router)  # /api/access-logs
-app.include_router(audit_router)      # /api/audit/log
-app.include_router(auth_events_router)  # /events/auth
-# app.include_router(credential_stuffing_router)  # /api/credential-stuffing-stats
 
 @app.get("/ping")
 def ping():
     return {"message": "pong"}
+
+app.add_middleware(
+    CORSMiddleware,
+    # accept http or https, localhost or 127.0.0.1, any port
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    # keep a short explicit allowlist for anything not covered by the regex
+    allow_origins=[
+        "http://raspberrypi:3000",
+        "http://raspberrypi.local:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],     # lets browser send Authorization, X-API-Key, X-Reauth-Password, etc.
+    expose_headers=["*"],
+    max_age=86400,           # cache preflights
+)

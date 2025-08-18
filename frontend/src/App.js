@@ -13,13 +13,13 @@ import "./App.css";
 
 function App() {
   const [refreshKey, setRefreshKey] = useState(0);
-
   const [token, setToken] = useState(localStorage.getItem(AUTH_TOKEN_KEY));
   const [selectedUser, setSelectedUser] = useState("alice");
+
+  // Theme (persisted)
   const [isDark, setIsDark] = useState(
     () => localStorage.getItem("theme") === "dark"
   );
-
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -32,20 +32,9 @@ function App() {
     localStorage.setItem("theme", isDark ? "dark" : "light");
   }, [isDark]);
 
-  function toggleTheme() {
-    setIsDark((d) => !d);
-  }
+  const toggleTheme = () => setIsDark((d) => !d);
 
-  const handleLogout = async () => {
-    const username = localStorage.getItem(USERNAME_KEY);
-    await logAuditEvent("user_logout", username);
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    if (username) {
-      localStorage.removeItem(USERNAME_KEY);
-    }
-    setToken(null);
-  };
-
+  // Keep token in sync across tabs
   useEffect(() => {
     const interval = setInterval(() => {
       const current = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -59,19 +48,42 @@ function App() {
     setRefreshKey((k) => k + 1);
   }, [token]);
 
+  const handleLogout = async () => {
+    const username = localStorage.getItem(USERNAME_KEY);
+    await logAuditEvent("user_logout", username);
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    if (username) localStorage.removeItem(USERNAME_KEY);
+    setToken(null);
+  };
+
   if (!token) {
-    return <LoginForm onLogin={setToken} />;
+    return (
+      <div className="app-container stack">
+        <header className="header bar">
+          <h1 className="dashboard-header">APIShield+ Dashboard</h1>
+          <div className="row">
+            <button className="btn secondary" onClick={toggleTheme}>
+              {isDark ? "Light mode" : "Dark mode"}
+            </button>
+          </div>
+        </header>
+        <section className="card">
+          <h2 className="section-title">Please sign in</h2>
+          <LoginForm onLogin={setToken} />
+        </section>
+      </div>
+    );
   }
 
   return (
     <div className="app-container stack">
-      <header className="dashboard-header">
-        <h1>APIShield+ Dashboard</h1>
+      <header className="header bar">
+        <h1 className="dashboard-header">APIShield+ Dashboard</h1>
         <div className="row">
           <button className="btn secondary" onClick={toggleTheme}>
             {isDark ? "Light mode" : "Dark mode"}
           </button>
-          <button className="btn secondary" onClick={handleLogout}>
+          <button className="btn danger" onClick={handleLogout}>
             Logout
           </button>
         </div>
@@ -86,10 +98,7 @@ function App() {
       </section>
 
       <section className="card">
-        <ScoreForm
-          token={token}
-          onNewAlert={() => setRefreshKey((k) => k + 1)}
-        />
+        <ScoreForm token={token} onNewAlert={() => setRefreshKey((k) => k + 1)} />
       </section>
 
       <section className="card">
@@ -117,4 +126,3 @@ function App() {
 }
 
 export default App;
-

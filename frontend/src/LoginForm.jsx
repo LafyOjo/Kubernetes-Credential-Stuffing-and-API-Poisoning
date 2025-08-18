@@ -31,50 +31,19 @@ export default function LoginForm({ onLogin }) {
   return (
     <div className="center" style={{ minHeight: "100vh", padding: "2rem" }}>
       <div className="card" style={{ width: "100%", maxWidth: 420 }}>
-        <div className="card-header">
-          <div className="brand">
-            <span className="brand-mark" />APIShield+
-          </div>
-        </div>
+        <div className="card-header"><div className="brand"><span className="brand-mark" />APIShield+</div></div>
         <h2 style={{ margin: 0, marginBottom: "0.5rem" }}>Sign in</h2>
-        <p
-          className="subtle"
-          style={{ marginTop: 0, marginBottom: "1rem" }}
-        >
-          Enter your credentials to access the dashboard
-        </p>
+        <p className="subtle" style={{ marginTop: 0, marginBottom: "1rem" }}>Enter your credentials to access the dashboard</p>
         <form className="form" onSubmit={handleSubmit}>
-          <div className="field">
-            <label className="label">Username</label>
-            <input
-              className="input"
-              name="username"
-              type="text"
-              placeholder="alice"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+          <div className="field"><label className="label">Username</label>
+            <input className="input" name="username" type="text" placeholder="alice" required value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
-          <div className="field">
-            <label className="label">Password</label>
-            <input
-              className="input"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+          <div className="field"><label className="label">Password</label>
+            <input className="input" name="password" type="password" placeholder="••••••••" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <button className="btn" type="submit">
-            Sign in
-          </button>
+          <button className="btn" type="submit">Sign in</button>
         </form>
-        {error && (
-          <p style={{ color: "var(--danger)", marginTop: "1rem" }}>{error}</p>
-        )}
+        {error && (<p style={{ color: "var(--danger)", marginTop: "1rem" }}>{error}</p>)}
       </div>
     </div>
   );

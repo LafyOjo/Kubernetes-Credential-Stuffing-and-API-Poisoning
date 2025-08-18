@@ -1,27 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { USER_DATA } from "./UserAccounts";
-import { apiFetch, API_BASE } from "./api";
+import { apiFetch } from "./api";
 const SHOP_URL = process.env.REACT_APP_SHOP_URL || "http://localhost:3005";
 
-const DUMMY_PASSWORDS = [
-  "wrongpass",
-  "123456",
-  "password1",
-  "secret",
-  "letmein",
-];
+const DUMMY_PASSWORDS = ["wrongpass", "123456", "password1", "secret", "letmein"];
 
 async function recordStuffingAttempt({ user, success }) {
   try {
     await apiFetch("/events/auth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user,
-        action: "stuffing_attempt",
-        success,
-        source: "apishield+",
-      }),
+      body: JSON.stringify({ user, action: "stuffing_attempt", success, source: "apishield+" }),
       skipReauth: true,
     });
   } catch (err) {
@@ -32,42 +21,17 @@ async function recordStuffingAttempt({ user, success }) {
 export default function AttackSim({ user }) {
   const [targetUser, setTargetUser] = useState(user || "alice");
 
-  useEffect(() => {
-    if (user) {
-      setTargetUser(user);
-    }
-  }, [user]);
+  useEffect(() => { if (user) setTargetUser(user); }, [user]);
 
   useEffect(() => {
     async function ensureUsers() {
       for (const [name, info] of Object.entries(USER_DATA)) {
         try {
-          await apiFetch("/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: name, password: info.password }),
-            skipReauth: true,
-          });
-          await fetch(`${SHOP_URL}/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: name, password: info.password }),
-          });
-          await fetch(`${SHOP_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username: name, password: info.password }),
-            credentials: "include",
-          });
-          await fetch(`${SHOP_URL}/cart`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ productId: 1 }),
-            credentials: "include",
-          });
-        } catch (err) {
-          // ignore errors (likely already registered)
-        }
+          await apiFetch("/register", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: name, password: info.password }), skipReauth: true });
+          await fetch(`${SHOP_URL}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: name, password: info.password }) });
+          await fetch(`${SHOP_URL}/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: name, password: info.password }), credentials: "include" });
+          await fetch(`${SHOP_URL}/cart`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ productId: 1 }), credentials: "include" });
+        } catch {}
       }
     }
     ensureUsers();
@@ -82,201 +46,94 @@ export default function AttackSim({ user }) {
   const fetchChainToken = async () => {
     try {
       const resp = await apiFetch("/api/security/chain", { skipReauth: true });
-      if (resp.status === 401) {
-        setError("Unauthorized to fetch chain token");
-        return null;
-      }
-      if (resp.ok) {
-        const data = await resp.json();
-        setChainToken(data.chain);
-        return data.chain;
-      }
-    } catch (err) {
-      console.error("Chain fetch error", err);
-    }
+      if (resp.status === 401) { setError("Unauthorized to fetch chain token"); return null; }
+      if (resp.ok) { const data = await resp.json(); setChainToken(data.chain); return data.chain; }
+    } catch (err) { console.error("Chain fetch error", err); }
     return null;
   };
 
   const simulateAttack = async () => {
-    setRunning(true);
-    setResults(null);
-    setError(null);
-    setChainToken(null);
-    let securityEnabled = false;
-    let currentChain = null;
+    setRunning(true); setResults(null); setError(null); setChainToken(null);
+    let securityEnabled = false; let currentChain = null;
+
     try {
       const secResp = await apiFetch("/api/security", { skipReauth: true });
-      if (secResp.status === 401) {
-        setError("Unauthorized to check security state");
-        setRunning(false);
-        return;
-      }
-      if (secResp.ok) {
-        const data = await secResp.json();
-        securityEnabled = data.enabled;
-        if (securityEnabled) {
-          currentChain = await fetchChainToken();
-        }
-      }
-    } catch (err) {
-      console.error("Security state error", err);
-    }
-    let successes = 0;
-    let blocked = 0;
-    let firstAttempt = null;
-    let firstTime = null;
-    let firstInfo = null;
-    let firstCart = null;
+      if (secResp.status === 401) { setError("Unauthorized to check security state"); setRunning(false); return; }
+      if (secResp.ok) { const data = await secResp.json(); securityEnabled = data.enabled; if (securityEnabled) currentChain = await fetchChainToken(); }
+    } catch (err) { console.error("Security state error", err); }
 
+    let successes = 0; let blocked = 0; let firstAttempt = null; let firstTime = null; let firstInfo = null; let firstCart = null;
     const start = performance.now();
 
     for (let i = 0; i < attemptsInput; i++) {
       const pwd = DUMMY_PASSWORDS[i % DUMMY_PASSWORDS.length];
-      let loginOk = false;
-      let token = null;
-      try {
-        const resp = await fetch(`${API_BASE}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: targetUser, password: pwd }),
-        });
-        loginOk = resp.ok;
-        if (loginOk) {
-          const data = await resp.json();
-          token = data.access_token;
-        }
-      } catch (err) {
-        console.error("Login error", err);
-      }
+      let loginOk = false; let token = null;
 
-      await recordStuffingAttempt({
-        user: targetUser,
-        success: loginOk,
-      });
+      try {
+        const resp = await apiFetch(`/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: targetUser, password: pwd }), skipReauth: true });
+        loginOk = resp.ok; if (loginOk) { const data = await resp.json(); token = data.access_token; }
+      } catch (err) { console.error("Login error", err); }
+
+      await recordStuffingAttempt({ user: targetUser, success: loginOk });
 
       let shopOk = false;
       try {
-        const shopResp = await fetch(`${SHOP_URL}/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: targetUser, password: pwd }),
-          credentials: "include",
-        });
+        const shopResp = await fetch(`${SHOP_URL}/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: targetUser, password: pwd }), credentials: "include" });
         shopOk = shopResp.status === 200;
-      } catch (err) {
-        console.error("Shop login error", err);
-      }
+      } catch (err) { console.error("Shop login error", err); }
 
       try {
         const headers = { "Content-Type": "application/json" };
-        if (securityEnabled && currentChain) {
-          headers["X-Chain-Password"] = currentChain;
-        }
-        const scoreResp = await apiFetch("/score", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            client_ip: "10.0.0.1",
-            auth_result: loginOk ? "success" : "failure",
-          }),
-          skipReauth: true,
-        });
-        if (scoreResp.ok) {
-          const data = await scoreResp.json();
-          if (data.status === "blocked") {
-            blocked++;
-          }
-        } else {
-          blocked++;
-          if (scoreResp.status === 401) {
-            setError("Attack blocked by security");
-          }
-        }
-      } catch (err) {
-        console.error("Score error", err);
-      }
+        if (securityEnabled && currentChain) headers["X-Chain-Password"] = currentChain;
+        const scoreResp = await apiFetch("/score", { method: "POST", headers, body: JSON.stringify({ client_ip: "10.0.0.1", auth_result: loginOk ? "success" : "failure" }), skipReauth: true });
+        if (scoreResp.ok) { const data = await scoreResp.json(); if (data.status === "blocked") blocked++; }
+        else if (scoreResp.status === 401) { blocked++; setError("Attack blocked by security"); }
+      } catch (err) { console.error("Score error", err); }
 
-      if (securityEnabled) {
-        currentChain = await fetchChainToken();
-      }
+      if (securityEnabled) currentChain = await fetchChainToken();
 
       if (loginOk) {
         successes++;
         if (firstAttempt === null) {
-          firstAttempt = i + 1;
-          firstTime = (performance.now() - start) / 1000;
+          firstAttempt = i + 1; firstTime = (performance.now() - start) / 1000;
           if (token) {
             try {
-              const infoResp = await apiFetch("/api/me", {
-                headers: { Authorization: `Bearer ${token}` },
-                skipReauth: true,
-              });
-              if (infoResp.status === 401) {
-                setError("Failed to fetch user info");
-              } else if (infoResp.ok) {
-                firstInfo = await infoResp.json();
-              }
-            } catch (err) {
-              console.error("Info error", err);
-            }
+              const infoResp = await apiFetch("/api/me", { headers: { Authorization: `Bearer ${token}` }, skipReauth: true });
+              if (infoResp.status === 401) setError("Failed to fetch user info");
+              else if (infoResp.ok) firstInfo = await infoResp.json();
+            } catch (err) { console.error("Info error", err); }
           }
         }
       }
 
       if (shopOk && firstCart === null) {
         try {
-          const cartResp = await fetch(`${SHOP_URL}/cart`, {
-            credentials: "include",
-          });
-          if (cartResp.ok) {
-            firstCart = await cartResp.json();
-          }
-        } catch (err) {
-          console.error("Fetch shop info", err);
-        }
+          const cartResp = await fetch(`${SHOP_URL}/cart`, { credentials: "include" });
+          if (cartResp.ok) firstCart = await cartResp.json();
+        } catch (err) { console.error("Fetch shop info", err); }
       }
 
-      setResults({
-        attempts: i + 1,
-        successes,
-        blocked,
-        first_success_attempt: firstAttempt,
-        first_success_time: firstTime,
-        first_user_info: firstInfo,
-        first_cart: firstCart,
-      });
-
+      setResults({ attempts: i + 1, successes, blocked, first_success_attempt: firstAttempt, first_success_time: firstTime, first_user_info: firstInfo, first_cart: firstCart });
       await new Promise((res) => setTimeout(res, 100));
     }
 
-    const totalTime = (performance.now() - start) / 1000;
-    setResults((r) => ({ ...r, total_time: totalTime }));
-    setRunning(false);
+    const totalTime = (performance.now() - start) / 1000; setResults((r) => ({ ...r, total_time: totalTime })); setRunning(false);
   };
 
   return (
     <div className="attack-sim">
       <h2>Credential Stuffing Simulation</h2>
       <div className="attack-controls">
-        <label>
-          Target User:
+        <label>Target User:
           <select value={targetUser} onChange={(e) => setTargetUser(e.target.value)}>
             <option value="alice">Alice</option>
             <option value="ben">Ben</option>
           </select>
         </label>
-        <label>
-          Attempts:
-          <input
-            type="number"
-            min="1"
-            value={attemptsInput}
-            onChange={(e) => setAttemptsInput(parseInt(e.target.value, 10))}
-          />
+        <label>Attempts:
+          <input type="number" min="1" value={attemptsInput} onChange={(e) => setAttemptsInput(parseInt(e.target.value, 10))} />
         </label>
-        <button onClick={simulateAttack} disabled={running}>
-          {running ? "Running..." : "Start Attack"}
-        </button>
+        <button onClick={simulateAttack} disabled={running}>{running ? "Running..." : "Start Attack"}</button>
       </div>
       {error && <p className="error-text">{error}</p>}
       {results && (
@@ -285,27 +142,12 @@ export default function AttackSim({ user }) {
           <p>Successful Logins: {results.successes}</p>
           {results.first_success_attempt && (
             <>
-              <p>
-                First Success: attempt {results.first_success_attempt} (in{' '}
-                {results.first_success_time?.toFixed(2)}s)
-              </p>
-              {results.first_user_info && (
-                <p>
-                  User Info{' '}
-                  <code>{JSON.stringify(results.first_user_info)}</code>
-                </p>
-              )}
-              {results.first_cart && (
-                <>
-                  <h4>Stolen Cart Items</h4>
-                  <pre>{JSON.stringify(results.first_cart, null, 2)}</pre>
-                </>
-              )}
+              <p>First Success: attempt {results.first_success_attempt} (in {results.first_success_time?.toFixed(2)}s)</p>
+              {results.first_user_info && (<p>User Info <code>{JSON.stringify(results.first_user_info)}</code></p>)}
+              {results.first_cart && (<><h4>Stolen Cart Items</h4><pre>{JSON.stringify(results.first_cart, null, 2)}</pre></>)}
             </>
           )}
-          {results.total_time && (
-            <p>Total Time: {results.total_time.toFixed(2)}s</p>
-          )}
+          {results.total_time && (<p>Total Time: {results.total_time.toFixed(2)}s</p>)}
         </div>
       )}
     </div>

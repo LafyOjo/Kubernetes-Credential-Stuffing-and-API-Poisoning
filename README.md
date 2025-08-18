@@ -280,8 +280,10 @@ demonstration purposes and no license or ownership is claimed.
 1. Spin up a local cluster to run the detector service:
 
    ```bash
-   bash infra/kind/up.sh
+   bash infra/kind/up.sh 
    ```
+
+   `if there was a previous cluster running or if there are errors use` ---> bash infra/kind/down.sh then re-run the bash command infra/kind/up.sh
 
    The script creates a kind cluster and installs Prometheus and Grafana. Start
    the demo shop separately with:
@@ -332,7 +334,8 @@ demonstration purposes and no license or ownership is claimed.
    remain in the `Pending` state. Check its status with:
 
    ```bash
-   kubectl get pods -n demo
+   kubectl get pods -n demo ---> "if nothing shows up then move onto the next step (no. 6) then come back and run this command again"
+  
    ```
 
 6. Deploy the Kubernetes manifests:
@@ -344,16 +347,16 @@ demonstration purposes and no license or ownership is claimed.
 7. Access the services using port-forwarding (in separate terminals):
 
    ```bash
-   kubectl port-forward svc/front-end -n demo-shop 3005:80 `or you can use npm start whilst in the frontend directory` -> open 'http://localhost:3005' in your browser to view the Demo Shop UI
-   kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
-   kubectl port-forward svc/kube-prom-prometheus -n monitoring 9090 or kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
-   kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
+   1. "use `npm start` whilst in the frontend directory -> open 'http://localhost:3005' in your browser to view the Demo Shop UI"
+   2. kubectl port-forward svc/detector -n demo 8001:8001            # Detector API & metrics (HTTPS)
+   3. kubectl port-forward svc/kube-prom-kube-prometheus-prometheus -n monitoring 9090
+   4. kubectl port-forward svc/kube-prom-grafana -n monitoring 3001:80
    ```
 
    Verify the API is reachable via HTTPS:
 
    ```bash
-   curl -k https://localhost:8001/ping
+   curl -k https://localhost:8001/ping "This should return with a response of `{message": "pong"}` "
    ```
 
 8. Generate traffic to observe detections:
