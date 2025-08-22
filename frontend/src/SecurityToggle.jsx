@@ -29,12 +29,14 @@ export default function SecurityToggle() {
   }, []);
 
   const toggle = async () => {
+    setError(null);
     try {
       const resp = await apiFetch("/api/security", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled: !enabled }),
-        skipReauth: true,
+        // <-- user-initiated action: prompt before the request
+        forceReauth: true,
       });
       if (resp.ok) {
         const data = await resp.json();

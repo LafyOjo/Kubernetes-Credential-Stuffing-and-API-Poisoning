@@ -1,4 +1,12 @@
-# backend/app/api/score.py
+
+# This module defines the /score endpoint and related helpers.
+# Its job is to track login attempts, raise alerts when 
+# failures stack up, and block abusive clients (e.g. bots 
+# doing credential stuffing). 
+#
+# It integrates with Prometheus (for metrics), the database 
+# (to store alerts), and the in-memory FAILED_USER_ATTEMPTS 
+# dict (for quick per-user rate limiting).
 
 from typing import Any, Dict
 from datetime import datetime, timedelta, timezone
@@ -13,24 +21,28 @@ import app.api.security as security
 from app.core.events import log_event
 
 router = APIRouter(
-    prefix="",            # no /api prefix for /score
+    prefix="",            
     tags=["score"],
     responses={404: {"description": "Not Found"}},
 )
 
-# Threshold for failures before blocking and the time window to count them.
-# Environment variables can override the defaults for easier tuning.
+
+# FAIL_LIMIT: how many failed logins are allowed before blocking
+# FAIL_WINDOW_SECONDS: the time window in which to count failures
+# Both can be overridden with environment variables so tests 
+# and deployments can easily adjust security sensitivity.
 DEFAULT_FAIL_LIMIT = int(os.getenv("FAIL_LIMIT", "5"))
 DEFAULT_FAIL_WINDOW_SECONDS = int(os.getenv("FAIL_WINDOW_SECONDS", "60"))
 
-# Prometheus counter for total login attempts, labeled by IP
+
+# These let us track how many attempts are happening, broken
+# down by IP and whether a JWT was included or not.
 LOGIN_ATTEMPTS = Counter(
     "login_attempts_ip_total",
     "Total login attempts by IP",
     ["ip"],
 )
 
-# Separate counters for requests that present a JWT vs those that do not.
 JWT_LOGIN_ATTEMPTS = Counter(
     "login_attempts_jwt_total",
     "Login attempts that included a JWT",
@@ -43,16 +55,20 @@ NO_JWT_LOGIN_ATTEMPTS = Counter(
     ["ip"],
 )
 
-# How many times blocking was triggered (credential stuffing detections)
 STUFFING_DETECTIONS = Counter(
     "credential_stuffing_total",
     "Detected credential stuffing attempts",
     ["ip"],
 )
 
+# In-memory tracker for per-user failed attempts
 FAILED_USER_ATTEMPTS: Dict[int, list[datetime]] = {}
 
 
+
+# Helper to check if a user_id has exceeded their failure
+# threshold within the configured window. This is per-user,
+# not per-IP. Returns True if the account should be locked.
 def is_rate_limited(db: Session, user_id: int, limit: int) -> bool:
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
     now = datetime.now(timezone.utc)
@@ -62,6 +78,11 @@ def is_rate_limited(db: Session, user_id: int, limit: int) -> bool:
     return len(attempts) >= limit
 
 
+# Main function that records a login attempt (success/failure).
+# - Always increments Prometheus metrics.
+# - Clears per-user failures on success.
+# - Logs events for monitoring.
+# - Blocks IPs if too many failures happened in the time window.
 def record_attempt(
     db: Session,
     client_ip: str,
@@ -73,20 +94,23 @@ def record_attempt(
     fail_limit: int | None = None,
     username: str | None = None,
 ) -> Dict[str, Any]:
-    """Record a login attempt and return the same structure as ``score``."""
+    """Record a login attempt and return a JSON status."""
 
+    # Track attempt in Prometheus
     LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
     if with_jwt:
         JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
     else:
         NO_JWT_LOGIN_ATTEMPTS.labels(ip=client_ip).inc()
 
+    # If success, reset counters and mark event
     if success:
         if user_id is not None:
             FAILED_USER_ATTEMPTS.pop(user_id, None)
         log_event(db, username, "stuffing_attempt", True)
         return {"status": "ok", "fails_last_minute": 0}
 
+    # If failure, count how many recent fails for this IP
     ip_fail_limit = int(os.getenv("FAIL_LIMIT", DEFAULT_FAIL_LIMIT))
     window_seconds = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
     window_start = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
@@ -97,10 +121,9 @@ def record_attempt(
         .count()
     )
 
+    # Track failures per-user as well
     if user_id is not None:
-        window_seconds_user = int(
-            os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS)
-        )
+        window_seconds_user = int(os.getenv("FAIL_WINDOW_SECONDS", DEFAULT_FAIL_WINDOW_SECONDS))
         now = datetime.now(timezone.utc)
         attempts = FAILED_USER_ATTEMPTS.get(user_id, [])
         attempts = [t for t in attempts if now - t < timedelta(seconds=window_seconds_user)]
@@ -109,10 +132,10 @@ def record_attempt(
             attempts = attempts[-fail_limit:]
         FAILED_USER_ATTEMPTS[user_id] = attempts
 
-    # Record the failed attempt for the event log.  The username is unknown at
-    # this stage so ``None`` is stored.
+    # Log failed attempt in event log
     log_event(db, username, "stuffing_attempt", False)
 
+    # If security is enabled and too many fails → BLOCK
     if security.SECURITY_ENABLED and fail_count >= ip_fail_limit:
         STUFFING_DETECTIONS.labels(ip=client_ip).inc()
         log_event(db, None, "stuffing_block", True)
@@ -126,6 +149,7 @@ def record_attempt(
         db.refresh(alert)
         return {"status": "blocked", "fails_last_minute": fail_count + 1}
 
+    # Otherwise just log the failed attempt as an alert
     alert = Alert(
         ip_address=client_ip,
         total_fails=fail_count + 1,
@@ -137,23 +161,27 @@ def record_attempt(
     return {"status": "ok", "fails_last_minute": fail_count + 1}
 
 
+
+# Accepts POST payload:
+# {
+#   "client_ip": "10.0.0.1",
+#   "auth_result": "success" | "failure",
+#   "with_jwt": true/false,
+#   "username": "alice"
+# }
+#
+# Returns a dict like:
+# { "status": "ok"|"blocked", "fails_last_minute": <int> }
 @router.post("/score", response_model=Dict[str, Any])
 def score(payload: Dict[str, Any], request: Request, db: Session = Depends(get_db)):
     """
-    Expect JSON body:
-        {
-            "client_ip": "10.0.0.1",
-            "auth_result": "failure" | "success",
-            "with_jwt": true | false,   # optional flag to indicate a JWT was used
-            "username": "alice",        # optional: the user being targeted
-        }
-    Always increment the Prometheus counter. If "failure", record a row in the alerts
-    table and possibly block if there are too many failures within the configured
-    time window. The defaults are 5 failures within 60 seconds but can be adjusted
-    via the FAIL_LIMIT and FAIL_WINDOW_SECONDS environment variables.
+    Core scoring endpoint that receives login results from 
+    the frontend. It validates input, records attempts, and
+    enforces credential stuffing protection rules.
     """
     if security.SECURITY_ENABLED:
         try:
+            # Chain verification adds another Zero Trust layer
             security.verify_chain(request.headers.get("X-Chain-Password"))
         except HTTPException as exc:
             STUFFING_DETECTIONS.labels(ip=request.client.host).inc()

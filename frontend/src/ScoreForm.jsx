@@ -69,7 +69,6 @@ export default function ScoreForm({ token, onNewAlert }) {
           }
         }
       } catch (err) {
-        // ignore config errors and keep default
         console.error("Failed to fetch config", err);
       }
     };
@@ -77,35 +76,34 @@ export default function ScoreForm({ token, onNewAlert }) {
     verifyAdmin();
   }, [token]);
 
-  const handleSubmit = async e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
       const headers = { "Content-Type": "application/json" };
-      if (chain) {
-        headers["X-Chain-Password"] = chain;
-      }
+      if (chain) headers["X-Chain-Password"] = chain;
+
       const resp = await apiFetch("/score", {
         method: "POST",
         headers,
-        body: JSON.stringify({ client_ip: ip, auth_result: result, with_jwt: Boolean(token) }),
-        skipReauth: true,
+        body: JSON.stringify({
+          client_ip: ip,
+          auth_result: result,
+          with_jwt: Boolean(token),
+        }),
+        // <-- user-initiated action: prompt before the request
+        forceReauth: true,
       });
+
       if (!resp.ok) throw new Error(await resp.text());
       const data = await resp.json();
-      // if an alert was created, re-load the table
-      if (data.fails_last_minute > threshold) {
-        onNewAlert();
-      }
-      if (isAdmin) {
-        await fetchChain();
-      }
+
+      if (data.fails_last_minute > threshold) onNewAlert?.();
+      if (isAdmin) await fetchChain();
     } catch (err) {
       setError(err.message);
-      if (isAdmin) {
-        fetchChain();
-      }
+      if (isAdmin) fetchChain();
     }
   };
 
@@ -117,16 +115,13 @@ export default function ScoreForm({ token, onNewAlert }) {
           type="text"
           placeholder="e.g. 10.0.0.1"
           value={ip}
-          onChange={e => setIp(e.target.value)}
+          onChange={(e) => setIp(e.target.value)}
           required
         />
       </label>
       <label>
         Auth Result:
-        <select
-          value={result}
-          onChange={e => setResult(e.target.value)}
-        >
+        <select value={result} onChange={(e) => setResult(e.target.value)}>
           <option value="success">success</option>
           <option value="failure">failure</option>
         </select>
